@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ClipboardList, FileSpreadsheet } from "lucide-react";
+import {
+  ClipboardList,
+  FileSpreadsheet,
+  Layers,
+  Search,
+  Settings2,
+} from "lucide-react";
 
 import {
   Card,
@@ -11,18 +17,11 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "PathX workspace",
-  description: "PathX client modules for PathXdx partners.",
+  title: "Dashboard | PathX",
+  description: "PathX client workspace—quotes, tissue bank, LIMS, and more.",
 };
 
 const modules = [
-  {
-    href: "/pathx/lims",
-    title: "LIMS",
-    description:
-      "Laboratory information workflows—specimens, accessioning, and operational views (module scaffold).",
-    icon: ClipboardList,
-  },
   {
     href: "/pathx/quotebuilder",
     title: "Quote builder",
@@ -30,21 +29,48 @@ const modules = [
       "Configure service scopes and estimates for your studies (module scaffold).",
     icon: FileSpreadsheet,
   },
+  {
+    href: "/pathx/quotes",
+    title: "Quote finder",
+    description:
+      "Browse, search, and sort your saved quotes by date or organization.",
+    icon: Search,
+  },
+  {
+    href: "/pathx/admin/pricing",
+    title: "Admin / pricing",
+    description:
+      "Edit catalog unit prices, volume tiers, segment multipliers, and quote defaults.",
+    icon: Settings2,
+  },
+  {
+    href: "/pathx/tissue-bank",
+    title: "Tissue bank",
+    description:
+      "Tissue banking, inventory, storage, and retrieval requests (module scaffold).",
+    icon: Layers,
+  },
+  {
+    href: "/pathx/lims",
+    title: "LIMS",
+    description:
+      "Laboratory information workflows—specimens, accessioning, and operational views (module scaffold).",
+    icon: ClipboardList,
+  },
 ];
 
 export default function PathXHomePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight">PathX modules</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="mt-2 text-muted-foreground">
-          Authenticated tools for PathXdx clients. Additional modules can live
-          under <code className="rounded bg-muted px-1 py-0.5 text-xs">/pathx</code>{" "}
-          with the same sign-in gate.
+          Signed-in workspace for PathXdx clients. Open a module below or use
+          the navigation bar—each utility is its own page.
         </p>
       </div>
 
-      <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+      <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {modules.map((m) => (
           <li key={m.href}>
             <Link href={m.href} className="group block h-full">
@@ -56,7 +82,7 @@ export default function PathXHomePage() {
                 </CardHeader>
                 <CardContent>
                   <span className="text-sm font-medium text-primary group-hover:underline">
-                    Open module →
+                    Open →
                   </span>
                 </CardContent>
               </Card>

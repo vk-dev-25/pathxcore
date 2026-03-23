@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { PathXNav } from "@/components/pathx/pathx-nav";
 import { PathXSignOutButton } from "@/components/pathx/sign-out-button";
 import { Button } from "@/components/ui/button";
 
@@ -27,12 +28,13 @@ export function PathXShell({
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link href="/">Marketing site</Link>
+              <Link href="/">PathX Website</Link>
             </Button>
             <PathXSignOutButton />
           </div>
         </div>
       </header>
+      <PathXNav />
       <main className="flex-1">{children}</main>
     </div>
   );

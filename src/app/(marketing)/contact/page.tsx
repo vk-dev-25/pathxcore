@@ -110,7 +110,7 @@ export default function ContactPage() {
               administrator.
             </p>
             <Button asChild>
-              <Link href="/pathx/sign-in">Go to client sign in</Link>
+              <Link href="/pathx/sign-in">Sign in</Link>
             </Button>
           </CardContent>
         </Card>

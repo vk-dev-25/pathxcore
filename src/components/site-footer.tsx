@@ -16,11 +16,11 @@ export function SiteFooter() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <Image
-                src="/images/pathxdx-logo.svg"
+                src="/images/pathxlogo.jpeg"
                 alt="PathXdx"
-                width={152}
-                height={32}
-                className="h-8 w-auto opacity-95"
+                width={258}
+                height={236}
+                className="h-16 w-auto opacity-95 sm:h-[4.5rem]"
               />
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">

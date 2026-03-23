@@ -1,0 +1,310 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { useState } from "react";
+import { Printer } from "lucide-react";
+
+import type { PricingSettingsSnapshot } from "@/lib/quote-pricing";
+import { Button } from "@/components/ui/button";
+
+export function money(n: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(n);
+}
+
+export type QuotePreviewLine = {
+  label: string;
+  quantity: number;
+  unit_price: number;
+  lineTotal: number;
+  is_price_overridden: boolean;
+};
+
+function formatLongDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(
+      new Date(iso),
+    );
+  } catch {
+    return iso;
+  }
+}
+
+function validUntilIso(issueIso: string, validityDays: number) {
+  const d = new Date(issueIso);
+  d.setDate(d.getDate() + validityDays);
+  return d.toISOString();
+}
+
+function turnaroundLabel(rushPriority: boolean, rush2day: boolean): string {
+  if (rushPriority && rush2day) {
+    return "Priority and 1–2 business day expedited options";
+  }
+  if (rushPriority) {
+    return "Priority / rush turnaround";
+  }
+  if (rush2day) {
+    return "1–2 business day expedited";
+  }
+  return "3–5 business days (standard)";
+}
+
+function nearZero(n: number) {
+  return Math.abs(n) < 0.005;
+}
+
+export function QuotePreviewContent({
+  issueDateIso,
+  clientOrg,
+  contactName,
+  projectTitle,
+  quoteRef,
+  segmentLabel,
+  sampleVolume,
+  rushPriority,
+  rush2day,
+  notes,
+  lines,
+  totals,
+  pricingSettings,
+  footerExtra,
+}: {
+  /** Saved quotes pass DB `created_at`; builder omits to use a stable draft issue time. */
+  issueDateIso?: string;
+  clientOrg: string;
+  contactName: string;
+  projectTitle: string;
+  quoteRef: string;
+  segmentLabel: string;
+  sampleVolume: number;
+  rushPriority: boolean;
+  rush2day: boolean;
+  notes: string;
+  lines: QuotePreviewLine[];
+  totals: {
+    subtotal_amount: number;
+    segment_adjustment_amount: number;
+    after_segment_amount: number;
+    volume_discount_percent: number;
+    volume_discount_amount: number;
+    after_volume_amount: number;
+    rush_uplift_amount: number;
+    total_amount: number;
+  } | null;
+  pricingSettings: PricingSettingsSnapshot;
+  footerExtra?: ReactNode;
+}) {
+  const [draftIssueIso] = useState(() => new Date().toISOString());
+  const issueIso = issueDateIso ?? draftIssueIso;
+  const issuedLabel = formatLongDate(issueIso);
+  const validLabel = formatLongDate(
+    validUntilIso(issueIso, pricingSettings.quote_validity_days),
+  );
+  const year = new Date(issueIso).getFullYear();
+  const turnaround = turnaroundLabel(rushPriority, rush2day);
+  const preparedLine = [contactName, projectTitle].filter(Boolean).join(" · ");
+
+  return (
+    <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
+      <div className="border-b border-white/[0.12] pb-5 print:border-neutral-300">
+        <p className="text-2xl font-semibold tracking-tight print:text-black">
+          PathxDx
+        </p>
+        <p className="mt-0.5 text-sm text-muted-foreground print:text-neutral-600">
+          Pathology &amp; Digital Diagnostics
+        </p>
+      </div>
+
+      <dl className="grid gap-3 text-sm sm:grid-cols-2">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+          <dt className="text-muted-foreground print:text-neutral-600">
+            Quote reference
+          </dt>
+          <dd className="font-medium tabular-nums print:text-black">
+            {quoteRef || "—"}
+          </dd>
+        </div>
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+          <dt className="text-muted-foreground print:text-neutral-600">
+            Date issued
+          </dt>
+          <dd className="print:text-black">{issuedLabel}</dd>
+        </div>
+        <div className="flex flex-col gap-0.5 sm:col-span-2 sm:flex-row sm:justify-between sm:gap-4">
+          <dt className="text-muted-foreground print:text-neutral-600">
+            Valid until
+          </dt>
+          <dd className="print:text-black">{validLabel}</dd>
+        </div>
+      </dl>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
+          Prepared for
+        </p>
+        <p className="mt-2 text-base font-semibold leading-snug print:text-black">
+          {clientOrg || "—"}
+        </p>
+        {preparedLine ? (
+          <p className="mt-1 text-sm text-muted-foreground print:text-neutral-700">
+            {preparedLine}
+          </p>
+        ) : null}
+      </div>
+
+      <p className="text-sm leading-relaxed text-muted-foreground print:text-neutral-800">
+        <span className="font-medium text-foreground print:text-black">
+          Segment:
+        </span>{" "}
+        {segmentLabel} · Volume: {sampleVolume} samples/blocks · Turnaround:{" "}
+        {turnaround}
+      </p>
+
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
+          Services
+        </p>
+        <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.1] print:border-neutral-300">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-white/[0.1] bg-white/[0.04] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground print:border-neutral-300 print:bg-neutral-100 print:text-neutral-700">
+                <th className="px-3 py-2.5">Service</th>
+                <th className="px-3 py-2.5">Unit</th>
+                <th className="px-3 py-2.5 text-right">Qty</th>
+                <th className="px-3 py-2.5 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-3 py-6 text-center text-muted-foreground"
+                  >
+                    No line items.
+                  </td>
+                </tr>
+              ) : (
+                lines.map((l, i) => (
+                  <tr
+                    key={`${l.label}-${i}`}
+                    className="border-b border-white/[0.06] last:border-0 print:border-neutral-200"
+                  >
+                    <td className="px-3 py-2.5 align-top font-medium print:text-black">
+                      {l.label}
+                      {l.is_price_overridden ? (
+                        <span className="ml-1 text-xs font-normal text-muted-foreground print:text-neutral-600">
+                          (override)
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2.5 align-top text-muted-foreground print:text-neutral-700">
+                      {money(l.unit_price)} / unit
+                    </td>
+                    <td className="px-3 py-2.5 text-right tabular-nums align-top">
+                      {l.quantity}
+                    </td>
+                    <td className="px-3 py-2.5 text-right font-medium tabular-nums align-top print:text-black">
+                      {money(l.lineTotal)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {notes.trim() ? (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
+            Notes
+          </p>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground print:text-neutral-800">
+            {notes}
+          </p>
+        </div>
+      ) : null}
+
+      {totals ? (
+        <div className="space-y-2 border-t border-white/[0.1] pt-4 text-sm tabular-nums print:border-neutral-300">
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Subtotal
+            </span>
+            <span className="print:text-black">{money(totals.subtotal_amount)}</span>
+          </div>
+          {!nearZero(totals.segment_adjustment_amount) ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground print:text-neutral-700">
+                Segment adjustment
+              </span>
+              <span className="print:text-black">
+                {money(totals.segment_adjustment_amount)}
+              </span>
+            </div>
+          ) : null}
+          {!nearZero(totals.volume_discount_amount) ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground print:text-neutral-700">
+                Volume discount ({totals.volume_discount_percent}%)
+              </span>
+              <span className="print:text-black">
+                −{money(totals.volume_discount_amount)}
+              </span>
+            </div>
+          ) : null}
+          {!nearZero(totals.rush_uplift_amount) ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground print:text-neutral-700">
+                Rush uplift
+              </span>
+              <span className="print:text-black">
+                {money(totals.rush_uplift_amount)}
+              </span>
+            </div>
+          ) : null}
+          <div className="flex justify-between gap-4 border-t border-white/[0.1] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
+            <span>Total (USD)</span>
+            <span>{money(totals.total_amount)}</span>
+          </div>
+        </div>
+      ) : (
+        <p className="text-muted-foreground">Add services to see totals.</p>
+      )}
+
+      <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
+        Prices are valid for {pricingSettings.quote_validity_days} days from the
+        date of issue. Final pricing may vary based on sample quality and
+        complexity. PathxDx reserves the right to adjust pricing upon project
+        review.
+      </p>
+
+      {pricingSettings.lab_address.trim() ? (
+        <div className="text-xs text-muted-foreground print:text-neutral-700">
+          <p className="font-semibold text-foreground print:text-black">Lab</p>
+          <p className="mt-1 whitespace-pre-wrap">{pricingSettings.lab_address}</p>
+        </div>
+      ) : null}
+
+      <p className="border-t border-white/[0.08] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
+        {quoteRef || "—"} · PathxDx · {year}
+      </p>
+
+      <div className="flex flex-col gap-2 print:hidden">
+        {footerExtra}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => window.print()}
+        >
+          <Printer className="mr-2 h-4 w-4" />
+          Print / Save PDF
+        </Button>
+      </div>
+    </div>
+  );
+}

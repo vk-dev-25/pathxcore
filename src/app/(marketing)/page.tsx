@@ -202,7 +202,7 @@ export default function HomePage() {
       <section className="border-y border-white/[0.06] bg-lab-indigo/35">
         <div className="mx-auto grid max-w-6xl gap-0 lg:grid-cols-2 lg:items-stretch">
           <div className="flex flex-col justify-center px-4 py-14 sm:px-6 sm:py-20 lg:pr-10 lg:pl-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-lab-orange">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
               In the lab
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -223,12 +223,12 @@ export default function HomePage() {
                 IHC, special stains, and digital-ready material on request
               </li>
               <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-lab-orange" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 Transparent proposals—PO and timeline, then execution
               </li>
             </ul>
             <div className="mt-10">
-              <Button asChild variant="orange">
+              <Button asChild>
                 <Link href="/contact">Talk with our team</Link>
               </Button>
             </div>
@@ -336,7 +336,7 @@ export default function HomePage() {
             out.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" variant="orange" className="font-semibold">
+            <Button asChild size="lg" className="font-semibold">
               <Link href="/contact">Contact us today</Link>
             </Button>
             <Button asChild size="lg" variant="purpleOutline">

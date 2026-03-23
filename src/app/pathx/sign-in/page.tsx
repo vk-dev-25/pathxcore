@@ -5,7 +5,8 @@ import { PathXSignInForm } from "@/components/pathx/sign-in-form";
 
 export const metadata: Metadata = {
   title: "Sign in | PathX",
-  description: "Sign in to PathX client modules (LIMS, quote builder, and more).",
+  description:
+    "Sign in with email and password, or create an account with an access code.",
 };
 
 function SignInFormFallback() {

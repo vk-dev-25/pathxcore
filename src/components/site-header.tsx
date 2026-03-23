@@ -27,17 +27,17 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-background/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex min-h-16 items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+          className="flex shrink-0 items-center gap-2 outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         >
           <Image
-            src="/images/pathxdx-logo.svg"
+            src="/images/pathxlogo.jpeg"
             alt="PathXdx"
-            width={152}
-            height={32}
-            className="h-8 w-auto"
+            width={258}
+            height={236}
+            className="h-14 w-auto sm:h-16"
             priority
           />
         </Link>
@@ -65,7 +65,7 @@ export function SiteHeader() {
             size="sm"
             className="hidden font-medium sm:inline-flex"
           >
-            <Link href="/pathx/sign-in">Client sign in</Link>
+            <Link href="/pathx/sign-in">Sign in</Link>
           </Button>
 
           <Dialog>
@@ -97,7 +97,7 @@ export function SiteHeader() {
                   href="/pathx/sign-in"
                   className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-3 text-sm font-medium text-foreground backdrop-blur-sm hover:bg-white/[0.08]"
                 >
-                  Client sign in
+                  Sign in
                 </Link>
               </nav>
             </DialogContent>
