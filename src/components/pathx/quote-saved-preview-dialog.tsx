@@ -67,7 +67,7 @@ export function QuoteSavedPreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-quote-print="true"
-        className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/[0.12] bg-card print:max-h-none print:overflow-visible print:border-0 print:bg-white print:shadow-none"
+        className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/[0.12] bg-card print:left-0 print:top-0 print:w-auto print:max-w-none print:translate-x-0 print:translate-y-0 print:max-h-none print:overflow-visible print:border-0 print:bg-white print:shadow-none print:rounded-none print:p-0"
       >
         <DialogTitle className="sr-only">Quote</DialogTitle>
         {loading ? (
