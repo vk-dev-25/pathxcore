@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Printer } from "lucide-react";
 import Image from "next/image";
 
@@ -108,20 +108,92 @@ export function QuotePreviewContent({
   const year = new Date(issueIso).getFullYear();
   const turnaround = turnaroundLabel(rushPriority, rush2day);
   const preparedLine = [contactName, projectTitle].filter(Boolean).join(" · ");
+  const cleanupPrintRef = useRef<null | (() => void)>(null);
 
-  function resetPrintScroll() {
+  const resetPrintScroll = useCallback(() => {
     window.scrollTo(0, 0);
     const nodes = document.querySelectorAll<HTMLElement>('[data-quote-print="true"]');
     nodes.forEach((node) => {
       node.scrollTop = 0;
     });
-  }
+  }, []);
+
+  const preparePrintSurface = useCallback(() => {
+    resetPrintScroll();
+
+    const quoteRoot = document.querySelector<HTMLElement>('[data-quote-print="true"]');
+    if (!quoteRoot) return () => {};
+
+    const touched = new Map<HTMLElement, string>();
+    const remember = (el: HTMLElement) => {
+      if (!touched.has(el)) touched.set(el, el.style.cssText);
+    };
+
+    const forceWhite = (el: HTMLElement) => {
+      el.style.setProperty("background", "#fff", "important");
+      el.style.setProperty("background-color", "#fff", "important");
+      el.style.setProperty("color", "#111", "important");
+    };
+
+    const rootEl = document.documentElement;
+    const bodyEl = document.body;
+    remember(rootEl);
+    remember(bodyEl);
+    forceWhite(rootEl);
+    forceWhite(bodyEl);
+    bodyEl.style.setProperty("margin", "0", "important");
+    bodyEl.style.setProperty("padding", "0", "important");
+
+    const topChildren = Array.from(bodyEl.children) as HTMLElement[];
+    topChildren.forEach((child) => {
+      remember(child);
+      if (child.contains(quoteRoot) || child === quoteRoot) {
+        child.style.setProperty("display", "block", "important");
+        child.style.setProperty("visibility", "visible", "important");
+        forceWhite(child);
+      } else {
+        child.style.setProperty("display", "none", "important");
+      }
+    });
+
+    remember(quoteRoot);
+    quoteRoot.style.setProperty("position", "static", "important");
+    quoteRoot.style.setProperty("left", "auto", "important");
+    quoteRoot.style.setProperty("top", "auto", "important");
+    quoteRoot.style.setProperty("width", "auto", "important");
+    quoteRoot.style.setProperty("max-width", "none", "important");
+    quoteRoot.style.setProperty("height", "auto", "important");
+    quoteRoot.style.setProperty("max-height", "none", "important");
+    quoteRoot.style.setProperty("overflow", "visible", "important");
+    quoteRoot.style.setProperty("border", "0", "important");
+    quoteRoot.style.setProperty("box-shadow", "none", "important");
+    forceWhite(quoteRoot);
+
+    return () => {
+      touched.forEach((cssText, el) => {
+        el.style.cssText = cssText;
+      });
+    };
+  }, [resetPrintScroll]);
 
   useEffect(() => {
-    const onBeforePrint = () => resetPrintScroll();
+    const onBeforePrint = () => {
+      cleanupPrintRef.current?.();
+      cleanupPrintRef.current = preparePrintSurface();
+    };
+    const onAfterPrint = () => {
+      cleanupPrintRef.current?.();
+      cleanupPrintRef.current = null;
+    };
     window.addEventListener("beforeprint", onBeforePrint);
-    return () => window.removeEventListener("beforeprint", onBeforePrint);
-  }, []);
+    window.addEventListener("afterprint", onAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", onBeforePrint);
+      window.removeEventListener("afterprint", onAfterPrint);
+      cleanupPrintRef.current?.();
+      cleanupPrintRef.current = null;
+    };
+  }, [preparePrintSurface]);
 
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
@@ -327,7 +399,8 @@ export function QuotePreviewContent({
           variant="outline"
           className="w-full"
           onClick={() => {
-            resetPrintScroll();
+            cleanupPrintRef.current?.();
+            cleanupPrintRef.current = preparePrintSurface();
             window.requestAnimationFrame(() => window.print());
           }}
         >
