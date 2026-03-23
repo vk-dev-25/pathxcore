@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Clock,
-  FlaskConical,
   Layers,
   Microscope,
   ShieldCheck,
@@ -15,10 +14,13 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  ServicesSlideshow,
+  type ServiceSlide,
+} from "@/components/services-slideshow";
 import { commonServicesBlurb } from "@/lib/site-content";
 
 const pillars = [
@@ -43,6 +45,51 @@ const highlights = [
   { label: "Coverage", value: "24/7 reach", icon: Clock },
   { label: "Location", value: "South San Francisco", icon: Microscope },
   { label: "Model", value: "Dedicated technologist", icon: Users },
+];
+
+const serviceSlides: ServiceSlide[] = [
+  {
+    title: "Clinical diagnostic pathology",
+    description:
+      "Specialty-focused support for hospitals, clinics, and physicians—cardiology, dermatology, neurology, and more—aligned to the diagnoses you deliver for patients.",
+    href: "/clinical-services",
+    cta: "Explore clinical services",
+    imageSrc: "/images/hero-lab-team.png",
+    imageAlt:
+      "PathXdx technologists collaborating at laboratory instrumentation",
+    objectPosition: "object-[center_32%]",
+  },
+  {
+    title: "Preclinical & discovery programs",
+    description:
+      "End-to-end specimen handling from accessioning through sectioning, H&E, special stains, IHC, and pathologist reading for biotech, CRO, and academic teams.",
+    href: "/preclinical-services",
+    cta: "See preclinical workflow",
+    imageSrc: "/images/hero-scientist.png",
+    imageAlt:
+      "Laboratory professional in protective equipment beside instrumentation",
+    objectPosition: "object-[center_22%]",
+  },
+  {
+    title: "IHC, special stains & evaluation",
+    description:
+      "Routine and complex panels, method development, and consultation—with qualified pathologist sign-out and digital-ready material when you need it.",
+    href: "/contact",
+    cta: "Discuss your panel",
+    imageSrc: "/images/hero-lab-team.png",
+    imageAlt: "Pathology laboratory team at the bench",
+    objectPosition: "object-[center_55%]",
+  },
+  {
+    title: "Partnership from PO to delivery",
+    description:
+      "A dedicated technologist helps design your study, explains each step, and prepares a clear proposal—then executes on your timeline with transparent invoicing.",
+    href: "/contact",
+    cta: "Book your visit",
+    imageSrc: "/images/hero-scientist.png",
+    imageAlt: "Scientist reviewing work in the laboratory",
+    objectPosition: "object-[center_40%]",
+  },
 ];
 
 export default function HomePage() {
@@ -74,9 +121,7 @@ export default function HomePage() {
           </p>
           <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:max-w-2xl sm:text-5xl lg:text-[3.25rem]">
             Shorten the path from specimen to{" "}
-            <span className="bg-gradient-to-r from-primary via-lab-purple to-lab-orange bg-clip-text text-transparent">
-              confident answers
-            </span>
+            <span className="font-semibold text-primary">confident answers</span>
             .
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -216,77 +261,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Clinical / Preclinical cards with thumbnail cues */}
+      {/* Featured services — full-width image slides (Acepix-style carousel) */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="mb-10 max-w-2xl">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Services aligned to pathxdx.com
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Two front doors—clinical diagnostics and preclinical programs—with
-            shared operational excellence underneath.
+            Clinical diagnostics and preclinical programs—with shared
+            operational excellence—shown as rotating featured services below.
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="group overflow-hidden border-white/[0.08] bg-card/50 backdrop-blur-sm transition-shadow hover:shadow-[0_0_48px_-20px_hsl(var(--primary)/0.45)]">
-            <div className="relative aspect-[21/9] overflow-hidden border-b border-white/[0.06]">
-              <Image
-                src="/images/hero-lab-team.png"
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover object-[center_35%] opacity-90 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-              <Microscope className="absolute bottom-3 left-4 h-8 w-8 text-primary drop-shadow-md" />
-            </div>
-            <CardHeader>
-              <CardTitle>Clinical services</CardTitle>
-              <CardDescription>
-                Hospitals, clinics, and doctors&apos; offices
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Specialty-focused support across cardiology, dermatology,
-                neurology, and more—tailored to the diagnoses you provide your
-                patients.
-              </p>
-              <Button asChild variant="secondary">
-                <Link href="/clinical-services">View clinical services</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="group overflow-hidden border-white/[0.08] bg-card/50 backdrop-blur-sm transition-shadow hover:shadow-[0_0_48px_-20px_hsl(var(--lab-purple)/0.35)]">
-            <div className="relative aspect-[21/9] overflow-hidden border-b border-white/[0.06]">
-              <Image
-                src="/images/hero-scientist.png"
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover object-[center_30%] opacity-90 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-100"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-              <FlaskConical className="absolute bottom-3 left-4 h-8 w-8 text-lab-purple drop-shadow-md" />
-            </div>
-            <CardHeader>
-              <CardTitle>Preclinical services</CardTitle>
-              <CardDescription>
-                Biotech institutions, R&amp;D entities, and academia
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                End-to-end specimen handling: accessioning through sectioning,
-                staining, IHC, and pathologist reading.
-              </p>
-              <Button asChild variant="secondary">
-                <Link href="/preclinical-services">View preclinical workflow</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <ServicesSlideshow slides={serviceSlides} />
       </section>
 
       <section className="border-y border-white/[0.06] bg-card/30">
@@ -333,15 +319,11 @@ export default function HomePage() {
 
       <section className="relative overflow-hidden border-t border-white/[0.08]">
         <div
-          className="absolute inset-0 bg-gradient-to-br from-primary/25 via-lab-indigo to-background"
+          className="absolute inset-0 bg-gradient-to-b from-card/40 via-background to-background"
           aria-hidden
         />
         <div
-          className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-lab-purple/25 blur-3xl"
-          aria-hidden
-        />
-        <div
-          className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-lab-orange/15 blur-3xl"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,hsl(var(--primary)/0.07),transparent_60%)]"
           aria-hidden
         />
         <div className="relative mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-20">

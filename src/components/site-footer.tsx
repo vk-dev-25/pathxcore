@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
 
@@ -13,9 +14,15 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-lab-purple/90">
-              PathXdx
-            </p>
+            <Link href="/" className="inline-block">
+              <Image
+                src="/images/pathxdx-logo.svg"
+                alt="PathXdx"
+                width={152}
+                height={32}
+                className="h-8 w-auto opacity-95"
+              />
+            </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Clinical and preclinical pathology services—accessioning through
               specialized staining, evaluation, and consultation. South San

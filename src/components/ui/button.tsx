@@ -23,6 +23,8 @@ const buttonVariants = cva(
           "bg-lab-orange text-white shadow-[0_0_28px_-6px_hsl(var(--lab-orange)/0.65)] hover:bg-lab-orange/92",
         purpleOutline:
           "border border-lab-purple/45 bg-transparent text-foreground shadow-[0_0_24px_-10px_hsl(var(--lab-purple)/0.35)] hover:bg-lab-purple/10",
+        workspace:
+          "border border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm hover:bg-white/[0.08] hover:border-white/[0.18] hover:shadow-[0_0_32px_-14px_hsl(var(--primary)/0.22)]",
       },
       size: {
         default: "h-10 px-4 py-2",

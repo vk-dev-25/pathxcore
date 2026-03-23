@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -29,14 +30,16 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground"
+          className="flex items-center gap-2 outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         >
-          <span className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-primary via-primary to-lab-purple text-sm font-bold text-primary-foreground shadow-[0_0_24px_-6px_hsl(var(--primary)/0.85)]">
-            PX
-          </span>
-          <span className="hidden sm:inline">
-            Path<span className="text-lab-purple">X</span>dx
-          </span>
+          <Image
+            src="/images/pathxdx-logo.svg"
+            alt="PathXdx"
+            width={152}
+            height={32}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
 
         <nav className="hidden items-center gap-0.5 md:flex">
@@ -58,9 +61,9 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <Button
             asChild
-            variant="orange"
+            variant="workspace"
             size="sm"
-            className="hidden font-semibold sm:inline-flex"
+            className="hidden font-medium sm:inline-flex"
           >
             <Link href="/pathx/sign-in">Client sign in</Link>
           </Button>
@@ -92,7 +95,7 @@ export function SiteHeader() {
                 ))}
                 <Link
                   href="/pathx/sign-in"
-                  className="rounded-lg px-3 py-3 text-sm font-semibold text-lab-orange hover:bg-white/[0.06]"
+                  className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-3 text-sm font-medium text-foreground backdrop-blur-sm hover:bg-white/[0.08]"
                 >
                   Client sign in
                 </Link>
