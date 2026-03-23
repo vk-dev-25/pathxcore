@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Printer } from "lucide-react";
+import Image from "next/image";
 
 import type { PricingSettingsSnapshot } from "@/lib/quote-pricing";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ function nearZero(n: number) {
 export function QuotePreviewContent({
   issueDateIso,
   clientOrg,
+  clientAddress,
   contactName,
   projectTitle,
   quoteRef,
@@ -74,6 +76,7 @@ export function QuotePreviewContent({
   /** Saved quotes pass DB `created_at`; builder omits to use a stable draft issue time. */
   issueDateIso?: string;
   clientOrg: string;
+  clientAddress: string;
   contactName: string;
   projectTitle: string;
   quoteRef: string;
@@ -108,50 +111,60 @@ export function QuotePreviewContent({
 
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
-      <div className="border-b border-white/[0.12] pb-5 print:border-neutral-300">
-        <p className="text-2xl font-semibold tracking-tight print:text-black">
-          PathxDx
-        </p>
-        <p className="mt-0.5 text-sm text-muted-foreground print:text-neutral-600">
-          Pathology &amp; Digital Diagnostics
-        </p>
+      <div className="flex items-end justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
+        <div>
+          <p className="text-2xl font-semibold tracking-tight print:text-black">
+            PathxDx
+          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground print:text-neutral-600">
+            Pathology &amp; Digital Diagnostics
+          </p>
+        </div>
+        <Image
+          src="/images/pathxlogo.jpeg"
+          alt="PathxDx logo"
+          width={258}
+          height={236}
+          priority
+          className="h-14 w-auto shrink-0 object-contain"
+        />
       </div>
 
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
-        <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
+      <div className="grid gap-6 sm:grid-cols-[1fr_320px] sm:items-start">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
+            Prepared for
+          </p>
+          <p className="mt-2 text-base font-semibold leading-snug print:text-black">
+            {clientOrg || "—"}
+          </p>
+          {preparedLine ? (
+            <p className="mt-1 text-sm text-muted-foreground print:text-neutral-700">
+              {preparedLine}
+            </p>
+          ) : null}
+          {clientAddress.trim() ? (
+            <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground print:text-neutral-700">
+              {clientAddress}
+            </p>
+          ) : null}
+        </div>
+        <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
             Quote reference
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {quoteRef || "—"}
           </dd>
-        </div>
-        <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:gap-4">
           <dt className="text-muted-foreground print:text-neutral-600">
             Date issued
           </dt>
           <dd className="print:text-black">{issuedLabel}</dd>
-        </div>
-        <div className="flex flex-col gap-0.5 sm:col-span-2 sm:flex-row sm:justify-between sm:gap-4">
           <dt className="text-muted-foreground print:text-neutral-600">
             Valid until
           </dt>
           <dd className="print:text-black">{validLabel}</dd>
-        </div>
-      </dl>
-
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
-          Prepared for
-        </p>
-        <p className="mt-2 text-base font-semibold leading-snug print:text-black">
-          {clientOrg || "—"}
-        </p>
-        {preparedLine ? (
-          <p className="mt-1 text-sm text-muted-foreground print:text-neutral-700">
-            {preparedLine}
-          </p>
-        ) : null}
+        </dl>
       </div>
 
       <p className="text-sm leading-relaxed text-muted-foreground print:text-neutral-800">
@@ -166,10 +179,10 @@ export function QuotePreviewContent({
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
           Services
         </p>
-        <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.1] print:border-neutral-300">
+        <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06] print:border-neutral-300">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="border-b border-white/[0.1] bg-white/[0.04] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground print:border-neutral-300 print:bg-neutral-100 print:text-neutral-700">
+              <tr className="border-b border-white/[0.06] bg-white/[0.03] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground print:border-neutral-300 print:bg-neutral-100 print:text-neutral-700">
                 <th className="px-3 py-2.5">Service</th>
                 <th className="px-3 py-2.5">Unit</th>
                 <th className="px-3 py-2.5 text-right">Qty</th>
@@ -190,7 +203,7 @@ export function QuotePreviewContent({
                 lines.map((l, i) => (
                   <tr
                     key={`${l.label}-${i}`}
-                    className="border-b border-white/[0.06] last:border-0 print:border-neutral-200"
+                    className="border-b border-white/[0.05] last:border-0 print:border-neutral-200"
                   >
                     <td className="px-3 py-2.5 align-top font-medium print:text-black">
                       {l.label}
@@ -229,7 +242,7 @@ export function QuotePreviewContent({
       ) : null}
 
       {totals ? (
-        <div className="space-y-2 border-t border-white/[0.1] pt-4 text-sm tabular-nums print:border-neutral-300">
+        <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground print:text-neutral-700">
               Subtotal
@@ -266,7 +279,7 @@ export function QuotePreviewContent({
               </span>
             </div>
           ) : null}
-          <div className="flex justify-between gap-4 border-t border-white/[0.1] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
+          <div className="flex justify-between gap-4 border-t border-white/[0.06] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
             <span>Total (USD)</span>
             <span>{money(totals.total_amount)}</span>
           </div>
@@ -289,7 +302,7 @@ export function QuotePreviewContent({
         </div>
       ) : null}
 
-      <p className="border-t border-white/[0.08] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
+      <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
         {quoteRef || "—"} · PathxDx · {year}
       </p>
 

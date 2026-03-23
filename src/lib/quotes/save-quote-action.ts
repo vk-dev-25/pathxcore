@@ -18,6 +18,7 @@ export type SaveQuoteState =
 
 export async function saveQuoteAction(input: {
   client_org_name: string;
+  client_address: string;
   contact_name: string;
   project_title: string;
   quote_reference: string;
@@ -70,6 +71,7 @@ export async function saveQuoteAction(input: {
     .insert({
       user_id: user.id,
       client_org_name: input.client_org_name.trim() || null,
+      client_address: input.client_address.trim() || null,
       contact_name: input.contact_name.trim() || null,
       project_title: input.project_title.trim() || null,
       quote_reference: input.quote_reference.trim() || null,

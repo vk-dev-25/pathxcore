@@ -82,6 +82,7 @@ export function QuoteSavedPreviewDialog({
             <QuotePreviewContent
               issueDateIso={data.issuedAtIso}
               clientOrg={data.clientOrg}
+              clientAddress={data.clientAddress}
               contactName={data.contactName}
               projectTitle={data.projectTitle}
               quoteRef={data.quoteRef}

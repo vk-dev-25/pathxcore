@@ -17,6 +17,7 @@ import {
 export function QuotePreviewDialog({
   trigger,
   clientOrg,
+  clientAddress,
   contactName,
   projectTitle,
   quoteRef,
@@ -31,6 +32,7 @@ export function QuotePreviewDialog({
 }: {
   trigger: ReactNode;
   clientOrg: string;
+  clientAddress: string;
   contactName: string;
   projectTitle: string;
   quoteRef: string;
@@ -62,6 +64,7 @@ export function QuotePreviewDialog({
         <DialogTitle className="sr-only">Quote</DialogTitle>
         <QuotePreviewContent
           clientOrg={clientOrg}
+          clientAddress={clientAddress}
           contactName={contactName}
           projectTitle={projectTitle}
           quoteRef={quoteRef}

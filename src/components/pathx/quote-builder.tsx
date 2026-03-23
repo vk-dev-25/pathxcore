@@ -79,6 +79,7 @@ export function QuoteBuilderClient({
   const [rushPriority, setRushPriority] = useState(false);
   const [rush2day, setRush2day] = useState(false);
   const [clientOrg, setClientOrg] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
   const [contactName, setContactName] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [quoteRef, setQuoteRef] = useState(newRef);
@@ -165,6 +166,7 @@ export function QuoteBuilderClient({
   function clearAll() {
     setLines([]);
     setClientOrg("");
+    setClientAddress("");
     setContactName("");
     setProjectTitle("");
     setQuoteRef(newRef());
@@ -184,6 +186,7 @@ export function QuoteBuilderClient({
     startTransition(async () => {
       const result = await saveQuoteAction({
         client_org_name: clientOrg,
+        client_address: clientAddress,
         contact_name: contactName,
         project_title: projectTitle,
         quote_reference: quoteRef,
@@ -249,6 +252,7 @@ export function QuoteBuilderClient({
               </Button>
             }
             clientOrg={clientOrg}
+            clientAddress={clientAddress}
             contactName={contactName}
             projectTitle={projectTitle}
             quoteRef={quoteRef}
@@ -340,6 +344,22 @@ export function QuoteBuilderClient({
                   onChange={(e) => setClientOrg(e.target.value)}
                   placeholder="Organization"
                   className={cn(fieldClass)}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="client-address" className="text-foreground">
+                  Client address
+                </Label>
+                <textarea
+                  id="client-address"
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
+                  placeholder="Street, city, state, ZIP, country"
+                  rows={3}
+                  className={cn(
+                    "flex w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors",
+                    fieldClass,
+                  )}
                 />
               </div>
               <div className="space-y-2">

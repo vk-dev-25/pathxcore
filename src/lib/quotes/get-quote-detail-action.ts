@@ -18,6 +18,7 @@ export type QuotePreviewLinePayload = {
 
 export type QuoteForPreviewData = {
   clientOrg: string;
+  clientAddress: string;
   contactName: string;
   projectTitle: string;
   quoteRef: string;
@@ -59,7 +60,7 @@ export async function getQuoteForPreviewAction(
   const { data: q, error: qErr } = await supabase
     .from("quotes")
     .select(
-      "id, client_org_name, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at",
+      "id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -101,6 +102,7 @@ export async function getQuoteForPreviewAction(
       id: q.id,
       reference: q.quote_reference,
       client_org_name: q.client_org_name,
+      client_address: q.client_address,
       contact_name: q.contact_name,
       project_title: q.project_title,
       segment: q.segment,
@@ -132,6 +134,7 @@ export async function getQuoteForPreviewAction(
     ok: true,
     data: {
       clientOrg: q.client_org_name ?? "",
+      clientAddress: q.client_address ?? "",
       contactName: q.contact_name ?? "",
       projectTitle: q.project_title ?? "",
       quoteRef: q.quote_reference ?? "",
