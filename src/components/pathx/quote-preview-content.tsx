@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Printer } from "lucide-react";
 import Image from "next/image";
 
@@ -108,6 +108,20 @@ export function QuotePreviewContent({
   const year = new Date(issueIso).getFullYear();
   const turnaround = turnaroundLabel(rushPriority, rush2day);
   const preparedLine = [contactName, projectTitle].filter(Boolean).join(" · ");
+
+  function resetPrintScroll() {
+    window.scrollTo(0, 0);
+    const nodes = document.querySelectorAll<HTMLElement>('[data-quote-print="true"]');
+    nodes.forEach((node) => {
+      node.scrollTop = 0;
+    });
+  }
+
+  useEffect(() => {
+    const onBeforePrint = () => resetPrintScroll();
+    window.addEventListener("beforeprint", onBeforePrint);
+    return () => window.removeEventListener("beforeprint", onBeforePrint);
+  }, []);
 
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
@@ -312,7 +326,10 @@ export function QuotePreviewContent({
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => window.print()}
+          onClick={() => {
+            resetPrintScroll();
+            window.requestAnimationFrame(() => window.print());
+          }}
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF
