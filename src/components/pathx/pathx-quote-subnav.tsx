@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const links: { href: string; label: string; match: "exact" | "prefix" }[] = [
+  { href: "/pathx/quotebuilder", label: "New quote", match: "prefix" },
   { href: "/pathx/quotes", label: "Quote finder", match: "prefix" },
-  { href: "/pathx/quotebuilder", label: "Quote builder", match: "prefix" },
-  { href: "/pathx/admin/pricing", label: "Admin / pricing", match: "prefix" },
+  { href: "/pathx/admin/pricing", label: "Quote prices", match: "prefix" },
 ];
 
 function isActive(pathname: string, href: string, match: "exact" | "prefix") {

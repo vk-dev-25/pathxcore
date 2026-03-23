@@ -6,8 +6,9 @@ import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Admin / pricing | PathX",
-  description: "Edit base prices, volume tiers, and segment multipliers.",
+  title: "Quote price config | PathX",
+  description:
+    "Configure catalog services, base prices, volume tiers, rush rates, and segment multipliers.",
 };
 
 export default async function AdminPricingPage() {

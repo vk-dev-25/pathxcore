@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Eye, Loader2, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Eye, Loader2, Plus, RotateCcw, Search, Settings2, Trash2 } from "lucide-react";
 
 import { QuotePreviewDialog } from "@/components/pathx/quote-preview-dialog";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
@@ -220,17 +220,26 @@ export function QuoteBuilderClient({
             PathX module
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Quote builder
+            New quote
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
             Configure services, segment, and volume. Override any line price when
-            needed—defaults come from the catalog; your quote is saved to the
-            database.
+            needed—defaults follow quote price config; your quote is saved for the
+            team.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
-            <Link href="/pathx/admin/pricing">Admin / pricing</Link>
+            <Link href="/pathx/quotes">
+              <Search className="mr-1.5 h-4 w-4" aria-hidden />
+              Quote finder
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+            <Link href="/pathx/admin/pricing">
+              <Settings2 className="mr-1.5 h-4 w-4" aria-hidden />
+              Quote price config
+            </Link>
           </Button>
           <QuotePreviewDialog
             trigger={

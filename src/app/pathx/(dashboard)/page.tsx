@@ -24,23 +24,23 @@ export const metadata: Metadata = {
 const modules = [
   {
     href: "/pathx/quotebuilder",
-    title: "Quote builder",
+    title: "New quote",
     description:
-      "Configure service scopes and estimates for your studies (module scaffold).",
+      "Build a quote from the service catalog, then save it for your team.",
     icon: FileSpreadsheet,
   },
   {
     href: "/pathx/quotes",
     title: "Quote finder",
     description:
-      "Browse, search, and sort your saved quotes by date or organization.",
+      "Browse, search, and sort saved quotes by date or organization.",
     icon: Search,
   },
   {
     href: "/pathx/admin/pricing",
-    title: "Admin / pricing",
+    title: "Quote price config",
     description:
-      "Edit catalog unit prices, volume tiers, segment multipliers, and quote defaults.",
+      "Admin: catalog services, unit prices, tiers, rush rates, and segment multipliers.",
     icon: Settings2,
   },
   {

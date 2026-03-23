@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Quote finder | PathX",
-  description: "Search and sort your saved quotes.",
+  description: "Search and sort saved quotes from your PathX workspace.",
 };
 
 export default async function QuoteFinderPage() {

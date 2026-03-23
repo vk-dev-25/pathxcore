@@ -62,7 +62,6 @@ export async function getQuoteForPreviewAction(
       "id, client_org_name, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at",
     )
     .eq("id", quoteId)
-    .eq("user_id", user.id)
     .maybeSingle();
 
   if (qErr || !q) {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Loader2, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Loader2, Plus, Search, Trash2 } from "lucide-react";
 
 import {
   insertCatalogServiceAction,
@@ -198,17 +199,34 @@ export function AdminPricingClient({
         aria-hidden
       />
       <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-            PathX module
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Admin / pricing config
-          </h1>
-          <p className="mt-4 leading-relaxed text-muted-foreground">
-            Edit base prices, volume tiers, and segment multipliers. Changes apply
-            to new quotes and saved quote totals.
-          </p>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
+              PathX module
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Quote price config
+            </h1>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Edit catalog services, base unit prices, volume tiers, rush rates, and
+              segment multipliers. Changes apply to new quotes and saved quote
+              totals.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+            <Button asChild variant="outline" size="sm" className="border-white/[0.14] bg-white/[0.04] font-medium">
+              <Link href="/pathx/quotebuilder">
+                <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+                New quote
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+              <Link href="/pathx/quotes">
+                <Search className="mr-1.5 h-4 w-4" aria-hidden />
+                Quote finder
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-10 space-y-8">

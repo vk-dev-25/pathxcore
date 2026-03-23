@@ -6,8 +6,9 @@ import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Quote builder | PathX",
-  description: "Build and save quotes for PathXdx pathology services.",
+  title: "New quote | PathX",
+  description:
+    "Build a quote from the PathX service catalog, preview, and save for your team.",
 };
 
 export default async function PathXQuoteBuilderPage() {

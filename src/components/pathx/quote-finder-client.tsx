@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { Plus, Search, Settings2 } from "lucide-react";
 
 import { QuoteSavedPreviewDialog } from "@/components/pathx/quote-saved-preview-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -117,9 +119,27 @@ export function QuoteFinderClient({ quotes }: { quotes: QuoteListRow[] }) {
             Quote finder
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Search and sort quotes you have saved. Only your own quotes are shown.
-            Click a row to preview, print, or download JSON.
+            Search and sort saved quotes from everyone on PathX. Click a row to
+            preview, print, or download JSON.
           </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Button asChild className="font-medium">
+              <Link href="/pathx/quotebuilder">
+                <Plus className="mr-2 h-4 w-4" aria-hidden />
+                New quote
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/[0.14] bg-white/[0.04] font-medium"
+            >
+              <Link href="/pathx/admin/pricing">
+                <Settings2 className="mr-2 h-4 w-4" aria-hidden />
+                Quote price config
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Card className={cn(cardClass, "mt-10")}>
@@ -186,10 +206,33 @@ export function QuoteFinderClient({ quotes }: { quotes: QuoteListRow[] }) {
 
         {filteredSorted.length === 0 ? (
           <Card className={cn(cardClass, "mt-6 border-dashed")}>
-            <CardContent className="py-12 text-center text-sm text-muted-foreground">
-              {quotes.length === 0
-                ? "No saved quotes yet. Create one in Quote builder."
-                : "No quotes match your search."}
+            <CardContent className="flex flex-col items-center gap-4 py-12 text-center text-sm text-muted-foreground">
+              {quotes.length === 0 ? (
+                <>
+                  <p>No saved quotes yet. Create one to get started.</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button asChild size="sm" className="font-medium">
+                      <Link href="/pathx/quotebuilder">
+                        <Plus className="mr-2 h-4 w-4" aria-hidden />
+                        New quote
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="border-white/[0.14] bg-white/[0.04]"
+                    >
+                      <Link href="/pathx/admin/pricing">
+                        <Settings2 className="mr-2 h-4 w-4" aria-hidden />
+                        Quote price config
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                "No quotes match your search."
+              )}
             </CardContent>
           </Card>
         ) : (
