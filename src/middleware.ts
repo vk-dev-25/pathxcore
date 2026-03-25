@@ -37,11 +37,20 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const isServerActionPost =
+    request.method === "POST" && request.headers.has("next-action");
+
   if (pathname.startsWith("/pathx")) {
     const isSignIn =
       pathname === SIGN_IN || pathname.startsWith(`${SIGN_IN}/`);
 
     if (!isSignIn && !user) {
+      // Do not redirect Server Action POSTs: that returns HTML and breaks the
+      // action protocol ("An unexpected response was received from the server").
+      // PathX server actions still enforce auth and return a clear error.
+      if (isServerActionPost) {
+        return response;
+      }
       const url = request.nextUrl.clone();
       url.pathname = SIGN_IN;
       url.searchParams.set("next", pathname);

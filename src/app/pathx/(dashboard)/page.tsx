@@ -45,9 +45,9 @@ const modules = [
   },
   {
     href: "/pathx/tissue-bank",
-    title: "Tissue bank",
+    title: "Tissue Blocks",
     description:
-      "Tissue banking, inventory, storage, and retrieval requests (module scaffold).",
+      "Internal tissue inventory: filters, status, add blocks, and CSV export.",
     icon: Layers,
   },
   {
