@@ -52,8 +52,8 @@ const serviceSlides: ServiceSlide[] = [
     title: "Clinical diagnostic pathology",
     description:
       "Specialty-focused support for hospitals, clinics, and physicians—cardiology, dermatology, neurology, and more—aligned to the diagnoses you deliver for patients.",
-    href: "/clinical-services",
-    cta: "Explore clinical services",
+    href: "/contact",
+    cta: "Contact us",
     imageSrc: "/images/hero-lab-team.png",
     imageAlt:
       "PathXdx technologists collaborating at laboratory instrumentation",
@@ -136,11 +136,11 @@ export default function HomePage() {
                 <ArrowRight className="ml-0.5" />
               </Link>
             </Button>
-            <Button asChild variant="purpleOutline" size="lg">
-              <Link href="/clinical-services">Clinical services</Link>
-            </Button>
-            <Button asChild variant="ghost" size="lg" className="text-muted-foreground hover:text-foreground">
-              <Link href="/preclinical-services">Preclinical workflow</Link>
+            <Button asChild size="lg" className="font-semibold">
+              <Link href="/preclinical-services">
+                Preclinical workflow
+                <ArrowRight className="ml-0.5" />
+              </Link>
             </Button>
           </div>
 

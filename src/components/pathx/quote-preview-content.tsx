@@ -200,15 +200,12 @@ export function QuotePreviewContent({
       <div className="flex items-end justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
         <div>
           <p className="text-2xl font-semibold tracking-tight print:text-black">
-            PathxDx
-          </p>
-          <p className="mt-0.5 text-sm text-muted-foreground print:text-neutral-600">
-            Pathology &amp; Digital Diagnostics
+            Pathology X Diagnostics
           </p>
         </div>
         <Image
           src="/images/pathxlogo.jpeg"
-          alt="PathxDx logo"
+          alt="Pathology X Diagnostics logo"
           width={258}
           height={236}
           priority
@@ -377,7 +374,7 @@ export function QuotePreviewContent({
       <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
         Prices are valid for {pricingSettings.quote_validity_days} days from the
         date of issue. Final pricing may vary based on sample quality and
-        complexity. PathxDx reserves the right to adjust pricing upon project
+        complexity. Pathology X Diagnostics reserves the right to adjust pricing upon project
         review.
       </p>
 
@@ -389,7 +386,7 @@ export function QuotePreviewContent({
       ) : null}
 
       <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
-        {quoteRef || "—"} · PathxDx · {year}
+        {quoteRef || "—"} · Pathology X Diagnostics · {year}
       </p>
 
       <div className="flex flex-col gap-2 print:hidden">
