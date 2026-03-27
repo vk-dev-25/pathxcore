@@ -16,6 +16,10 @@ export type TissueInventoryRow = {
   sold_note: string | null;
   discarded_at: string | null;
   discarded_note: string | null;
+  /** Block dimensions in cm; optional. */
+  size_length_cm: number | null;
+  size_width_cm: number | null;
+  size_height_cm: number | null;
   created_at: string;
   updated_at: string;
 };

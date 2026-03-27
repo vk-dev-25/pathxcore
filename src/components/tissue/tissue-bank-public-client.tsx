@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { TissueInventoryDetailDialog } from "@/components/tissue/tissue-inventory-detail-dialog";
-import { calcAge } from "@/lib/tissue/format";
+import { calcAge, formatTissueSizeCm } from "@/lib/tissue/format";
 import { serializeTissueQuery } from "@/lib/tissue/search-params";
 import type {
   TissueInventoryRow,
@@ -134,7 +134,7 @@ export function TissuePublicCatalogTable({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] border-collapse text-sm">
+        <table className="w-full min-w-[1020px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-white/[0.08] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <th className="px-4 py-3">
@@ -151,6 +151,7 @@ export function TissuePublicCatalogTable({
               <th className="px-4 py-3">
                 <SortLink label="Category" col="category" current={parsed} basePath={basePath} />
               </th>
+              <th className="px-4 py-3">Size (cm)</th>
               <th className="px-4 py-3">
                 <SortLink label="Gender" col="gender" current={parsed} basePath={basePath} />
               </th>
@@ -185,6 +186,13 @@ export function TissuePublicCatalogTable({
                 </td>
                 <td className="max-w-[140px] truncate px-4 py-3">{r.tissue}</td>
                 <td className="px-4 py-3">{r.category}</td>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">
+                  {formatTissueSizeCm(
+                    r.size_length_cm,
+                    r.size_width_cm,
+                    r.size_height_cm,
+                  )}
+                </td>
                 <td className="px-4 py-3">{r.gender ?? "—"}</td>
                 <td className="px-4 py-3 tabular-nums">
                   {calcAge(r.dob) ?? "—"}

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Settings2 } from "lucide-react";
+import { FileText, Plus, Search, Settings2 } from "lucide-react";
 
 import { QuoteSavedPreviewDialog } from "@/components/pathx/quote-saved-preview-dialog";
 import { Button } from "@/components/ui/button";
@@ -65,10 +65,18 @@ function haystack(q: QuoteListRow): string {
     .toLowerCase();
 }
 
-export function QuoteFinderClient({ quotes }: { quotes: QuoteListRow[] }) {
-  const [query, setQuery] = useState("");
+export function QuoteFinderClient({
+  quotes,
+  initialQuery = "",
+  initialPreviewId = null,
+}: {
+  quotes: QuoteListRow[];
+  initialQuery?: string;
+  initialPreviewId?: string | null;
+}) {
+  const [query, setQuery] = useState(initialQuery);
   const [sort, setSort] = useState<SortKey>("date_desc");
-  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(initialPreviewId);
 
   const filteredSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -127,6 +135,16 @@ export function QuoteFinderClient({ quotes }: { quotes: QuoteListRow[] }) {
               <Link href="/pathx/quotebuilder">
                 <Plus className="mr-2 h-4 w-4" aria-hidden />
                 New quote
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/[0.14] bg-white/[0.04] font-medium"
+            >
+              <Link href="/pathx/invoices">
+                <FileText className="mr-2 h-4 w-4" aria-hidden />
+                Invoices
               </Link>
             </Button>
             <Button

@@ -62,6 +62,14 @@ async function allocateAccession(supabase: SupabaseClient): Promise<string> {
   throw new Error("accession_exhausted");
 }
 
+function parseOptionalCm(raw: string): number | null {
+  const t = raw.trim();
+  if (!t) return null;
+  const n = parseFloat(t.replace(",", "."));
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
 export async function addTissueBlockAction(input: {
   dob: string;
   gender: string;
@@ -70,6 +78,9 @@ export async function addTissueBlockAction(input: {
   diag_text: string;
   category: string;
   source_tab: string;
+  size_length_cm?: string;
+  size_width_cm?: string;
+  size_height_cm?: string;
 }): Promise<TissueActionResult> {
   try {
     const supabase = await createClient();
@@ -88,6 +99,9 @@ export async function addTissueBlockAction(input: {
       diag_text: input.diag_text.trim() || null,
       category: input.category.trim(),
       source_tab: input.source_tab.trim() || "Sheet1",
+      size_length_cm: parseOptionalCm(input.size_length_cm ?? ""),
+      size_width_cm: parseOptionalCm(input.size_width_cm ?? ""),
+      size_height_cm: parseOptionalCm(input.size_height_cm ?? ""),
       status: "available" as const,
       created_by: user.id,
     };

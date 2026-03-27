@@ -8,7 +8,7 @@ import {
   TissueRowActions,
   TissueRowEventDetails,
 } from "@/components/tissue/tissue-bank-internal-client";
-import { calcAge } from "@/lib/tissue/format";
+import { calcAge, formatTissueSizeCm } from "@/lib/tissue/format";
 import { serializeTissueQuery } from "@/lib/tissue/search-params";
 import type {
   TissueInventoryRow,
@@ -85,7 +85,7 @@ export function TissueInternalInventoryTable({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1040px] border-collapse text-sm">
+        <table className="w-full min-w-[1160px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <th className="px-4 py-3">
@@ -109,6 +109,7 @@ export function TissueInternalInventoryTable({
               <th className="px-4 py-3">
                 <SortLink label="Tissue" col="tissue" current={parsed} basePath={basePath} />
               </th>
+              <th className="px-4 py-3">Size (cm)</th>
               <th className="px-4 py-3">
                 <SortLink
                   label="Category"
@@ -167,6 +168,13 @@ export function TissueInternalInventoryTable({
                   <TissueRowEventDetails row={r} />
                 </td>
                 <td className="max-w-[120px] truncate px-4 py-3">{r.tissue}</td>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs tabular-nums text-muted-foreground">
+                  {formatTissueSizeCm(
+                    r.size_length_cm,
+                    r.size_width_cm,
+                    r.size_height_cm,
+                  )}
+                </td>
                 <td className="px-4 py-3">{r.category}</td>
                 <td className="px-4 py-3">{r.gender ?? "—"}</td>
                 <td className="px-4 py-3 tabular-nums">

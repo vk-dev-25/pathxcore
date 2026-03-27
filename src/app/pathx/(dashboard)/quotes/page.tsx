@@ -11,7 +11,12 @@ export const metadata: Metadata = {
   description: "Search and sort saved quotes from your PathX workspace.",
 };
 
-export default async function QuoteFinderPage() {
+export default async function QuoteFinderPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; quoteId?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("quotes")
@@ -34,5 +39,14 @@ export default async function QuoteFinderPage() {
     console.error(error);
   }
 
-  return <QuoteFinderClient quotes={quotes} />;
+  const initialQuery = sp.q?.trim() ?? "";
+  const initialPreviewId = sp.quoteId?.trim() || null;
+
+  return (
+    <QuoteFinderClient
+      quotes={quotes}
+      initialQuery={initialQuery}
+      initialPreviewId={initialPreviewId}
+    />
+  );
 }

@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Download, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { QuotePreviewContent } from "@/components/pathx/quote-preview-content";
+import { createInvoiceFromQuoteAction } from "@/lib/invoices/create-invoice-from-quote-action";
 import {
   getQuoteForPreviewAction,
   type QuoteForPreviewData,
@@ -32,9 +34,11 @@ export function QuoteSavedPreviewDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<QuoteForPreviewData | null>(null);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
 
   useEffect(() => {
     if (!open || !quoteId) {
@@ -95,22 +99,50 @@ export function QuoteSavedPreviewDialog({
               totals={data.totals}
               pricingSettings={data.pricingSettings}
               footerExtra={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    const fromRef = (data.quoteRef || "")
-                      .replace(/[^a-zA-Z0-9._-]+/g, "_")
-                      .slice(0, 48);
-                    const safe =
-                      fromRef || (quoteId ?? "quote").replace(/-/g, "").slice(0, 8);
-                    downloadJson(data.downloadJson, `quote-${safe}.json`);
-                  }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download JSON
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={!quoteId || creatingInvoice}
+                    onClick={async () => {
+                      if (!quoteId) return;
+                      setCreatingInvoice(true);
+                      const res = await createInvoiceFromQuoteAction(quoteId);
+                      setCreatingInvoice(false);
+                      if (!res.ok) {
+                        setError(res.error);
+                        return;
+                      }
+                      onOpenChange(false);
+                      router.push(`/pathx/invoices/${res.invoiceId}`);
+                    }}
+                  >
+                    {creatingInvoice ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating invoice…
+                      </>
+                    ) : (
+                      "Create invoice"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      const fromRef = (data.quoteRef || "")
+                        .replace(/[^a-zA-Z0-9._-]+/g, "_")
+                        .slice(0, 48);
+                      const safe =
+                        fromRef || (quoteId ?? "quote").replace(/-/g, "").slice(0, 8);
+                      downloadJson(data.downloadJson, `quote-${safe}.json`);
+                    }}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download JSON
+                  </Button>
+                </div>
               }
             />
           </>

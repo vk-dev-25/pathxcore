@@ -13,7 +13,7 @@ function csvEscape(s: string) {
 
 /** Include `id` for stable `order` + `range` pagination (PostgREST expects ordered keyset). */
 const SELECT_COLS =
-  "id,catalog_id,accession,dob,gender,tissue,category,diag_short,diag_text,source_tab,status,created_at,sold_at,sold_note,discarded_at,discarded_note";
+  "id,catalog_id,accession,dob,gender,tissue,category,diag_short,diag_text,source_tab,status,created_at,sold_at,sold_note,discarded_at,discarded_note,size_length_cm,size_width_cm,size_height_cm";
 
 /** PostgREST default max rows is often 1000; paginate to return the full filtered set. */
 const PAGE_SIZE = 1000;
@@ -37,6 +37,9 @@ function rowToCsvLine(r: Record<string, unknown>): string {
     dob,
     r.tissue ?? "",
     r.category ?? "",
+    r.size_length_cm != null && r.size_length_cm !== "" ? String(r.size_length_cm) : "",
+    r.size_width_cm != null && r.size_width_cm !== "" ? String(r.size_width_cm) : "",
+    r.size_height_cm != null && r.size_height_cm !== "" ? String(r.size_height_cm) : "",
     csvEscape(String(r.diag_short ?? "")),
     csvEscape(String(r.diag_text ?? "")),
     r.source_tab ?? "",
@@ -84,7 +87,7 @@ export async function GET(req: NextRequest) {
   } = await supabaseUser.auth.getUser();
 
   const hdr =
-    "CatalogID,Accession,Gender,Age,DOB,Tissue,Category,DiagnosisShort,DiagnosisFull,Tab,Status,CreatedAt,SoldAt,SoldNote,DiscardedAt,DiscardedNote";
+    "CatalogID,Accession,Gender,Age,DOB,Tissue,Category,SizeLengthCm,SizeWidthCm,SizeHeightCm,DiagnosisShort,DiagnosisFull,Tab,Status,CreatedAt,SoldAt,SoldNote,DiscardedAt,DiscardedNote";
 
   try {
     if (user) {

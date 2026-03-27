@@ -9,6 +9,7 @@ const items: { href: string; label: string; match: "exact" | "prefix" }[] = [
   { href: "/pathx", label: "Dashboard", match: "exact" },
   { href: "/pathx/quotebuilder", label: "New quote", match: "prefix" },
   { href: "/pathx/quotes", label: "Quote finder", match: "prefix" },
+  { href: "/pathx/invoices", label: "Invoices", match: "prefix" },
   { href: "/pathx/admin/pricing", label: "Quote prices", match: "prefix" },
   { href: "/pathx/tissue-bank", label: "Tissue Blocks", match: "prefix" },
   { href: "/pathx/lims", label: "LIMS", match: "prefix" },

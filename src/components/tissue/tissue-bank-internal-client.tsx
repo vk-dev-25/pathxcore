@@ -56,6 +56,9 @@ export function TissueAddBlockForm() {
             diag_text: String(fd.get("diag_text") ?? ""),
             category: String(fd.get("category") ?? ""),
             source_tab: String(fd.get("source_tab") ?? "Sheet1"),
+            size_length_cm: String(fd.get("size_length_cm") ?? ""),
+            size_width_cm: String(fd.get("size_width_cm") ?? ""),
+            size_height_cm: String(fd.get("size_height_cm") ?? ""),
           });
           if (res.ok) {
             setMessage("Block added.");
@@ -104,6 +107,59 @@ export function TissueAddBlockForm() {
           className={fieldClass}
           placeholder="e.g. Lung, Bone marrow"
         />
+      </div>
+      <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+        <p className="text-sm font-medium leading-none">Size (cm)</p>
+        <p className="text-xs text-muted-foreground">
+          Optional. Length × width × height in centimeters.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="tissue-size-l" className="text-xs font-normal text-muted-foreground">
+              Length
+            </Label>
+            <Input
+              id="tissue-size-l"
+              name="size_length_cm"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              className={fieldClass}
+              placeholder="—"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="tissue-size-w" className="text-xs font-normal text-muted-foreground">
+              Width
+            </Label>
+            <Input
+              id="tissue-size-w"
+              name="size_width_cm"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              className={fieldClass}
+              placeholder="—"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="tissue-size-h" className="text-xs font-normal text-muted-foreground">
+              Height
+            </Label>
+            <Input
+              id="tissue-size-h"
+              name="size_height_cm"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              className={fieldClass}
+              placeholder="—"
+            />
+          </div>
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="tissue-category">Category</Label>

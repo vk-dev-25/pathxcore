@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { calcAge } from "@/lib/tissue/format";
+import { calcAge, formatTissueSizeCm } from "@/lib/tissue/format";
 import type { TissueInventoryRow } from "@/lib/tissue/types";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +116,16 @@ export function TissueInventoryDetailDialog({
               <div className="flex justify-between gap-4">
                 <dt>Category</dt>
                 <dd className="text-right text-foreground">{row.category}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt>Size (L × W × H)</dt>
+                <dd className="text-right font-mono text-xs tabular-nums text-foreground">
+                  {formatTissueSizeCm(
+                    row.size_length_cm,
+                    row.size_width_cm,
+                    row.size_height_cm,
+                  )}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt>Primary diagnosis (short)</dt>
