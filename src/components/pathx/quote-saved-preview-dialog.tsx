@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { QuotePreviewContent } from "@/components/pathx/quote-preview-content";
 import { createInvoiceFromQuoteAction } from "@/lib/invoices/create-invoice-from-quote-action";
+import { createLimsProjectFromQuoteAction } from "@/lib/lims/create-project-from-quote-action";
 import {
   getQuoteForPreviewAction,
   type QuoteForPreviewData,
@@ -39,6 +40,7 @@ export function QuoteSavedPreviewDialog({
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<QuoteForPreviewData | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [creatingLimsProject, setCreatingLimsProject] = useState(false);
 
   useEffect(() => {
     if (!open || !quoteId) {
@@ -103,7 +105,7 @@ export function QuoteSavedPreviewDialog({
                   <Button
                     type="button"
                     className="w-full"
-                    disabled={!quoteId || creatingInvoice}
+                    disabled={!quoteId || creatingInvoice || creatingLimsProject}
                     onClick={async () => {
                       if (!quoteId) return;
                       setCreatingInvoice(true);
@@ -124,6 +126,32 @@ export function QuoteSavedPreviewDialog({
                       </>
                     ) : (
                       "Create invoice"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    disabled={!quoteId || creatingInvoice || creatingLimsProject}
+                    onClick={async () => {
+                      if (!quoteId) return;
+                      setCreatingLimsProject(true);
+                      const res = await createLimsProjectFromQuoteAction(quoteId);
+                      setCreatingLimsProject(false);
+                      if (!res.ok) {
+                        setError(res.error);
+                        return;
+                      }
+                      onOpenChange(false);
+                      router.push(`/pathx/lims/projects/${res.projectId}`);
+                    }}
+                  >
+                    {creatingLimsProject ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating project…
+                      </>
+                    ) : (
+                      "Create project"
                     )}
                   </Button>
                   <Button
