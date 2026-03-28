@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Loader2,
   Plus,
+  Printer,
   Save,
   Search,
 } from "lucide-react";
@@ -15,6 +16,11 @@ import {
 import { LimsEditableSection } from "@/components/pathx/lims-editable-section";
 import { LimsKeyValueEditor } from "@/components/pathx/lims-key-value-editor";
 import { LimsSampleServiceLines } from "@/components/pathx/lims-sample-service-lines";
+import { LimsProjectPrintDialog } from "@/components/pathx/lims-project-print-dialog";
+import {
+  LimsSampleLabelDialog,
+  type LimsSampleLabelPayload,
+} from "@/components/pathx/lims-sample-label-dialog";
 import {
   LimsSlideLabelDialog,
   type LimsSlideLabelPayload,
@@ -248,6 +254,12 @@ export function LimsProjectDetailClient({
     null,
   );
 
+  const [printOpen, setPrintOpen] = useState(false);
+
+  const [sampleLabelOpen, setSampleLabelOpen] = useState(false);
+  const [sampleLabelPayload, setSampleLabelPayload] =
+    useState<LimsSampleLabelPayload | null>(null);
+
   const [detailSearch, setDetailSearch] = useState("");
 
   const [browserCatalog, setBrowserCatalog] = useState<
@@ -321,6 +333,16 @@ export function LimsProjectDetailClient({
     initial.id,
     detailQuery,
   ]);
+
+  const printPayload = useMemo(
+    (): LimsProjectDetailPayload => ({
+      ...initial,
+      procedures,
+      details,
+      status,
+    }),
+    [initial, procedures, details, status],
+  );
 
   useEffect(() => {
     setProcedures(initial.procedures);
@@ -408,6 +430,15 @@ export function LimsProjectDetailClient({
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPrintOpen(true)}
+          >
+            <Printer className="mr-2 h-4 w-4" />
+            Print / PDF
+          </Button>
           <span
             className={cn(
               "rounded-full px-2.5 py-0.5 text-xs font-medium",
@@ -769,6 +800,10 @@ export function LimsProjectDetailClient({
               onRefresh={refresh}
               pending={pending}
               start={start}
+              onOpenSampleLabel={(p) => {
+                setSampleLabelPayload(p);
+                setSampleLabelOpen(true);
+              }}
               onOpenLabel={(p) => {
                 setLabelPayload(p);
                 setLabelOpen(true);
@@ -782,6 +817,16 @@ export function LimsProjectDetailClient({
         open={labelOpen}
         onOpenChange={setLabelOpen}
         payload={labelPayload}
+      />
+      <LimsSampleLabelDialog
+        open={sampleLabelOpen}
+        onOpenChange={setSampleLabelOpen}
+        payload={sampleLabelPayload}
+      />
+      <LimsProjectPrintDialog
+        open={printOpen}
+        onOpenChange={setPrintOpen}
+        data={printPayload}
       />
     </div>
   );
@@ -797,6 +842,7 @@ function SampleCard({
   onRefresh,
   pending,
   start,
+  onOpenSampleLabel,
   onOpenLabel,
 }: {
   projectId: string;
@@ -808,6 +854,7 @@ function SampleCard({
   onRefresh: () => void;
   pending: boolean;
   start: (fn: () => void) => void;
+  onOpenSampleLabel: (p: LimsSampleLabelPayload) => void;
   onOpenLabel: (p: LimsSlideLabelPayload) => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -870,16 +917,44 @@ function SampleCard({
 
   return (
     <Card className={cardClass}>
-      <CardHeader className="cursor-pointer pb-2" onClick={() => setOpen((o) => !o)}>
+      <CardHeader className="pb-2">
         <div className="flex items-start gap-2">
-          {open ? (
-            <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-          ) : (
-            <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-          )}
-          <div className="min-w-0 flex-1">
-            <CardTitle className="font-mono text-base">{sample.sample_reference}</CardTitle>
-            <CardDescription className="mt-1">{sample.name}</CardDescription>
+          <button
+            type="button"
+            className="flex min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-md text-left outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            onClick={() => setOpen((o) => !o)}
+          >
+            {open ? (
+              <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+            )}
+            <div className="min-w-0 flex-1">
+              <CardTitle className="font-mono text-base">{sample.sample_reference}</CardTitle>
+              <CardDescription className="mt-1">{sample.name}</CardDescription>
+            </div>
+          </button>
+          <div className="shrink-0 pt-0.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                onOpenSampleLabel({
+                  sampleReference: sample.sample_reference,
+                  clientSampleId: sample.client_sample_id,
+                  projectReference,
+                  projectTitle,
+                  specimenName: sample.name,
+                  tissueType: sample.tissue_type,
+                  organAbbrev: sample.organ_abbrev,
+                  species_kind: sample.species_kind,
+                  dateReceived: sample.date_received,
+                })
+              }
+            >
+              Specimen label
+            </Button>
           </div>
         </div>
       </CardHeader>
