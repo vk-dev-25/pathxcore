@@ -95,8 +95,8 @@ export function LimsProjectFinderClient({
         <CardHeader className="space-y-1">
           <CardTitle className="text-lg">Filter &amp; sort</CardTitle>
           <CardDescription>
-            Search by project ID (PTX-PRJ… or legacy PTX-PR…, UUID), sample ID, slide ID,
-            org, title, or status.
+            Search by project ID (PTX-PRJ… or legacy PTX-PR…, UUID), sample ID, client
+            sample ID, slide ID, org, title, or status.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -111,7 +111,7 @@ export function LimsProjectFinderClient({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="PTX-PRJ1, PTX-PRJ1-LG-01, slide ref, UUID…"
+                placeholder="PTX-PRJ1, sample ref, client ID, slide ref, UUID…"
                 className={cn("pl-9", fieldClass)}
                 autoComplete="off"
               />

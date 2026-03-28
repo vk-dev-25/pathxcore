@@ -537,7 +537,7 @@ export function LimsProjectDetailClient({
       <div className="mt-8">
         <LimsEditableSection
           title="Search this project"
-          description="Filter samples and slides by project ID (PTX-PRJ… or UUID), sample ID, or slide ID."
+          description="Filter samples and slides by project ID (PTX-PRJ… or UUID), sample ID, client sample ID, or slide ID."
         >
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -546,7 +546,7 @@ export function LimsProjectDetailClient({
               type="search"
               value={detailSearch}
               onChange={(e) => setDetailSearch(e.target.value)}
-              placeholder="PTX-PRJ1, sample ref, slide ref, UUID…"
+              placeholder="PTX-PRJ1, sample ref, client ID, slide ref, UUID…"
               className={cn("pl-9", fieldClass)}
               autoComplete="off"
             />

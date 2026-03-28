@@ -38,7 +38,7 @@ export default async function LimsProjectsPage() {
 
   const { data: sampleRows } = await supabase
     .from("lims_samples")
-    .select("id, project_id, sample_reference");
+    .select("id, project_id, sample_reference, client_sample_id");
 
   const sampleIdToProjectId = new Map<string, string>();
   const projectIdToSearchParts = new Map<string, string[]>();
@@ -46,6 +46,9 @@ export default async function LimsProjectsPage() {
     sampleIdToProjectId.set(s.id, s.project_id);
     const parts = projectIdToSearchParts.get(s.project_id) ?? [];
     parts.push(s.sample_reference);
+    const clientSid =
+      typeof s.client_sample_id === "string" ? s.client_sample_id.trim() : "";
+    if (clientSid) parts.push(clientSid);
     projectIdToSearchParts.set(s.project_id, parts);
   }
 
