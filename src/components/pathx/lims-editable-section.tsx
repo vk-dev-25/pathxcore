@@ -23,13 +23,13 @@ export function LimsEditableSection({
   return (
     <div
       className={cn(
-        "rounded-lg border border-white/[0.08] bg-white/[0.02]",
+        "rounded-lg border border-border bg-card/60 dark:border-white/[0.08] dark:bg-white/[0.02]",
         className,
       )}
     >
       <button
         type="button"
-        className="flex w-full items-start gap-2 rounded-t-lg px-3 py-2.5 text-left transition-colors hover:bg-white/[0.04]"
+        className="flex w-full items-start gap-2 rounded-t-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/60 dark:hover:bg-white/[0.04]"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
@@ -48,7 +48,9 @@ export function LimsEditableSection({
         </span>
       </button>
       {open ? (
-        <div className="space-y-3 border-t border-white/[0.06] px-3 py-3">{children}</div>
+        <div className="space-y-3 border-t border-border px-3 py-3 dark:border-white/[0.06]">
+          {children}
+        </div>
       ) : null}
     </div>
   );

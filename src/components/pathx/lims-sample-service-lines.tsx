@@ -17,8 +17,7 @@ import {
 } from "@/lib/lims/sample-service-lines-actions";
 import { cn } from "@/lib/utils";
 
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm";
+import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 
 export function LimsSampleServiceLines({
   projectId,
@@ -54,10 +53,10 @@ export function LimsSampleServiceLines({
         </p>
       ) : null}
       {lines.length > 0 ? (
-        <div className="overflow-x-auto rounded-md border border-white/[0.08]">
+        <div className="overflow-x-auto rounded-md border border-border dark:border-white/[0.08]">
           <table className="w-full min-w-[320px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b border-border text-xs font-medium uppercase tracking-wide text-muted-foreground dark:border-white/[0.08]">
                 <th className="px-3 py-2">Service</th>
                 <th className="w-28 px-3 py-2">Qty</th>
                 <th className="w-12 px-2 py-2" />
@@ -67,7 +66,7 @@ export function LimsSampleServiceLines({
               {lines.map((line) => (
                 <tr
                   key={line.id}
-                  className="border-b border-white/[0.06] last:border-0"
+                  className="border-b border-border last:border-0 dark:border-white/[0.06]"
                 >
                   <td className="px-3 py-2">{line.label}</td>
                   <td className="px-3 py-2">
@@ -130,7 +129,7 @@ export function LimsSampleServiceLines({
       )}
 
       {catalogLoading && catalog.length === 0 ? (
-        <div className="flex items-center gap-2 rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-4 text-sm text-muted-foreground dark:border-white/[0.08] dark:bg-white/[0.02]">
           <Loader2 className="h-4 w-4 animate-spin shrink-0" />
           Loading service catalog…
         </div>
@@ -143,7 +142,7 @@ export function LimsSampleServiceLines({
               Pick a service (from quote catalog)
             </Label>
             <div
-              className="max-h-52 overflow-y-auto rounded-md border border-white/[0.08] bg-white/[0.02] p-2"
+              className="max-h-52 overflow-y-auto rounded-md border border-border bg-muted/20 p-2 dark:border-white/[0.08] dark:bg-white/[0.02]"
               role="listbox"
               aria-label="Catalog services"
             >

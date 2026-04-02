@@ -17,6 +17,11 @@ import {
 import { isInvoiceOverdue, type InvoiceStatus } from "@/lib/invoices/types";
 import { cn } from "@/lib/utils";
 
+import {
+  pathxCardClass as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
+
 export type InvoiceListRow = {
   id: string;
   client_org_name: string | null;
@@ -30,11 +35,6 @@ export type InvoiceListRow = {
 };
 
 type SortKey = "date_desc" | "date_asc" | "due_asc" | "due_desc" | "company_asc" | "company_desc";
-
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass = "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -226,10 +226,10 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
             </CardContent>
           </Card>
         ) : (
-          <div className="mt-6 overflow-x-auto rounded-xl border border-white/[0.08] bg-card/40">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/[0.08] text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Due</th>
                   <th className="px-4 py-3">Company</th>
@@ -251,7 +251,7 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                       role="button"
                       tabIndex={0}
                       className={cn(
-                        "cursor-pointer border-b border-white/[0.06] transition-colors hover:bg-white/[0.06] last:border-0",
+                        "cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/50 dark:border-white/[0.06] dark:hover:bg-white/[0.06]",
                         overdue && "bg-destructive/5",
                       )}
                       onClick={() => {

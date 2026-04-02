@@ -5,6 +5,10 @@ import Link from "next/link";
 import { Eye, Loader2, Plus, RotateCcw, Search, Settings2, Trash2 } from "lucide-react";
 
 import { QuotePreviewDialog } from "@/components/pathx/quote-preview-dialog";
+import {
+  pathxCardClassHover as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
 import {
   computeQuoteTotals,
@@ -47,13 +51,6 @@ type DraftLine = {
   default_unit_price: number;
   is_price_overridden: boolean;
 };
-
-/** Matches PathX / marketing: glass fields on charcoal. */
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl transition-[box-shadow,border-color] duration-300 hover:shadow-[0_0_40px_-24px_hsl(var(--primary)/0.25)]";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {

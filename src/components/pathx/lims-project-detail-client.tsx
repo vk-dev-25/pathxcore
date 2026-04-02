@@ -72,11 +72,10 @@ import { updateLimsSampleAction } from "@/lib/lims/update-sample-action";
 import { updateLimsSlideNotesAction } from "@/lib/lims/update-slide-notes-action";
 import { cn } from "@/lib/utils";
 
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl";
+import {
+  pathxCardClass as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
 
 const PROJECT_STATUSES: LimsProjectStatus[] = [
   "created",
@@ -93,7 +92,7 @@ function statusBadge(s: LimsProjectStatus): string {
   if (s === "blocked") return "bg-destructive/15 text-destructive";
   if (s === "shipped") return "bg-primary/15 text-primary";
   if (s === "started") return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-  return "bg-white/[0.06] text-muted-foreground";
+  return "bg-muted/80 text-muted-foreground dark:bg-white/[0.06]";
 }
 
 function validateOrganAbbrev(raw: string): string | null {
@@ -1275,7 +1274,7 @@ function SlideBlock({
   }, [slide.notes, slide.id]);
 
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4">
+    <div className="rounded-lg border border-border bg-muted/20 p-4 dark:border-white/[0.08] dark:bg-white/[0.02]">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <button
           type="button"
@@ -1312,7 +1311,7 @@ function SlideBlock({
         </div>
       </div>
       {exp ? (
-        <div className="mt-4 space-y-3 border-t border-white/[0.06] pt-4">
+        <div className="mt-4 space-y-3 border-t border-border pt-4 dark:border-white/[0.06]">
           <LimsEditableSection
             title="Slide notes"
             description="Text for labels and internal slide notes."

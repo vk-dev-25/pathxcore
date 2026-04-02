@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm";
+import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 
 export type StepRow = {
   id: string;
@@ -50,7 +49,7 @@ export function LimsStepsList({
           return (
             <li
               key={s.id}
-              className="flex flex-wrap items-start gap-2 rounded-md border border-white/[0.08] bg-white/[0.02] px-3 py-2"
+              className="flex flex-wrap items-start gap-2 rounded-md border border-border bg-muted/20 px-3 py-2 dark:border-white/[0.08] dark:bg-white/[0.02]"
             >
               <Button
                 type="button"

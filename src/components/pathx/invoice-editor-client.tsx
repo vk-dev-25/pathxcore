@@ -18,6 +18,11 @@ import { invoiceDraftToPreview } from "@/lib/invoices/invoice-preview";
 import { isInvoiceOverdue, type InvoiceStatus } from "@/lib/invoices/types";
 import { cn } from "@/lib/utils";
 
+import {
+  pathxCardClass as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
+
 type CatalogServiceRow = {
   id: string;
   name: string;
@@ -31,12 +36,6 @@ type DraftLine = {
   quantity: number;
   unit_price: number;
 };
-
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {

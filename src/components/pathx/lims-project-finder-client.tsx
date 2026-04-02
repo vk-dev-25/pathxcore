@@ -13,11 +13,10 @@ import {
 } from "@/lib/lims/types";
 import { cn } from "@/lib/utils";
 
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl";
+import {
+  pathxCardClass as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
 
 function statusBadge(s: LimsProjectStatus): string {
   if (s === "completed") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
@@ -25,7 +24,7 @@ function statusBadge(s: LimsProjectStatus): string {
   if (s === "blocked") return "bg-destructive/15 text-destructive";
   if (s === "shipped") return "bg-primary/15 text-primary";
   if (s === "started") return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-  return "bg-white/[0.06] text-muted-foreground";
+  return "bg-muted/80 text-muted-foreground dark:bg-white/[0.06]";
 }
 
 function formatDate(iso: string) {
@@ -159,10 +158,10 @@ export function LimsProjectFinderClient({
           </CardContent>
         </Card>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-white/[0.08] bg-card/40">
+        <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                 <th className="px-4 py-3">Created</th>
                 <th className="px-4 py-3">Project ID</th>
                 <th className="px-4 py-3">Organization</th>
@@ -176,7 +175,7 @@ export function LimsProjectFinderClient({
                   key={row.id}
                   role="button"
                   tabIndex={0}
-                  className="cursor-pointer border-b border-white/[0.06] transition-colors hover:bg-white/[0.06] last:border-0"
+                  className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/50 dark:border-white/[0.06] dark:hover:bg-white/[0.06]"
                   onClick={() => {
                     window.location.href = `/pathx/lims/projects/${row.id}`;
                   }}

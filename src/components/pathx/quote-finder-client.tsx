@@ -17,6 +17,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+import {
+  pathxCardClass as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
+
 export type QuoteListRow = {
   id: string;
   client_org_name: string | null;
@@ -26,12 +31,6 @@ export type QuoteListRow = {
   total_amount: number;
   created_at: string;
 };
-
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl";
 
 type SortKey = "date_desc" | "date_asc" | "company_asc" | "company_desc";
 
@@ -140,7 +139,7 @@ export function QuoteFinderClient({
             <Button
               asChild
               variant="outline"
-              className="border-white/[0.14] bg-white/[0.04] font-medium"
+              className="font-medium"
             >
               <Link href="/pathx/invoices">
                 <FileText className="mr-2 h-4 w-4" aria-hidden />
@@ -150,7 +149,7 @@ export function QuoteFinderClient({
             <Button
               asChild
               variant="outline"
-              className="border-white/[0.14] bg-white/[0.04] font-medium"
+              className="font-medium"
             >
               <Link href="/pathx/admin/pricing">
                 <Settings2 className="mr-2 h-4 w-4" aria-hidden />
@@ -235,12 +234,7 @@ export function QuoteFinderClient({
                         New quote
                       </Link>
                     </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="border-white/[0.14] bg-white/[0.04]"
-                    >
+                    <Button asChild variant="outline" size="sm" className="font-medium">
                       <Link href="/pathx/admin/pricing">
                         <Settings2 className="mr-2 h-4 w-4" aria-hidden />
                         Quote price config
@@ -254,10 +248,10 @@ export function QuoteFinderClient({
             </CardContent>
           </Card>
         ) : (
-          <div className="mt-6 overflow-x-auto rounded-xl border border-white/[0.08] bg-card/40">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-white/[0.08] text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Company</th>
                   <th className="px-4 py-3">Reference</th>
@@ -272,7 +266,7 @@ export function QuoteFinderClient({
                     key={row.id}
                     role="button"
                     tabIndex={0}
-                    className="cursor-pointer border-b border-white/[0.06] transition-colors hover:bg-white/[0.06] last:border-0"
+                    className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/50 dark:border-white/[0.06] dark:hover:bg-white/[0.06]"
                     onClick={() => setPreviewId(row.id)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {

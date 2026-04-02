@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm";
+import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 
 export type KvRow = { id: string; key: string; value: string };
 
