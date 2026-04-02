@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatLimsSpeciesLabel, type LimsSpeciesKind } from "@/lib/lims/types";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ export type LimsSlideLabelPayload = {
   createdAt: string;
   sampleName: string;
   tissueType: string;
-  species_kind: "human" | "animal";
+  species_kind: LimsSpeciesKind;
 };
 
 function formatWhen(iso: string) {
@@ -32,10 +33,6 @@ function formatWhen(iso: string) {
   } catch {
     return iso;
   }
-}
-
-function speciesLabel(s: LimsSlideLabelPayload["species_kind"]) {
-  return s === "human" ? "Human" : "Animal";
 }
 
 export function LimsSlideLabelDialog({
@@ -178,7 +175,7 @@ export function LimsSlideLabelDialog({
               <dt className="text-neutral-600">Tissue</dt>
               <dd className="text-black">{payload.tissueType || "—"}</dd>
               <dt className="text-neutral-600">Species</dt>
-              <dd className="text-black">{speciesLabel(payload.species_kind)}</dd>
+              <dd className="text-black">{formatLimsSpeciesLabel(payload.species_kind)}</dd>
               <dt className="text-neutral-600">Slide created</dt>
               <dd className="text-black">{formatWhen(payload.createdAt)}</dd>
             </dl>

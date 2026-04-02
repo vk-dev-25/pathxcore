@@ -156,7 +156,8 @@ export function volumeDiscountPercent(
 }
 
 export interface QuoteLineInput {
-  catalog_service_id: string;
+  /** Null when the line is custom / catalog row was removed. */
+  catalog_service_id: string | null;
   label: string;
   quantity: number;
   unit_price: number;

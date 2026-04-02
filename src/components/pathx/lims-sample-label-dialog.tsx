@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatLimsSpeciesLabel, type LimsSpeciesKind } from "@/lib/lims/types";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ export type LimsSampleLabelPayload = {
   specimenName: string;
   tissueType: string;
   organAbbrev: string | null;
-  species_kind: "human" | "animal";
+  species_kind: LimsSpeciesKind;
   dateReceived: string | null;
 };
 
@@ -33,10 +34,6 @@ function formatReceived(raw: string | null): string {
   } catch {
     return raw.trim();
   }
-}
-
-function speciesLabel(s: LimsSampleLabelPayload["species_kind"]) {
-  return s === "human" ? "Human" : "Animal";
 }
 
 function materialLine(p: LimsSampleLabelPayload): string {
@@ -198,7 +195,7 @@ export function LimsSampleLabelDialog({
                 <dt className="text-neutral-600">Material</dt>
                 <dd className="text-black">{materialLine(payload)}</dd>
                 <dt className="text-neutral-600">Species</dt>
-                <dd className="text-black">{speciesLabel(payload.species_kind)}</dd>
+                <dd className="text-black">{formatLimsSpeciesLabel(payload.species_kind)}</dd>
                 <dt className="text-neutral-600">Date received</dt>
                 <dd className="text-black">{formatReceived(payload.dateReceived)}</dd>
               </dl>

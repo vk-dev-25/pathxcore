@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Eye, Loader2, Plus, RotateCcw, Search, Settings2, Trash2 } from "lucide-react";
 
 import { QuotePreviewDialog } from "@/components/pathx/quote-preview-dialog";
@@ -9,7 +10,9 @@ import {
   pathxCardClassHover as cardClass,
   pathxFieldClass as fieldClass,
 } from "@/components/pathx/workspace-field-classes";
+import type { QuoteDraftPayload } from "@/lib/quotes/get-quote-draft-action";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
+import { updateQuoteAction } from "@/lib/quotes/update-quote-action";
 import {
   computeQuoteTotals,
   defaultPricingSettings,
@@ -44,6 +47,7 @@ export type CatalogServiceRow = {
 
 type DraftLine = {
   key: string;
+  /** Empty string when not linked to catalog (custom / orphaned line). */
   catalog_service_id: string;
   label: string;
   quantity: number;
@@ -51,6 +55,8 @@ type DraftLine = {
   default_unit_price: number;
   is_price_overridden: boolean;
 };
+
+export type QuoteBuilderMode = "create" | "edit" | "copy";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -66,11 +72,19 @@ function newRef() {
 export function QuoteBuilderClient({
   catalog,
   pricingSettings: pricingSettingsProp,
+  mode = "create",
+  quoteId = null,
+  initialDraft = null,
 }: {
   catalog: CatalogServiceRow[];
   pricingSettings?: PricingSettingsSnapshot;
+  mode?: QuoteBuilderMode;
+  quoteId?: string | null;
+  initialDraft?: QuoteDraftPayload | null;
 }) {
+  const router = useRouter();
   const pricingSettings = pricingSettingsProp ?? defaultPricingSettings();
+  const hydratedRef = useRef(false);
   const [segment, setSegment] = useState<Segment>("small_biopharma");
   const [sampleVolume, setSampleVolume] = useState(12);
   const [rushPriority, setRushPriority] = useState(false);
@@ -88,10 +102,41 @@ export function QuoteBuilderClient({
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (!initialDraft || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const d = initialDraft;
+    setSegment(d.segment);
+    setSampleVolume(d.sample_volume);
+    setRushPriority(d.rush_priority);
+    setRush2day(d.rush_2day);
+    setClientOrg(d.client_org_name);
+    setClientAddress(d.client_address);
+    setContactName(d.contact_name);
+    setProjectTitle(d.project_title);
+    setNotes(d.notes);
+    setLines(
+      d.lines.map((ln) => ({
+        key: crypto.randomUUID(),
+        catalog_service_id: ln.catalog_service_id ?? "",
+        label: ln.label,
+        quantity: ln.quantity,
+        unit_price: ln.unit_price,
+        default_unit_price: ln.default_unit_price_snapshot,
+        is_price_overridden: ln.is_price_overridden,
+      })),
+    );
+    if (mode === "copy") {
+      setQuoteRef(newRef());
+    } else {
+      setQuoteRef(d.quote_reference.trim() || newRef());
+    }
+  }, [initialDraft, mode]);
+
   const lineInputs: QuoteLineInput[] = useMemo(
     () =>
       lines.map((l) => ({
-        catalog_service_id: l.catalog_service_id,
+        catalog_service_id: l.catalog_service_id.trim() ? l.catalog_service_id : null,
         label: l.label,
         quantity: l.quantity,
         unit_price: l.unit_price,
@@ -181,7 +226,7 @@ export function QuoteBuilderClient({
     setSaveMsg(null);
     setSaveErr(null);
     startTransition(async () => {
-      const result = await saveQuoteAction({
+      const payload = {
         client_org_name: clientOrg,
         client_address: clientAddress,
         contact_name: contactName,
@@ -193,17 +238,35 @@ export function QuoteBuilderClient({
         rush_2day: rush2day,
         notes,
         lines: lineInputs,
-      });
+      };
+      const result =
+        mode === "edit" && quoteId
+          ? await updateQuoteAction({ quoteId, ...payload })
+          : await saveQuoteAction(payload);
       if (result.ok) {
-        setSaveMsg(`Quote saved. Reference stored with id ${result.quoteId.slice(0, 8)}…`);
-        setLines([]);
-        setNotes("");
-        setQuoteRef(newRef());
+        if (mode === "edit") {
+          setSaveMsg("Quote updated.");
+          router.refresh();
+        } else {
+          setSaveMsg(`Quote saved. Reference stored with id ${result.quoteId.slice(0, 8)}…`);
+          setLines([]);
+          setNotes("");
+          setQuoteRef(newRef());
+        }
       } else {
         setSaveErr(result.error);
       }
     });
   }
+
+  const heading =
+    mode === "edit"
+      ? "Edit quote"
+      : mode === "copy"
+        ? "New quote (duplicate)"
+        : "New quote";
+  const saveLabel = mode === "edit" ? "Save changes" : "Save quote";
+  const showClear = mode !== "edit";
 
   const catalogEmpty = catalog.length === 0;
 
@@ -220,12 +283,12 @@ export function QuoteBuilderClient({
             PathX module
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            New quote
+            {heading}
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Configure services, segment, and volume. Override any line price when
-            needed—defaults follow quote price config; your quote is saved for the
-            team.
+            {mode === "edit"
+              ? "Update client details, services, segment, volume, and notes—then save."
+              : "Configure services, segment, and volume. Override any line price when needed—defaults follow quote price config; your quote is saved for the team."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
@@ -268,16 +331,18 @@ export function QuoteBuilderClient({
             totals={totals}
             pricingSettings={pricingSettings}
           />
-          <Button
-            type="button"
-            variant="workspace"
-            size="sm"
-            className="font-medium"
-            onClick={clearAll}
-          >
-            <RotateCcw className="mr-1.5 h-4 w-4" />
-            Clear
-          </Button>
+          {showClear ? (
+            <Button
+              type="button"
+              variant="workspace"
+              size="sm"
+              className="font-medium"
+              onClick={clearAll}
+            >
+              <RotateCcw className="mr-1.5 h-4 w-4" />
+              Clear
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="sm"
@@ -288,7 +353,7 @@ export function QuoteBuilderClient({
             {pending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Save quote
+            {saveLabel}
           </Button>
         </div>
       </div>
@@ -448,22 +513,6 @@ export function QuoteBuilderClient({
                   }
                   className={cn(fieldClass)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Discount tier is chosen from total sample / block volume (see
-                  tiers below). Percent off applies after segment adjustment.
-                </p>
-              </div>
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3">
-                <p className="text-xs font-medium text-foreground">
-                  Volume discount tiers
-                </p>
-                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  {pricingSettings.volume_tiers.map((t, i) => (
-                    <li key={i}>
-                      {t.min}–{t.max} blocks: {t.discountPercent}% off
-                    </li>
-                  ))}
-                </ul>
               </div>
               <div className="flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center">
                 <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">

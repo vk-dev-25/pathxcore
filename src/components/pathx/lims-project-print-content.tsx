@@ -5,7 +5,10 @@ import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { LimsProjectDetailPayload } from "@/lib/lims/get-lims-project-detail-action";
-import { formatLimsProjectStatusLabel, type LimsSpeciesKind } from "@/lib/lims/types";
+import {
+  formatLimsProjectStatusLabel,
+  formatLimsSpeciesLabel,
+} from "@/lib/lims/types";
 
 function formatMediumDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -33,10 +36,6 @@ function formatDateTime(iso: string | null | undefined): string {
 function dash(s: string | null | undefined): string {
   const t = (s ?? "").trim();
   return t || "—";
-}
-
-function speciesLabel(k: LimsSpeciesKind): string {
-  return k === "human" ? "Human" : "Animal";
 }
 
 function SectionTitle({ children }: { children: ReactNode }) {
@@ -249,7 +248,9 @@ export function LimsProjectPrintContent({ data }: { data: LimsProjectDetailPaylo
                       <dt className="text-xs text-muted-foreground print:text-neutral-600">
                         Species
                       </dt>
-                      <dd className="print:text-black">{speciesLabel(sample.species_kind)}</dd>
+                      <dd className="print:text-black">
+                        {formatLimsSpeciesLabel(sample.species_kind)}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground print:text-neutral-600">

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { FileText, Plus, Search, Settings2 } from "lucide-react";
+import { Copy, FileText, Plus, Search, Settings2 } from "lucide-react";
 
 import { QuoteSavedPreviewDialog } from "@/components/pathx/quote-saved-preview-dialog";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,8 @@ export type QuoteListRow = {
   quote_reference: string | null;
   total_amount: number;
   created_at: string;
+  /** Signed-in user can open edit (shared workspace). */
+  can_edit?: boolean;
 };
 
 type SortKey = "date_desc" | "date_asc" | "company_asc" | "company_desc";
@@ -258,6 +260,7 @@ export function QuoteFinderClient({
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3 text-right">Total</th>
+                  <th className="w-[200px] px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,6 +295,25 @@ export function QuoteFinderClient({
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-primary">
                       {money(row.total_amount)}
+                    </td>
+                    <td
+                      className="px-4 py-2 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex flex-wrap items-center justify-end gap-1">
+                        {row.can_edit ? (
+                          <Button asChild size="sm" variant="outline" className="h-8 text-xs">
+                            <Link href={`/pathx/quotes/${row.id}/edit`}>Edit</Link>
+                          </Button>
+                        ) : null}
+                        <Button asChild size="sm" variant="ghost" className="h-8 text-xs">
+                          <Link href={`/pathx/quotebuilder?copyFrom=${encodeURIComponent(row.id)}`}>
+                            <Copy className="mr-1 h-3.5 w-3.5" aria-hidden />
+                            Copy
+                          </Link>
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

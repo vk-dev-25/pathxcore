@@ -64,6 +64,8 @@ import {
 import {
   canTransitionProjectStatus,
   formatLimsProjectStatusLabel,
+  formatLimsSpeciesLabel,
+  LIMS_SPECIES_KINDS,
   type LimsProjectStatus,
   type LimsSpeciesKind,
 } from "@/lib/lims/types";
@@ -634,20 +636,23 @@ export function LimsProjectDetailClient({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Species</Label>
-                    <select
-                      className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.species_kind}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          species_kind: e.target.value as LimsSpeciesKind,
-                        }))
-                      }
-                    >
-                      <option value="human">Human</option>
-                      <option value="animal">Animal</option>
-                    </select>
+                <Label className="text-xs">Species</Label>
+                <select
+                  className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
+                  value={addForm.species_kind}
+                  onChange={(e) =>
+                    setAddForm((f) => ({
+                      ...f,
+                      species_kind: e.target.value as LimsSpeciesKind,
+                    }))
+                  }
+                >
+                  {LIMS_SPECIES_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {formatLimsSpeciesLabel(k)}
+                    </option>
+                  ))}
+                </select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Tissue type *</Label>
@@ -994,8 +999,11 @@ function SampleCard({
                     }))
                   }
                 >
-                  <option value="human">Human</option>
-                  <option value="animal">Animal</option>
+                  {LIMS_SPECIES_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {formatLimsSpeciesLabel(k)}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-1">

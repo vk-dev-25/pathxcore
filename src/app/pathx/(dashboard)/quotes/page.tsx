@@ -18,6 +18,10 @@ export default async function QuoteFinderPage({
 }) {
   const sp = (await searchParams) ?? {};
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from("quotes")
     .select(
@@ -33,6 +37,7 @@ export default async function QuoteFinderPage({
     quote_reference: row.quote_reference,
     total_amount: Number(row.total_amount),
     created_at: row.created_at,
+    can_edit: Boolean(user?.id),
   }));
 
   if (error) {

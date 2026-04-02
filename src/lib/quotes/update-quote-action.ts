@@ -9,14 +9,15 @@ import {
   type QuoteLineInput,
   type Segment,
 } from "@/lib/quote-pricing";
+import { catalogIdForInsert } from "@/lib/quotes/quote-line-catalog-id";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export type SaveQuoteState =
-  | { ok: true; quoteId: string }
-  | { ok: false; error: string };
+import type { SaveQuoteState } from "@/lib/quotes/save-quote-action";
 
-export async function saveQuoteAction(input: {
+export async function updateQuoteAction(input: {
+  quoteId: string;
   client_org_name: string;
   client_address: string;
   contact_name: string;
@@ -38,6 +39,16 @@ export async function saveQuoteAction(input: {
     return { ok: false, error: "You must be signed in to save a quote." };
   }
 
+  let db = supabase as typeof supabase;
+  try {
+    db = createServiceRoleClient() as typeof supabase;
+  } catch (e) {
+    console.warn(
+      "updateQuoteAction: service role client unavailable, using session client (RLS must allow edits):",
+      e,
+    );
+  }
+
   if (!isValidSegment(input.segment)) {
     return { ok: false, error: "Invalid segment." };
   }
@@ -56,6 +67,23 @@ export async function saveQuoteAction(input: {
     }
   }
 
+  const { data: existing, error: exErr } = await db
+    .from("quotes")
+    .select("id")
+    .eq("id", input.quoteId)
+    .maybeSingle();
+
+  if (exErr || !existing) {
+    return { ok: false, error: "Quote not found." };
+  }
+
+  const { data: catalogRows } = await db
+    .from("quote_catalog_services")
+    .select("id");
+  const validCatalogIds = new Set(
+    (catalogRows ?? []).map((r) => String(r.id).toLowerCase()),
+  );
+
   const pricingSettings = await loadPricingSettings();
   const totals = computeQuoteTotals(
     input.lines,
@@ -66,10 +94,9 @@ export async function saveQuoteAction(input: {
     pricingSettings,
   );
 
-  const { data: quote, error: qErr } = await supabase
+  const { error: uErr } = await db
     .from("quotes")
-    .insert({
-      user_id: user.id,
+    .update({
       client_org_name: input.client_org_name.trim() || null,
       client_address: input.client_address.trim() || null,
       contact_name: input.contact_name.trim() || null,
@@ -87,24 +114,28 @@ export async function saveQuoteAction(input: {
       after_volume_amount: totals.after_volume_amount,
       rush_uplift_amount: totals.rush_uplift_amount,
       total_amount: totals.total_amount,
+      updated_at: new Date().toISOString(),
     })
-    .select("id")
-    .single();
+    .eq("id", input.quoteId);
 
-  if (qErr || !quote) {
-    console.error(qErr);
-    return {
-      ok: false,
-      error:
-        qErr?.message?.includes("relation") || qErr?.code === "42P01"
-          ? "Quotes tables are missing. Run the Supabase migration for quotes (see supabase/migrations)."
-          : "Could not save quote. Try again.",
-    };
+  if (uErr) {
+    console.error(uErr);
+    return { ok: false, error: "Could not update quote. Try again." };
+  }
+
+  const { error: dErr } = await db
+    .from("quote_line_items")
+    .delete()
+    .eq("quote_id", input.quoteId);
+
+  if (dErr) {
+    console.error(dErr);
+    return { ok: false, error: "Could not replace line items. Try again." };
   }
 
   const lineRows = input.lines.map((l, i) => ({
-    quote_id: quote.id,
-    catalog_service_id: l.catalog_service_id?.trim() || null,
+    quote_id: input.quoteId,
+    catalog_service_id: catalogIdForInsert(l.catalog_service_id, validCatalogIds),
     label: l.label,
     quantity: l.quantity,
     unit_price: roundMoney(l.unit_price),
@@ -114,14 +145,25 @@ export async function saveQuoteAction(input: {
     sort_order: i,
   }));
 
-  const { error: lErr } = await supabase.from("quote_line_items").insert(lineRows);
+  const { error: iErr } = await db.from("quote_line_items").insert(lineRows);
 
-  if (lErr) {
-    console.error(lErr);
-    await supabase.from("quotes").delete().eq("id", quote.id);
-    return { ok: false, error: "Could not save line items. Try again." };
+  if (iErr) {
+    console.error(iErr);
+    const hint =
+      iErr.code === "23503"
+        ? " A catalog reference was invalid."
+        : iErr.message?.includes("row-level security") ||
+            iErr.code === "42501"
+          ? " Database permissions blocked the save (run the quotes RLS migration or set SUPABASE_SERVICE_ROLE_KEY on the server)."
+          : "";
+    return {
+      ok: false,
+      error: `Could not save line items. Try again.${hint}`,
+    };
   }
 
   revalidatePath("/pathx/quotebuilder");
-  return { ok: true, quoteId: quote.id };
+  revalidatePath("/pathx/quotes");
+  revalidatePath(`/pathx/quotes/${input.quoteId}/edit`);
+  return { ok: true, quoteId: input.quoteId };
 }
