@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Eye, Loader2, Plus, RotateCcw, Search, Settings2, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Eye,
+  Loader2,
+  Plus,
+  RotateCcw,
+  Search,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 
 import { QuotePreviewDialog } from "@/components/pathx/quote-preview-dialog";
 import {
@@ -169,8 +178,6 @@ export function QuoteBuilderClient({
     ],
   );
 
-  const segmentLabel =
-    SEGMENT_OPTIONS.find((o) => o.value === segment)?.label ?? segment;
   const rpPct = pricingSettings.rush_priority_percent;
   const r2Pct = pricingSettings.rush_2day_percent;
 
@@ -276,7 +283,27 @@ export function QuoteBuilderClient({
         className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_90%_60%_at_50%_-10%,hsl(var(--primary)/0.12),transparent_65%)]"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+      <div
+        className={cn(
+          "relative mx-auto max-w-6xl px-4 sm:px-6",
+          mode === "edit" ? "pb-12 pt-6 sm:pb-16 sm:pt-8" : "py-12 sm:py-16",
+        )}
+      >
+        {mode === "edit" ? (
+          <div className="-mt-1 mb-5 sm:-mt-2 sm:mb-6">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-primary/30 bg-primary/5 font-medium text-foreground shadow-sm hover:bg-primary/10 hover:text-foreground"
+            >
+              <Link href="/pathx/quotes">
+                <ArrowLeft className="mr-2 h-4 w-4" aria-hidden />
+                Quote finder
+              </Link>
+            </Button>
+          </div>
+        ) : null}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
@@ -287,7 +314,7 @@ export function QuoteBuilderClient({
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
             {mode === "edit"
-              ? "Update client details, services, segment, volume, and notes—then save."
+              ? "Update client details, services, segment, volume, and client-facing notes—then save."
               : "Configure services, segment, and volume. Override any line price when needed—defaults follow quote price config; your quote is saved for the team."}
           </p>
         </div>
@@ -316,10 +343,7 @@ export function QuoteBuilderClient({
             contactName={contactName}
             projectTitle={projectTitle}
             quoteRef={quoteRef}
-            segmentLabel={segmentLabel}
             sampleVolume={sampleVolume}
-            rushPriority={rushPriority}
-            rush2day={rush2day}
             notes={notes}
             lines={lines.map((l) => ({
               label: l.label,
@@ -748,28 +772,6 @@ export function QuoteBuilderClient({
               )}
             </CardContent>
           </Card>
-
-          <Card className={cardClass}>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-lg font-semibold tracking-tight">
-                Notes
-              </CardTitle>
-              <CardDescription>
-                Special instructions or assay context.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                className={cn(
-                  fieldClass,
-                  "min-h-[100px] resize-y rounded-md border py-3",
-                )}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional notes for the lab team…"
-              />
-            </CardContent>
-          </Card>
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -844,6 +846,29 @@ export function QuoteBuilderClient({
           </div>
         </aside>
       </div>
+
+      <Card className={cn(cardClass, "mt-8 w-full max-w-none")}>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-lg font-semibold tracking-tight">
+            Notes
+          </CardTitle>
+          <CardDescription>
+            Shown on the quote preview and PDF for your client when this field has
+            text—appears before the services table, with no heading.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <textarea
+            className={cn(
+              fieldClass,
+              "min-h-[240px] w-full resize-y rounded-md border px-4 py-3 text-base leading-relaxed",
+            )}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Special instructions, assay context, or anything the client should see on the quote…"
+          />
+        </CardContent>
+      </Card>
       </div>
     </div>
   );

@@ -36,11 +36,9 @@ function formatReceived(raw: string | null): string {
   }
 }
 
-function materialLine(p: LimsSampleLabelPayload): string {
-  const t = p.tissueType.trim() || "—";
-  const o = p.organAbbrev?.trim();
-  if (o) return `${o} · ${t}`;
-  return t;
+/** Material on the printed label is tissue type (not organ abbrev). */
+function tissueTypeForMaterial(p: LimsSampleLabelPayload): string {
+  return p.tissueType.trim() || "—";
 }
 
 export function LimsSampleLabelDialog({
@@ -193,7 +191,7 @@ export function LimsSampleLabelDialog({
                 <dt className="text-neutral-600">Specimen / block</dt>
                 <dd className="text-black">{payload.specimenName.trim() || "—"}</dd>
                 <dt className="text-neutral-600">Material</dt>
-                <dd className="text-black">{materialLine(payload)}</dd>
+                <dd className="text-black">{tissueTypeForMaterial(payload)}</dd>
                 <dt className="text-neutral-600">Species</dt>
                 <dd className="text-black">{formatLimsSpeciesLabel(payload.species_kind)}</dd>
                 <dt className="text-neutral-600">Date received</dt>

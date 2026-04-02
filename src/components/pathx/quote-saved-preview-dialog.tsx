@@ -92,10 +92,7 @@ export function QuoteSavedPreviewDialog({
               contactName={data.contactName}
               projectTitle={data.projectTitle}
               quoteRef={data.quoteRef}
-              segmentLabel={data.segmentLabel}
               sampleVolume={data.sampleVolume}
-              rushPriority={data.rushPriority}
-              rush2day={data.rush2day}
               notes={data.notes}
               lines={data.lines}
               totals={data.totals}

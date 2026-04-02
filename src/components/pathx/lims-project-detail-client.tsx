@@ -11,6 +11,7 @@ import {
   Printer,
   Save,
   Search,
+  Trash2,
 } from "lucide-react";
 
 import { LimsEditableSection } from "@/components/pathx/lims-editable-section";
@@ -25,7 +26,6 @@ import {
   LimsSlideLabelDialog,
   type LimsSlideLabelPayload,
 } from "@/components/pathx/lims-slide-label-dialog";
-import { LimsStepsList } from "@/components/pathx/lims-steps-list";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { createLimsSampleAction } from "@/lib/lims/create-sample-action";
 import { createLimsSlidesBulkAction } from "@/lib/lims/create-slides-bulk-action";
+import { deleteLimsSampleAction } from "@/lib/lims/delete-sample-action";
 import type {
   LimsCatalogServiceOption,
   LimsProjectDetailPayload,
@@ -48,19 +49,9 @@ import {
   upsertLimsSampleMetadataAction,
 } from "@/lib/lims/sample-metadata-actions";
 import {
-  addLimsSampleStepAction,
-  deleteLimsSampleStepAction,
-  setLimsSampleStepCompletedAction,
-} from "@/lib/lims/sample-steps-actions";
-import {
   deleteLimsSlideMetadataAction,
   upsertLimsSlideMetadataAction,
 } from "@/lib/lims/slide-metadata-actions";
-import {
-  addLimsSlideStepAction,
-  deleteLimsSlideStepAction,
-  setLimsSlideStepCompletedAction,
-} from "@/lib/lims/slide-steps-actions";
 import {
   canTransitionProjectStatus,
   formatLimsProjectStatusLabel,
@@ -112,12 +103,8 @@ type SampleForm = {
   species_kind: LimsSpeciesKind;
   tissue_type: string;
   organ_abbrev: string;
-  diagnostic: string;
   date_received: string;
   date_of_dissection: string;
-  dob: string;
-  special_care_instructions: string;
-  services_notes: string;
   instructions_notes: string;
 };
 
@@ -128,12 +115,8 @@ function emptySampleForm(): SampleForm {
     species_kind: "human",
     tissue_type: "",
     organ_abbrev: "",
-    diagnostic: "",
     date_received: "",
     date_of_dissection: "",
-    dob: "",
-    special_care_instructions: "",
-    services_notes: "",
     instructions_notes: "",
   };
 }
@@ -223,12 +206,8 @@ function sampleToForm(s: LimsProjectDetailPayload["samples"][0]): SampleForm {
     species_kind: s.species_kind,
     tissue_type: s.tissue_type,
     organ_abbrev: s.organ_abbrev ?? "",
-    diagnostic: s.diagnostic ?? "",
     date_received: s.date_received ?? "",
     date_of_dissection: s.date_of_dissection ?? "",
-    dob: s.dob ?? "",
-    special_care_instructions: s.special_care_instructions ?? "",
-    services_notes: s.services_notes ?? "",
     instructions_notes: s.instructions_notes ?? "",
   };
 }
@@ -241,8 +220,7 @@ export function LimsProjectDetailClient({
   const router = useRouter();
   const [pending, start] = useTransition();
 
-  const [procedures, setProcedures] = useState(initial.procedures);
-  const [details, setDetails] = useState(initial.details);
+  const [projectDetails, setProjectDetails] = useState(initial.procedures);
   const [status, setStatus] = useState<LimsProjectStatus>(initial.status);
   const [projectError, setProjectError] = useState<string | null>(null);
 
@@ -338,18 +316,16 @@ export function LimsProjectDetailClient({
   const printPayload = useMemo(
     (): LimsProjectDetailPayload => ({
       ...initial,
-      procedures,
-      details,
+      procedures: projectDetails,
       status,
     }),
-    [initial, procedures, details, status],
+    [initial, projectDetails, status],
   );
 
   useEffect(() => {
-    setProcedures(initial.procedures);
-    setDetails(initial.details);
+    setProjectDetails(initial.procedures);
     setStatus(initial.status);
-  }, [initial.procedures, initial.details, initial.status, initial.updated_at]);
+  }, [initial.procedures, initial.status, initial.updated_at]);
 
   const allowedStatuses = useMemo(() => {
     const from = initial.status;
@@ -367,8 +343,7 @@ export function LimsProjectDetailClient({
     start(async () => {
       const res = await updateLimsProjectAction({
         projectId: initial.id,
-        procedures,
-        details,
+        projectDetails,
         status,
       });
       if (!res.ok) setProjectError(res.error);
@@ -386,24 +361,19 @@ export function LimsProjectDetailClient({
         return;
       }
     }
-    if (!addForm.name.trim() || !addForm.tissue_type.trim()) {
-      setAddErr("Sample name and tissue type are required.");
+    if (!addForm.tissue_type.trim()) {
+      setAddErr("Tissue type is required.");
       return;
     }
     start(async () => {
       const res = await createLimsSampleAction({
         projectId: initial.id,
-        name: addForm.name,
         client_sample_id: addForm.client_sample_id || undefined,
         species_kind: addForm.species_kind,
         tissue_type: addForm.tissue_type,
         organ_abbrev: addForm.organ_abbrev.trim() ? ab : undefined,
-        diagnostic: addForm.diagnostic || undefined,
         date_received: addForm.date_received || undefined,
         date_of_dissection: addForm.date_of_dissection || undefined,
-        dob: addForm.dob || undefined,
-        special_care_instructions: addForm.special_care_instructions || undefined,
-        services_notes: addForm.services_notes || undefined,
         instructions_notes: addForm.instructions_notes || undefined,
       });
       if (!res.ok) setAddErr(res.error);
@@ -490,7 +460,7 @@ export function LimsProjectDetailClient({
         <CardHeader>
           <CardTitle className="text-lg">Project</CardTitle>
           <CardDescription>
-            Procedures, lab details, and workflow status.
+            Project details and workflow status.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -519,36 +489,19 @@ export function LimsProjectDetailClient({
             </div>
           </LimsEditableSection>
           <LimsEditableSection
-            title="Procedures"
-            description="Lab procedures and processing notes."
+            title="Project details"
+            description="Context and notes for this project."
           >
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Procedures</Label>
+              <Label className="text-xs text-muted-foreground">Project details</Label>
               <textarea
                 className={cn(
                   "min-h-[100px] w-full rounded-md border px-3 py-2 text-sm",
                   fieldClass,
                 )}
-                value={procedures}
-                onChange={(e) => setProcedures(e.target.value)}
-                placeholder="Lab procedures for this project…"
-              />
-            </div>
-          </LimsEditableSection>
-          <LimsEditableSection
-            title="Other details"
-            description="Additional context for the lab team."
-          >
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Other details</Label>
-              <textarea
-                className={cn(
-                  "min-h-[80px] w-full rounded-md border px-3 py-2 text-sm",
-                  fieldClass,
-                )}
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                placeholder="Additional notes…"
+                value={projectDetails}
+                onChange={(e) => setProjectDetails(e.target.value)}
+                placeholder="Project details…"
               />
             </div>
           </LimsEditableSection>
@@ -569,7 +522,7 @@ export function LimsProjectDetailClient({
       <div className="mt-8">
         <LimsEditableSection
           title="Search this project"
-          description="Filter samples and slides by project ID (PTX-PRJ… or UUID), sample ID, client sample ID, or slide ID."
+          description="Filter samples and slides by project ID (PRJ…, legacy PTX-PRJ…, or UUID), sample ID, client sample ID, or slide ID."
         >
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -578,7 +531,7 @@ export function LimsProjectDetailClient({
               type="search"
               value={detailSearch}
               onChange={(e) => setDetailSearch(e.target.value)}
-              placeholder="PTX-PRJ1, sample ref, client ID, slide ref, UUID…"
+              placeholder="PRJ1, sample ref, client ID, slide ref, UUID…"
               className={cn("pl-9", fieldClass)}
               autoComplete="off"
             />
@@ -614,17 +567,9 @@ export function LimsProjectDetailClient({
             <CardContent className="space-y-4">
               <LimsEditableSection
                 title="Identification"
-                description="Name, client ID, species, tissue, and organ abbreviation."
+                description="Client ID, species, tissue type, and organ abbreviation."
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Name *</Label>
-                    <Input
-                      className={fieldClass}
-                      value={addForm.name}
-                      onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
-                    />
-                  </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Client sample ID</Label>
                     <Input
@@ -636,23 +581,23 @@ export function LimsProjectDetailClient({
                     />
                   </div>
                   <div className="space-y-1">
-                <Label className="text-xs">Species</Label>
-                <select
-                  className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
-                  value={addForm.species_kind}
-                  onChange={(e) =>
-                    setAddForm((f) => ({
-                      ...f,
-                      species_kind: e.target.value as LimsSpeciesKind,
-                    }))
-                  }
-                >
-                  {LIMS_SPECIES_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {formatLimsSpeciesLabel(k)}
-                    </option>
-                  ))}
-                </select>
+                    <Label className="text-xs">Species</Label>
+                    <select
+                      className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
+                      value={addForm.species_kind}
+                      onChange={(e) =>
+                        setAddForm((f) => ({
+                          ...f,
+                          species_kind: e.target.value as LimsSpeciesKind,
+                        }))
+                      }
+                    >
+                      {LIMS_SPECIES_KINDS.map((k) => (
+                        <option key={k} value={k}>
+                          {formatLimsSpeciesLabel(k)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Tissue type *</Label>
@@ -682,20 +627,10 @@ export function LimsProjectDetailClient({
                 </div>
               </LimsEditableSection>
               <LimsEditableSection
-                title="Clinical & dates"
-                description="Diagnostic text, dates, and special handling."
+                title="Dates & notes"
+                description="Optional accession dates and instructions."
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs">Diagnostic / metadata</Label>
-                    <textarea
-                      className={cn("min-h-[60px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.diagnostic}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, diagnostic: e.target.value }))
-                      }
-                    />
-                  </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Date received</Label>
                     <Input
@@ -716,46 +651,6 @@ export function LimsProjectDetailClient({
                       onChange={(e) =>
                         setAddForm((f) => ({ ...f, date_of_dissection: e.target.value }))
                       }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">DOB (if relevant)</Label>
-                    <Input
-                      type="date"
-                      className={fieldClass}
-                      value={addForm.dob}
-                      onChange={(e) => setAddForm((f) => ({ ...f, dob: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs">Special care</Label>
-                    <textarea
-                      className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.special_care_instructions}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          special_care_instructions: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              </LimsEditableSection>
-              <LimsEditableSection
-                title="Services & instructions"
-                description="Free-text services notes and handling instructions."
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs">Services notes</Label>
-                    <textarea
-                      className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.services_notes}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, services_notes: e.target.value }))
-                      }
-                      placeholder="Extra context for services (not the catalog list)…"
                     />
                   </div>
                   <div className="space-y-1 sm:col-span-2">
@@ -880,8 +775,8 @@ function SampleCard({
         return;
       }
     }
-    if (!form.name.trim() || !form.tissue_type.trim()) {
-      setSaveErr("Sample name and tissue type are required.");
+    if (!form.tissue_type.trim()) {
+      setSaveErr("Tissue type is required.");
       return;
     }
     start(async () => {
@@ -893,12 +788,8 @@ function SampleCard({
         species_kind: form.species_kind,
         tissue_type: form.tissue_type,
         organ_abbrev: form.organ_abbrev.trim() ? ab : undefined,
-        diagnostic: form.diagnostic || undefined,
         date_received: form.date_received || undefined,
         date_of_dissection: form.date_of_dissection || undefined,
-        dob: form.dob || undefined,
-        special_care_instructions: form.special_care_instructions || undefined,
-        services_notes: form.services_notes || undefined,
         instructions_notes: form.instructions_notes || undefined,
       });
       if (!res.ok) setSaveErr(res.error);
@@ -935,7 +826,13 @@ function SampleCard({
             )}
             <div className="min-w-0 flex-1">
               <CardTitle className="font-mono text-base">{sample.sample_reference}</CardTitle>
-              <CardDescription className="mt-1">{sample.name}</CardDescription>
+              <CardDescription className="mt-1">
+                {sample.name.trim()
+                  ? sample.name
+                  : sample.tissue_type.trim()
+                    ? sample.tissue_type
+                    : "Sample"}
+              </CardDescription>
             </div>
           </button>
           <div className="shrink-0 pt-0.5">
@@ -949,7 +846,10 @@ function SampleCard({
                   clientSampleId: sample.client_sample_id,
                   projectReference,
                   projectTitle,
-                  specimenName: sample.name,
+                  specimenName:
+                    sample.name.trim() ||
+                    sample.tissue_type.trim() ||
+                    sample.sample_reference,
                   tissueType: sample.tissue_type,
                   organAbbrev: sample.organ_abbrev,
                   species_kind: sample.species_kind,
@@ -966,15 +866,16 @@ function SampleCard({
         <CardContent className="space-y-4 pt-0">
           <LimsEditableSection
             title="Core specimen"
-            description="Name, IDs, species, tissue type, and organ abbreviation override."
+            description="Optional display name, IDs, species, tissue type, and organ abbreviation."
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Name *</Label>
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs">Display name (optional)</Label>
                 <Input
                   className={fieldClass}
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Optional label for this specimen"
                 />
               </div>
               <div className="space-y-1">
@@ -1029,18 +930,10 @@ function SampleCard({
             </div>
           </LimsEditableSection>
           <LimsEditableSection
-            title="Clinical, dates & notes"
-            description="Diagnostic text, dates, special care, services notes, and instructions."
+            title="Dates & notes"
+            description="Accession dates and instructions."
           >
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Diagnostic / metadata</Label>
-                <textarea
-                  className={cn("min-h-[60px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                  value={form.diagnostic}
-                  onChange={(e) => setForm((f) => ({ ...f, diagnostic: e.target.value }))}
-                />
-              </div>
               <div className="space-y-1">
                 <Label className="text-xs">Date received</Label>
                 <Input
@@ -1063,36 +956,6 @@ function SampleCard({
                   }
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">DOB</Label>
-                <Input
-                  type="date"
-                  className={fieldClass}
-                  value={form.dob}
-                  onChange={(e) => setForm((f) => ({ ...f, dob: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Special care</Label>
-                <textarea
-                  className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                  value={form.special_care_instructions}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, special_care_instructions: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Services notes</Label>
-                <textarea
-                  className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                  value={form.services_notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, services_notes: e.target.value }))
-                  }
-                  placeholder="Extra context for services (not the catalog list)…"
-                />
-              </div>
               <div className="space-y-1 sm:col-span-2">
                 <Label className="text-xs">Instructions / notes</Label>
                 <textarea
@@ -1106,9 +969,38 @@ function SampleCard({
             </div>
           </LimsEditableSection>
           {saveErr ? <p className="text-sm text-destructive">{saveErr}</p> : null}
-          <Button type="button" size="sm" disabled={pending} onClick={saveSample}>
-            Save sample
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" disabled={pending} onClick={saveSample}>
+              {pending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              Save sample
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="border-destructive/40 text-destructive hover:bg-destructive/10"
+              disabled={pending}
+              onClick={() => {
+                const ok = window.confirm(
+                  `Delete sample ${sample.sample_reference}? This removes all slides and related data for this sample.`,
+                );
+                if (!ok) return;
+                start(async () => {
+                  const res = await deleteLimsSampleAction({
+                    projectId,
+                    sampleId: sample.id,
+                  });
+                  if (!res.ok) setSaveErr(res.error);
+                  else onRefresh();
+                });
+              }}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+              Delete sample
+            </Button>
+          </div>
 
           <LimsEditableSection
             title="Services from catalog"
@@ -1160,51 +1052,8 @@ function SampleCard({
           </LimsEditableSection>
 
           <LimsEditableSection
-            title="Workflow steps"
-            description="Checklist for this sample; mark steps complete as you go."
-          >
-            <LimsStepsList
-              title="Workflow steps"
-              showTitle={false}
-              steps={sample.steps.map((s) => ({
-                id: s.id,
-                content: s.content,
-                completed_at: s.completed_at,
-              }))}
-              onAdd={async (content) => {
-                const res = await addLimsSampleStepAction({
-                  projectId,
-                  sampleId: sample.id,
-                  content,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onToggleComplete={async (stepId, completed) => {
-                const res = await setLimsSampleStepCompletedAction({
-                  projectId,
-                  sampleId: sample.id,
-                  stepId,
-                  completed,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onDelete={async (stepId) => {
-                const res = await deleteLimsSampleStepAction({
-                  projectId,
-                  sampleId: sample.id,
-                  stepId,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-            />
-          </LimsEditableSection>
-
-          <LimsEditableSection
             title="Slides"
-            description="Bulk-create slide records and open each slide for notes, metadata, and steps."
+            description="Bulk-create slide records and open each slide for notes and metadata."
           >
             <div className="mb-4 flex flex-wrap items-end gap-2">
               <div className="space-y-1">
@@ -1231,12 +1080,7 @@ function SampleCard({
                   <SlideBlock
                     key={slide.id}
                     projectId={projectId}
-                    projectReference={projectReference}
-                    projectTitle={projectTitle}
                     sampleReference={sample.sample_reference}
-                    sampleName={sample.name}
-                    tissueType={sample.tissue_type}
-                    species_kind={sample.species_kind}
                     slide={slide}
                     onRefresh={onRefresh}
                     onOpenLabel={onOpenLabel}
@@ -1253,23 +1097,13 @@ function SampleCard({
 
 function SlideBlock({
   projectId,
-  projectReference,
-  projectTitle,
   sampleReference,
-  sampleName,
-  tissueType,
-  species_kind,
   slide,
   onRefresh,
   onOpenLabel,
 }: {
   projectId: string;
-  projectReference: string;
-  projectTitle: string;
   sampleReference: string;
-  sampleName: string;
-  tissueType: string;
-  species_kind: LimsSpeciesKind;
   slide: LimsProjectDetailPayload["samples"][0]["slides"][0];
   onRefresh: () => void;
   onOpenLabel: (p: LimsSlideLabelPayload) => void;
@@ -1305,12 +1139,7 @@ function SlideBlock({
               onOpenLabel({
                 slideReference: slide.slide_reference,
                 sampleReference,
-                projectReference,
-                projectTitle,
                 createdAt: slide.created_at,
-                sampleName,
-                tissueType,
-                species_kind,
               })
             }
           >
@@ -1322,7 +1151,7 @@ function SlideBlock({
         <div className="mt-4 space-y-3 border-t border-border pt-4 dark:border-white/[0.06]">
           <LimsEditableSection
             title="Slide notes"
-            description="Text for labels and internal slide notes."
+            description="Internal notes for this slide."
           >
             <div className="space-y-1">
               <Label className="text-xs">Label / slide notes</Label>
@@ -1370,48 +1199,6 @@ function SlideBlock({
                   projectId,
                   slideId: slide.id,
                   metadataId,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-            />
-          </LimsEditableSection>
-          <LimsEditableSection
-            title="Slide workflow steps"
-            description="Per-slide checklist and completion tracking."
-          >
-            <LimsStepsList
-              title="Slide workflow steps"
-              showTitle={false}
-              steps={slide.steps.map((s) => ({
-                id: s.id,
-                content: s.content,
-                completed_at: s.completed_at,
-              }))}
-              onAdd={async (content) => {
-                const res = await addLimsSlideStepAction({
-                  projectId,
-                  slideId: slide.id,
-                  content,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onToggleComplete={async (stepId, completed) => {
-                const res = await setLimsSlideStepCompletedAction({
-                  projectId,
-                  slideId: slide.id,
-                  stepId,
-                  completed,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onDelete={async (stepId) => {
-                const res = await deleteLimsSlideStepAction({
-                  projectId,
-                  slideId: slide.id,
-                  stepId,
                 });
                 if (res.ok) onRefresh();
                 return res;

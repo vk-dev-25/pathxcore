@@ -13,8 +13,7 @@ export type UpdateProjectResult = { ok: true } | { ok: false; error: string };
 
 export async function updateLimsProjectAction(input: {
   projectId: string;
-  procedures: string;
-  details: string;
+  projectDetails: string;
   status: LimsProjectStatus;
 }): Promise<UpdateProjectResult> {
   try {
@@ -43,8 +42,7 @@ export async function updateLimsProjectAction(input: {
     const { error } = await supabase
       .from("lims_projects")
       .update({
-        procedures: input.procedures.trim() || null,
-        details: input.details.trim() || null,
+        procedures: input.projectDetails.trim() || null,
         status: input.status,
         updated_at: new Date().toISOString(),
       })

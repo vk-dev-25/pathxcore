@@ -209,16 +209,9 @@ export function LimsProjectPrintContent({ data }: { data: LimsProjectDetailPaylo
       </div>
 
       <div className="space-y-3 border-b border-white/[0.06] pb-6 print:border-neutral-300">
-        <SectionTitle>Procedures</SectionTitle>
+        <SectionTitle>Project details</SectionTitle>
         <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground print:text-neutral-800">
           {dash(data.procedures)}
-        </p>
-      </div>
-
-      <div className="space-y-3 border-b border-white/[0.06] pb-6 print:border-neutral-300">
-        <SectionTitle>Other details</SectionTitle>
-        <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground print:text-neutral-800">
-          {dash(data.details)}
         </p>
       </div>
 
@@ -369,30 +362,6 @@ export function LimsProjectPrintContent({ data }: { data: LimsProjectDetailPaylo
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground print:text-neutral-600">
-                      Sample workflow steps
-                    </p>
-                    {sample.steps.length === 0 ? (
-                      <p className="text-muted-foreground print:text-neutral-700">—</p>
-                    ) : (
-                      <ol className="list-decimal space-y-1 pl-5">
-                        {sample.steps.map((st) => (
-                          <li key={st.id} className="print:text-black">
-                            <span className={st.completed_at ? "line-through opacity-80" : ""}>
-                              {st.content}
-                            </span>
-                            {st.completed_at ? (
-                              <span className="ml-1 text-xs text-muted-foreground print:text-neutral-600">
-                                (done {formatMediumDate(st.completed_at)})
-                              </span>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ol>
                     )}
                   </div>
 

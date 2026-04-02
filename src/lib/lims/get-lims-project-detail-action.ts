@@ -55,7 +55,6 @@ export type LimsSampleDetail = {
   updated_at: string;
   service_lines: LimsSampleServiceLineRow[];
   metadata: LimsMetadataRow[];
-  steps: LimsStepRow[];
   slides: LimsSlideDetail[];
 };
 
@@ -162,15 +161,10 @@ export async function getLimsProjectDetailAction(
   for (const s of sampleRows ?? []) {
     const species = isLimsSpeciesKind(s.species_kind) ? s.species_kind : "human";
 
-    const [{ data: meta }, { data: steps }, { data: slideRows }] = await Promise.all([
+    const [{ data: meta }, { data: slideRows }] = await Promise.all([
       supabase
         .from("lims_sample_metadata")
         .select("id, key, value, sort_order")
-        .eq("sample_id", s.id)
-        .order("sort_order", { ascending: true }),
-      supabase
-        .from("lims_sample_steps")
-        .select("id, content, sort_order, completed_at, completed_by")
         .eq("sample_id", s.id)
         .order("sort_order", { ascending: true }),
       supabase
@@ -223,7 +217,6 @@ export async function getLimsProjectDetailAction(
       updated_at: s.updated_at,
       service_lines: linesBySample.get(s.id) ?? [],
       metadata: (meta ?? []) as LimsMetadataRow[],
-      steps: (steps ?? []) as LimsStepRow[],
       slides,
     });
   }

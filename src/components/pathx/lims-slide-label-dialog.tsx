@@ -1,11 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import Image from "next/image";
 import { Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { formatLimsSpeciesLabel, type LimsSpeciesKind } from "@/lib/lims/types";
 import {
   Dialog,
   DialogContent,
@@ -16,12 +14,7 @@ import {
 export type LimsSlideLabelPayload = {
   slideReference: string;
   sampleReference: string;
-  projectReference: string;
-  projectTitle: string;
   createdAt: string;
-  sampleName: string;
-  tissueType: string;
-  species_kind: LimsSpeciesKind;
 };
 
 function formatWhen(iso: string) {
@@ -141,65 +134,39 @@ export function LimsSlideLabelDialog({
           {!payload ? (
             <p className="text-sm text-muted-foreground">No slide selected.</p>
           ) : (
-          <div
-            data-quote-print="true"
-            className="quote-print-body space-y-4 rounded-lg border border-white/[0.06] bg-white p-6 text-sm text-black print:border-neutral-300"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
-                  Histology slide
-                </p>
-                <p className="mt-1 font-mono text-xl font-bold tracking-tight text-black">
+            <div
+              data-quote-print="true"
+              className="quote-print-body space-y-4 rounded-lg border border-white/[0.06] bg-white p-6 text-sm text-black print:border-neutral-300"
+            >
+              <dl className="grid gap-y-2 text-sm sm:grid-cols-[120px_1fr] sm:gap-x-3">
+                <dt className="text-neutral-600">Slide ID</dt>
+                <dd className="font-mono font-semibold text-black">
                   {payload.slideReference}
-                </p>
+                </dd>
+                <dt className="text-neutral-600">Sample ID</dt>
+                <dd className="font-mono font-semibold text-black">
+                  {payload.sampleReference}
+                </dd>
+                <dt className="text-neutral-600">Slide created</dt>
+                <dd className="text-black">{formatWhen(payload.createdAt)}</dd>
+              </dl>
+
+              <div className="print:hidden">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-neutral-300 text-black"
+                  onClick={() => {
+                    cleanupPrintRef.current?.();
+                    cleanupPrintRef.current = preparePrintSurface();
+                    window.requestAnimationFrame(() => window.print());
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print / Save PDF
+                </Button>
               </div>
-              <Image
-                src="/images/pathxlogo.jpeg"
-                alt="Pathology X Diagnostics"
-                width={120}
-                height={110}
-                className="h-10 w-auto object-contain"
-              />
             </div>
-
-            <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[120px_1fr] sm:gap-x-3">
-              <dt className="text-neutral-600">Sample</dt>
-              <dd className="font-mono font-medium text-black">{payload.sampleReference}</dd>
-              <dt className="text-neutral-600">Project</dt>
-              <dd className="font-mono font-medium text-black">{payload.projectReference}</dd>
-              <dt className="text-neutral-600">Project title</dt>
-              <dd className="text-black">{payload.projectTitle || "—"}</dd>
-              <dt className="text-neutral-600">Specimen name</dt>
-              <dd className="text-black">{payload.sampleName || "—"}</dd>
-              <dt className="text-neutral-600">Tissue</dt>
-              <dd className="text-black">{payload.tissueType || "—"}</dd>
-              <dt className="text-neutral-600">Species</dt>
-              <dd className="text-black">{formatLimsSpeciesLabel(payload.species_kind)}</dd>
-              <dt className="text-neutral-600">Slide created</dt>
-              <dd className="text-black">{formatWhen(payload.createdAt)}</dd>
-            </dl>
-
-            <p className="border-t border-neutral-200 pt-3 text-center text-[10px] text-neutral-600">
-              {payload.slideReference} · Pathology X Diagnostics
-            </p>
-
-            <div className="print:hidden">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-neutral-300 text-black"
-                onClick={() => {
-                  cleanupPrintRef.current?.();
-                  cleanupPrintRef.current = preparePrintSurface();
-                  window.requestAnimationFrame(() => window.print());
-                }}
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Print / Save PDF
-              </Button>
-            </div>
-          </div>
           )}
         </div>
       </DialogContent>

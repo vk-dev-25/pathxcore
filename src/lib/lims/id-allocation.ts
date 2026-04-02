@@ -2,27 +2,42 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { resolveOrganAbbrev } from "@/lib/lims/tissue-abbrev";
 
-/** New projects: PTX-PRJ1, PTX-PRJ2, … (shorter than legacy PTX-PR000001). */
-const PROJECT_PREFIX = "PTX-PRJ";
+/** New projects: PRJ1, PRJ2, … (no PTX- prefix). Legacy PTX-PRJ* / PTX-PR* still bump the sequence. */
+const NEW_PROJECT_PREFIX = "PRJ";
+
+const LEGACY_PROJECT_REF_RES = [
+  /^PRJ(\d+)$/i,
+  /^PTX-PRJ(\d+)$/i,
+  /^PTX-PR(\d+)$/i,
+] as const;
+
+function maxProjectSequenceFromReferences(refs: string[]): number {
+  let max = 0;
+  for (const ref of refs) {
+    for (const re of LEGACY_PROJECT_REF_RES) {
+      const m = ref.match(re);
+      if (m) {
+        max = Math.max(max, parseInt(m[1], 10));
+        break;
+      }
+    }
+  }
+  return max;
+}
 
 export async function allocateProjectReference(
   supabase: SupabaseClient,
 ): Promise<string> {
   const { data: rows } = await supabase
     .from("lims_projects")
-    .select("project_reference")
-    .like("project_reference", `${PROJECT_PREFIX}%`);
+    .select("project_reference");
 
-  let max = 0;
-  const re = /^PTX-PRJ(\d+)$/;
-  for (const r of rows ?? []) {
-    const ref = (r as { project_reference: string }).project_reference;
-    const m = ref.match(re);
-    if (m) max = Math.max(max, parseInt(m[1], 10));
-  }
+  const max = maxProjectSequenceFromReferences(
+    (rows ?? []).map((r) => (r as { project_reference: string }).project_reference),
+  );
 
   for (let bump = 0; bump < 100_000; bump++) {
-    const ref = `${PROJECT_PREFIX}${max + 1 + bump}`;
+    const ref = `${NEW_PROJECT_PREFIX}${max + 1 + bump}`;
     const { count } = await supabase
       .from("lims_projects")
       .select("id", { count: "exact", head: true })

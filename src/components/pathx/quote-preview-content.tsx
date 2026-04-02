@@ -39,19 +39,6 @@ function validUntilIso(issueIso: string, validityDays: number) {
   return d.toISOString();
 }
 
-function turnaroundLabel(rushPriority: boolean, rush2day: boolean): string {
-  if (rushPriority && rush2day) {
-    return "Priority and 1–2 business day expedited options";
-  }
-  if (rushPriority) {
-    return "Priority / rush turnaround";
-  }
-  if (rush2day) {
-    return "1–2 business day expedited";
-  }
-  return "3–5 business days (standard)";
-}
-
 function nearZero(n: number) {
   return Math.abs(n) < 0.005;
 }
@@ -63,10 +50,7 @@ export function QuotePreviewContent({
   contactName,
   projectTitle,
   quoteRef,
-  segmentLabel,
   sampleVolume,
-  rushPriority,
-  rush2day,
   notes,
   lines,
   totals,
@@ -80,10 +64,8 @@ export function QuotePreviewContent({
   contactName: string;
   projectTitle: string;
   quoteRef: string;
-  segmentLabel: string;
+  /** Total sample / block count (for client-facing preview). */
   sampleVolume: number;
-  rushPriority: boolean;
-  rush2day: boolean;
   notes: string;
   lines: QuotePreviewLine[];
   totals: {
@@ -106,7 +88,6 @@ export function QuotePreviewContent({
     validUntilIso(issueIso, pricingSettings.quote_validity_days),
   );
   const year = new Date(issueIso).getFullYear();
-  const turnaround = turnaroundLabel(rushPriority, rush2day);
   const preparedLine = [contactName, projectTitle].filter(Boolean).join(" · ");
   const cleanupPrintRef = useRef<null | (() => void)>(null);
 
@@ -247,16 +228,20 @@ export function QuotePreviewContent({
             Valid until
           </dt>
           <dd className="print:text-black">{validLabel}</dd>
+          <dt className="text-muted-foreground print:text-neutral-600">
+            Total samples / blocks
+          </dt>
+          <dd className="font-medium tabular-nums print:text-black">
+            {Math.max(0, Math.floor(sampleVolume))}
+          </dd>
         </dl>
       </div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground print:text-neutral-800">
-        <span className="font-medium text-foreground print:text-black">
-          Segment:
-        </span>{" "}
-        {segmentLabel} · Volume: {sampleVolume} samples/blocks · Turnaround:{" "}
-        {turnaround}
-      </p>
+      {notes.trim() ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground print:text-black">
+          {notes.trim()}
+        </p>
+      ) : null}
 
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
@@ -313,17 +298,6 @@ export function QuotePreviewContent({
         </div>
       </div>
 
-      {notes.trim() ? (
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
-            Notes
-          </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground print:text-neutral-800">
-            {notes}
-          </p>
-        </div>
-      ) : null}
-
       {totals ? (
         <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
           <div className="flex justify-between gap-4">
@@ -335,7 +309,7 @@ export function QuotePreviewContent({
           {!nearZero(totals.segment_adjustment_amount) ? (
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground print:text-neutral-700">
-                Segment adjustment
+                Price adjustment
               </span>
               <span className="print:text-black">
                 {money(totals.segment_adjustment_amount)}
