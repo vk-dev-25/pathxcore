@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Trash2 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { deleteLimsProjectAction } from "@/lib/lims/delete-lims-project-action";
 import type { LimsProjectListRow } from "@/app/pathx/(dashboard)/lims/projects/page";
 import {
   formatLimsProjectStatusLabel,
@@ -59,8 +62,10 @@ export function LimsProjectFinderClient({
 }: {
   projects: LimsProjectListRow[];
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("date_desc");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filteredSorted = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -159,7 +164,7 @@ export function LimsProjectFinderClient({
         </Card>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-[780px] text-left text-sm">
             <thead>
               <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                 <th className="px-4 py-3">Created</th>
@@ -167,6 +172,9 @@ export function LimsProjectFinderClient({
                 <th className="px-4 py-3">Organization</th>
                 <th className="px-4 py-3">Title</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="w-px whitespace-nowrap px-4 py-3 text-right">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -207,6 +215,34 @@ export function LimsProjectFinderClient({
                     >
                       {formatLimsProjectStatusLabel(row.status)}
                     </span>
+                  </td>
+                  <td className="px-2 py-2 text-right">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      disabled={deletingId === row.id}
+                      aria-label={`Delete project ${row.project_reference}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const msg = `Delete project ${row.project_reference} and all samples and slides? This cannot be undone.`;
+                        if (!window.confirm(msg)) return;
+                        setDeletingId(row.id);
+                        void (async () => {
+                          const res = await deleteLimsProjectAction({ projectId: row.id });
+                          setDeletingId(null);
+                          if (!res.ok) {
+                            window.alert(res.error);
+                            return;
+                          }
+                          router.refresh();
+                        })();
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
               ))}

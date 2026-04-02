@@ -131,7 +131,12 @@ html.light body::before {
       padding-box;
 }
 
-/* Quote preview / print-to-PDF */
+/*
+ * Quote / invoice / LIMS label print-to-PDF.
+ * Use visibility (not display:none on body children): Radix portals nest
+ * [data-quote-print] inside portal > dialog content; hiding portal children
+ * made print preview a blank white page and broke the screen after cancel.
+ */
 @media print {
   @page {
     margin: 12mm;
@@ -152,24 +157,23 @@ html.light body::before {
     print-color-adjust: exact;
   }
 
-  body > * {
-    display: none !important;
+  body * {
+    visibility: hidden !important;
   }
 
-  [data-radix-portal] {
-    display: block !important;
-  }
-
-  [data-radix-portal] > * {
-    display: none !important;
+  [data-quote-print="true"],
+  [data-quote-print="true"] * {
+    visibility: visible !important;
   }
 
   [data-quote-print="true"] {
     display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     transform: none !important;
     translate: none !important;
-    width: auto !important;
+    width: 100% !important;
     max-width: none !important;
     height: auto !important;
     max-height: none !important;
@@ -184,6 +188,12 @@ html.light body::before {
     overflow: visible !important;
     page-break-before: avoid !important;
     page-break-after: avoid !important;
+  }
+
+  /* Multi-slide print: allow one label per page (break-after on each block). */
+  [data-quote-print="true"][data-lims-slide-labels="true"] {
+    page-break-before: auto !important;
+    page-break-after: auto !important;
   }
 
   [data-quote-print="true"] * {

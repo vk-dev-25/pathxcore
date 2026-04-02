@@ -2,22 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Plus,
-  Printer,
-  Save,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { ChevronDown, ChevronRight, Loader2, Printer, Save, Search } from "lucide-react";
 
 import { LimsEditableSection } from "@/components/pathx/lims-editable-section";
-import { LimsKeyValueEditor } from "@/components/pathx/lims-key-value-editor";
-import { LimsSampleServiceLines } from "@/components/pathx/lims-sample-service-lines";
 import { LimsProjectPrintDialog } from "@/components/pathx/lims-project-print-dialog";
+import { LimsSamplesSheet } from "@/components/pathx/lims-samples-sheet";
 import {
   LimsSampleLabelDialog,
   type LimsSampleLabelPayload,
@@ -37,32 +27,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
-import { createLimsSampleAction } from "@/lib/lims/create-sample-action";
-import { createLimsSlidesBulkAction } from "@/lib/lims/create-slides-bulk-action";
-import { deleteLimsSampleAction } from "@/lib/lims/delete-sample-action";
 import type {
   LimsCatalogServiceOption,
   LimsProjectDetailPayload,
 } from "@/lib/lims/get-lims-project-detail-action";
 import {
-  deleteLimsSampleMetadataAction,
-  upsertLimsSampleMetadataAction,
-} from "@/lib/lims/sample-metadata-actions";
-import {
-  deleteLimsSlideMetadataAction,
-  upsertLimsSlideMetadataAction,
-} from "@/lib/lims/slide-metadata-actions";
-import {
   canTransitionProjectStatus,
   formatLimsProjectStatusLabel,
-  formatLimsSpeciesLabel,
-  LIMS_SPECIES_KINDS,
   type LimsProjectStatus,
-  type LimsSpeciesKind,
 } from "@/lib/lims/types";
 import { updateLimsProjectAction } from "@/lib/lims/update-project-action";
-import { updateLimsSampleAction } from "@/lib/lims/update-sample-action";
-import { updateLimsSlideNotesAction } from "@/lib/lims/update-slide-notes-action";
 import { cn } from "@/lib/utils";
 
 import {
@@ -86,39 +60,6 @@ function statusBadge(s: LimsProjectStatus): string {
   if (s === "shipped") return "bg-primary/15 text-primary";
   if (s === "started") return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
   return "bg-muted/80 text-muted-foreground dark:bg-white/[0.06]";
-}
-
-function validateOrganAbbrev(raw: string): string | null {
-  const t = raw.trim();
-  if (!t) return null;
-  if (!/^[A-Z]{2,4}$/.test(t)) {
-    return "Organ abbreviation must be 2–4 uppercase letters (A–Z).";
-  }
-  return null;
-}
-
-type SampleForm = {
-  name: string;
-  client_sample_id: string;
-  species_kind: LimsSpeciesKind;
-  tissue_type: string;
-  organ_abbrev: string;
-  date_received: string;
-  date_of_dissection: string;
-  instructions_notes: string;
-};
-
-function emptySampleForm(): SampleForm {
-  return {
-    name: "",
-    client_sample_id: "",
-    species_kind: "human",
-    tissue_type: "",
-    organ_abbrev: "",
-    date_received: "",
-    date_of_dissection: "",
-    instructions_notes: "",
-  };
 }
 
 function sampleSearchHaystack(
@@ -199,19 +140,6 @@ function filterSlidesForDetailQuery(
   );
 }
 
-function sampleToForm(s: LimsProjectDetailPayload["samples"][0]): SampleForm {
-  return {
-    name: s.name,
-    client_sample_id: s.client_sample_id ?? "",
-    species_kind: s.species_kind,
-    tissue_type: s.tissue_type,
-    organ_abbrev: s.organ_abbrev ?? "",
-    date_received: s.date_received ?? "",
-    date_of_dissection: s.date_of_dissection ?? "",
-    instructions_notes: s.instructions_notes ?? "",
-  };
-}
-
 export function LimsProjectDetailClient({
   initial,
 }: {
@@ -224,14 +152,13 @@ export function LimsProjectDetailClient({
   const [status, setStatus] = useState<LimsProjectStatus>(initial.status);
   const [projectError, setProjectError] = useState<string | null>(null);
 
-  const [addOpen, setAddOpen] = useState(false);
-  const [addForm, setAddForm] = useState<SampleForm>(emptySampleForm());
-  const [addErr, setAddErr] = useState<string | null>(null);
-
   const [labelOpen, setLabelOpen] = useState(false);
-  const [labelPayload, setLabelPayload] = useState<LimsSlideLabelPayload | null>(
-    null,
-  );
+  const [labelPayload, setLabelPayload] = useState<
+    LimsSlideLabelPayload | LimsSlideLabelPayload[] | null
+  >(null);
+
+  const [projectExpanded, setProjectExpanded] = useState(false);
+  const projectInitialMount = useRef(true);
 
   const [printOpen, setPrintOpen] = useState(false);
 
@@ -327,6 +254,14 @@ export function LimsProjectDetailClient({
     setStatus(initial.status);
   }, [initial.procedures, initial.status, initial.updated_at]);
 
+  useEffect(() => {
+    if (projectInitialMount.current) {
+      projectInitialMount.current = false;
+      return;
+    }
+    setProjectExpanded(false);
+  }, [initial.id, initial.updated_at]);
+
   const allowedStatuses = useMemo(() => {
     const from = initial.status;
     return PROJECT_STATUSES.filter(
@@ -351,42 +286,8 @@ export function LimsProjectDetailClient({
     });
   }
 
-  function addSample() {
-    setAddErr(null);
-    const ab = addForm.organ_abbrev.trim().toUpperCase();
-    if (addForm.organ_abbrev.trim()) {
-      const v = validateOrganAbbrev(ab);
-      if (v) {
-        setAddErr(v);
-        return;
-      }
-    }
-    if (!addForm.tissue_type.trim()) {
-      setAddErr("Tissue type is required.");
-      return;
-    }
-    start(async () => {
-      const res = await createLimsSampleAction({
-        projectId: initial.id,
-        client_sample_id: addForm.client_sample_id || undefined,
-        species_kind: addForm.species_kind,
-        tissue_type: addForm.tissue_type,
-        organ_abbrev: addForm.organ_abbrev.trim() ? ab : undefined,
-        date_received: addForm.date_received || undefined,
-        date_of_dissection: addForm.date_of_dissection || undefined,
-        instructions_notes: addForm.instructions_notes || undefined,
-      });
-      if (!res.ok) setAddErr(res.error);
-      else {
-        setAddForm(emptySampleForm());
-        setAddOpen(false);
-        refresh();
-      }
-    });
-  }
-
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-[min(1800px,calc(100vw-2rem))] px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2 h-8 px-2 text-muted-foreground">
@@ -457,66 +358,85 @@ export function LimsProjectDetailClient({
       ) : null}
 
       <Card className={cardClass}>
-        <CardHeader>
-          <CardTitle className="text-lg">Project</CardTitle>
-          <CardDescription>
-            Project details and workflow status.
-          </CardDescription>
+        <CardHeader className="space-y-3 pb-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 items-start gap-2 rounded-md text-left outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onClick={() => setProjectExpanded((e) => !e)}
+            >
+              {projectExpanded ? (
+                <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+              )}
+              <div className="min-w-0">
+                <CardTitle className="text-lg">Project</CardTitle>
+                <CardDescription className="mt-1">
+                  {projectExpanded
+                    ? "Project details and workflow status."
+                    : `${formatLimsProjectStatusLabel(status)} · click to expand`}
+                </CardDescription>
+              </div>
+            </button>
+            <Button type="button" size="sm" disabled={pending} onClick={saveProject}>
+              {pending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save project
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <LimsEditableSection
-            title="Status"
-            description="Workflow state for this project."
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
+        {projectExpanded ? (
+          <CardContent className="space-y-4 pt-0">
+            <LimsEditableSection
+              title="Status"
+              description="Workflow state for this project."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Status</Label>
+                  <select
+                    className={cn(
+                      "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      fieldClass,
+                    )}
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as LimsProjectStatus)}
+                  >
+                    {allowedStatuses.map((s) => (
+                      <option key={s} value={s}>
+                        {formatLimsProjectStatusLabel(s)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </LimsEditableSection>
+            <LimsEditableSection
+              title="Project details"
+              description="Context and notes for this project."
+            >
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Status</Label>
-                <select
+                <Label className="text-xs text-muted-foreground">Project details</Label>
+                <textarea
                   className={cn(
-                    "flex h-10 w-full rounded-md px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    "min-h-[100px] w-full rounded-md border px-3 py-2 text-sm",
                     fieldClass,
                   )}
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as LimsProjectStatus)}
-                >
-                  {allowedStatuses.map((s) => (
-                    <option key={s} value={s}>
-                      {formatLimsProjectStatusLabel(s)}
-                    </option>
-                  ))}
-                </select>
+                  value={projectDetails}
+                  onChange={(e) => setProjectDetails(e.target.value)}
+                  placeholder="Project details…"
+                />
               </div>
-            </div>
-          </LimsEditableSection>
-          <LimsEditableSection
-            title="Project details"
-            description="Context and notes for this project."
-          >
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Project details</Label>
-              <textarea
-                className={cn(
-                  "min-h-[100px] w-full rounded-md border px-3 py-2 text-sm",
-                  fieldClass,
-                )}
-                value={projectDetails}
-                onChange={(e) => setProjectDetails(e.target.value)}
-                placeholder="Project details…"
-              />
-            </div>
-          </LimsEditableSection>
-          {projectError ? (
-            <p className="text-sm text-destructive">{projectError}</p>
-          ) : null}
-          <Button type="button" disabled={pending} onClick={saveProject}>
-            {pending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Save project
-          </Button>
-        </CardContent>
+            </LimsEditableSection>
+            {projectError ? (
+              <p className="text-sm text-destructive">{projectError}</p>
+            ) : null}
+          </CardContent>
+        ) : null}
       </Card>
 
       <div className="mt-8">
@@ -540,181 +460,42 @@ export function LimsProjectDetailClient({
       </div>
 
       <div className="mt-8">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold tracking-tight">Samples</h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setAddOpen((o) => !o);
-              setAddErr(null);
-            }}
-          >
-            {addOpen ? "Close form" : "Add sample"}
-          </Button>
-        </div>
-
-        {addOpen ? (
-          <Card className={cn(cardClass, "mb-6")}>
-            <CardHeader>
-              <CardTitle className="text-base">New sample</CardTitle>
-              <CardDescription>
-                Tissue type drives the organ abbreviation in the sample ID unless you set an
-                override (2–4 letters).
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <LimsEditableSection
-                title="Identification"
-                description="Client ID, species, tissue type, and organ abbreviation."
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Client sample ID</Label>
-                    <Input
-                      className={fieldClass}
-                      value={addForm.client_sample_id}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, client_sample_id: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Species</Label>
-                    <select
-                      className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.species_kind}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          species_kind: e.target.value as LimsSpeciesKind,
-                        }))
-                      }
-                    >
-                      {LIMS_SPECIES_KINDS.map((k) => (
-                        <option key={k} value={k}>
-                          {formatLimsSpeciesLabel(k)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Tissue type *</Label>
-                    <Input
-                      className={fieldClass}
-                      value={addForm.tissue_type}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, tissue_type: e.target.value }))
-                      }
-                      placeholder="e.g. Lung"
-                    />
-                  </div>
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs">Organ abbrev override</Label>
-                    <Input
-                      className={fieldClass}
-                      value={addForm.organ_abbrev}
-                      onChange={(e) =>
-                        setAddForm((f) => ({
-                          ...f,
-                          organ_abbrev: e.target.value.toUpperCase(),
-                        }))
-                      }
-                      placeholder="e.g. LG"
-                    />
-                  </div>
-                </div>
-              </LimsEditableSection>
-              <LimsEditableSection
-                title="Dates & notes"
-                description="Optional accession dates and instructions."
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Date received</Label>
-                    <Input
-                      type="date"
-                      className={fieldClass}
-                      value={addForm.date_received}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, date_received: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Date of dissection</Label>
-                    <Input
-                      type="date"
-                      className={fieldClass}
-                      value={addForm.date_of_dissection}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, date_of_dissection: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1 sm:col-span-2">
-                    <Label className="text-xs">Instructions / notes</Label>
-                    <textarea
-                      className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                      value={addForm.instructions_notes}
-                      onChange={(e) =>
-                        setAddForm((f) => ({ ...f, instructions_notes: e.target.value }))
-                      }
-                    />
-                  </div>
-                </div>
-              </LimsEditableSection>
-              {addErr ? <p className="text-sm text-destructive">{addErr}</p> : null}
-              <Button type="button" disabled={pending} onClick={addSample}>
-                {pending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="mr-2 h-4 w-4" />
-                )}
-                Create sample
-              </Button>
-            </CardContent>
-          </Card>
+        <h2 className="mb-4 text-lg font-semibold tracking-tight">Samples</h2>
+        {initial.samples.length > 0 && filteredSamples.length === 0 ? (
+          <p className="mb-4 text-sm text-muted-foreground">
+            No samples or slides match your search.
+          </p>
         ) : null}
-
-        <div className="space-y-6">
-          {initial.samples.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No samples yet.</p>
-          ) : null}
-          {initial.samples.length > 0 && filteredSamples.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No samples or slides match your search.
-            </p>
-          ) : null}
-          {filteredSamples.map((sample) => (
-            <SampleCard
-              key={sample.id}
-              projectId={initial.id}
-              projectReference={initial.project_reference}
-              projectTitle={initial.project_title}
-              sample={sample}
-              catalog={effectiveCatalog}
-              catalogLoading={catalogLoading}
-              onRefresh={refresh}
-              pending={pending}
-              start={start}
-              onOpenSampleLabel={(p) => {
-                setSampleLabelPayload(p);
-                setSampleLabelOpen(true);
-              }}
-              onOpenLabel={(p) => {
-                setLabelPayload(p);
-                setLabelOpen(true);
-              }}
-            />
-          ))}
-        </div>
+        <LimsSamplesSheet
+          projectId={initial.id}
+          projectReference={initial.project_reference}
+          projectTitle={initial.project_title}
+          samples={filteredSamples}
+          totalSampleCount={initial.samples.length}
+          catalog={effectiveCatalog}
+          catalogLoading={catalogLoading}
+          onRefresh={refresh}
+          onOpenSampleLabel={(p) => {
+            setSampleLabelPayload(p);
+            setSampleLabelOpen(true);
+          }}
+          onOpenSlideLabel={(p) => {
+            setLabelPayload(p);
+            setLabelOpen(true);
+          }}
+          onPrintAllSlideLabels={(payloads) => {
+            setLabelPayload(payloads);
+            setLabelOpen(true);
+          }}
+        />
       </div>
 
       <LimsSlideLabelDialog
         open={labelOpen}
-        onOpenChange={setLabelOpen}
+        onOpenChange={(o) => {
+          setLabelOpen(o);
+          if (!o) setLabelPayload(null);
+        }}
         payload={labelPayload}
       />
       <LimsSampleLabelDialog
@@ -727,486 +508,6 @@ export function LimsProjectDetailClient({
         onOpenChange={setPrintOpen}
         data={printPayload}
       />
-    </div>
-  );
-}
-
-function SampleCard({
-  projectId,
-  projectReference,
-  projectTitle,
-  sample,
-  catalog,
-  catalogLoading,
-  onRefresh,
-  pending,
-  start,
-  onOpenSampleLabel,
-  onOpenLabel,
-}: {
-  projectId: string;
-  projectReference: string;
-  projectTitle: string;
-  sample: LimsProjectDetailPayload["samples"][0];
-  catalog: LimsProjectDetailPayload["catalog"];
-  catalogLoading: boolean;
-  onRefresh: () => void;
-  pending: boolean;
-  start: (fn: () => void) => void;
-  onOpenSampleLabel: (p: LimsSampleLabelPayload) => void;
-  onOpenLabel: (p: LimsSlideLabelPayload) => void;
-}) {
-  const [open, setOpen] = useState(true);
-  const [form, setForm] = useState<SampleForm>(() => sampleToForm(sample));
-  const [saveErr, setSaveErr] = useState<string | null>(null);
-  const [bulkCount, setBulkCount] = useState("5");
-
-  useEffect(() => {
-    setForm(sampleToForm(sample));
-  }, [sample]);
-
-  function saveSample() {
-    setSaveErr(null);
-    const ab = form.organ_abbrev.trim().toUpperCase();
-    if (form.organ_abbrev.trim()) {
-      const v = validateOrganAbbrev(ab);
-      if (v) {
-        setSaveErr(v);
-        return;
-      }
-    }
-    if (!form.tissue_type.trim()) {
-      setSaveErr("Tissue type is required.");
-      return;
-    }
-    start(async () => {
-      const res = await updateLimsSampleAction({
-        projectId,
-        sampleId: sample.id,
-        name: form.name,
-        client_sample_id: form.client_sample_id || undefined,
-        species_kind: form.species_kind,
-        tissue_type: form.tissue_type,
-        organ_abbrev: form.organ_abbrev.trim() ? ab : undefined,
-        date_received: form.date_received || undefined,
-        date_of_dissection: form.date_of_dissection || undefined,
-        instructions_notes: form.instructions_notes || undefined,
-      });
-      if (!res.ok) setSaveErr(res.error);
-      else onRefresh();
-    });
-  }
-
-  function bulkSlides() {
-    const n = Math.max(1, Math.min(200, parseInt(bulkCount, 10) || 0));
-    start(async () => {
-      const res = await createLimsSlidesBulkAction({
-        projectId,
-        sampleId: sample.id,
-        count: n,
-      });
-      if (!res.ok) setSaveErr(res.error);
-      else onRefresh();
-    });
-  }
-
-  return (
-    <Card className={cardClass}>
-      <CardHeader className="pb-2">
-        <div className="flex items-start gap-2">
-          <button
-            type="button"
-            className="flex min-w-0 flex-1 cursor-pointer items-start gap-2 rounded-md text-left outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onClick={() => setOpen((o) => !o)}
-          >
-            {open ? (
-              <ChevronDown className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-            ) : (
-              <ChevronRight className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-            )}
-            <div className="min-w-0 flex-1">
-              <CardTitle className="font-mono text-base">{sample.sample_reference}</CardTitle>
-              <CardDescription className="mt-1">
-                {sample.name.trim()
-                  ? sample.name
-                  : sample.tissue_type.trim()
-                    ? sample.tissue_type
-                    : "Sample"}
-              </CardDescription>
-            </div>
-          </button>
-          <div className="shrink-0 pt-0.5">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                onOpenSampleLabel({
-                  sampleReference: sample.sample_reference,
-                  clientSampleId: sample.client_sample_id,
-                  projectReference,
-                  projectTitle,
-                  specimenName:
-                    sample.name.trim() ||
-                    sample.tissue_type.trim() ||
-                    sample.sample_reference,
-                  tissueType: sample.tissue_type,
-                  organAbbrev: sample.organ_abbrev,
-                  species_kind: sample.species_kind,
-                  dateReceived: sample.date_received,
-                })
-              }
-            >
-              Specimen label
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      {open ? (
-        <CardContent className="space-y-4 pt-0">
-          <LimsEditableSection
-            title="Core specimen"
-            description="Optional display name, IDs, species, tissue type, and organ abbreviation."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Display name (optional)</Label>
-                <Input
-                  className={fieldClass}
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Optional label for this specimen"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Client sample ID</Label>
-                <Input
-                  className={fieldClass}
-                  value={form.client_sample_id}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, client_sample_id: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Species</Label>
-                <select
-                  className={cn("h-10 w-full rounded-md px-3 py-2 text-sm", fieldClass)}
-                  value={form.species_kind}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      species_kind: e.target.value as LimsSpeciesKind,
-                    }))
-                  }
-                >
-                  {LIMS_SPECIES_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {formatLimsSpeciesLabel(k)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Tissue type *</Label>
-                <Input
-                  className={fieldClass}
-                  value={form.tissue_type}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, tissue_type: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Organ abbrev override</Label>
-                <Input
-                  className={fieldClass}
-                  value={form.organ_abbrev}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, organ_abbrev: e.target.value.toUpperCase() }))
-                  }
-                />
-              </div>
-            </div>
-          </LimsEditableSection>
-          <LimsEditableSection
-            title="Dates & notes"
-            description="Accession dates and instructions."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Date received</Label>
-                <Input
-                  type="date"
-                  className={fieldClass}
-                  value={form.date_received}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, date_received: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Date of dissection</Label>
-                <Input
-                  type="date"
-                  className={fieldClass}
-                  value={form.date_of_dissection}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, date_of_dissection: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label className="text-xs">Instructions / notes</Label>
-                <textarea
-                  className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                  value={form.instructions_notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, instructions_notes: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-          </LimsEditableSection>
-          {saveErr ? <p className="text-sm text-destructive">{saveErr}</p> : null}
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" disabled={pending} onClick={saveSample}>
-              {pending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              ) : null}
-              Save sample
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="border-destructive/40 text-destructive hover:bg-destructive/10"
-              disabled={pending}
-              onClick={() => {
-                const ok = window.confirm(
-                  `Delete sample ${sample.sample_reference}? This removes all slides and related data for this sample.`,
-                );
-                if (!ok) return;
-                start(async () => {
-                  const res = await deleteLimsSampleAction({
-                    projectId,
-                    sampleId: sample.id,
-                  });
-                  if (!res.ok) setSaveErr(res.error);
-                  else onRefresh();
-                });
-              }}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-              Delete sample
-            </Button>
-          </div>
-
-          <LimsEditableSection
-            title="Services from catalog"
-            description="Add line items from the quote service offering with quantities."
-          >
-            <LimsSampleServiceLines
-              projectId={projectId}
-              sampleId={sample.id}
-              lines={sample.service_lines}
-              catalog={catalog}
-              catalogLoading={catalogLoading}
-              onRefresh={onRefresh}
-              showTitle={false}
-            />
-          </LimsEditableSection>
-
-          <LimsEditableSection
-            title="Custom metadata"
-            description="User-defined key and value fields for this sample."
-          >
-            <LimsKeyValueEditor
-              title="Custom metadata"
-              showTitle={false}
-              rows={sample.metadata.map((m) => ({
-                id: m.id,
-                key: m.key,
-                value: m.value,
-              }))}
-              onSave={async (key, value) => {
-                const res = await upsertLimsSampleMetadataAction({
-                  projectId,
-                  sampleId: sample.id,
-                  key,
-                  value,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onDelete={async (metadataId) => {
-                const res = await deleteLimsSampleMetadataAction({
-                  projectId,
-                  sampleId: sample.id,
-                  metadataId,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-            />
-          </LimsEditableSection>
-
-          <LimsEditableSection
-            title="Slides"
-            description="Bulk-create slide records and open each slide for notes and metadata."
-          >
-            <div className="mb-4 flex flex-wrap items-end gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Bulk create count</Label>
-                <Input
-                  className={cn("w-24", fieldClass)}
-                  type="number"
-                  min={1}
-                  max={200}
-                  value={bulkCount}
-                  onChange={(e) => setBulkCount(e.target.value)}
-                />
-              </div>
-              <Button type="button" size="sm" variant="secondary" disabled={pending} onClick={bulkSlides}>
-                Create slides
-              </Button>
-            </div>
-
-            {sample.slides.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No slides yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {sample.slides.map((slide) => (
-                  <SlideBlock
-                    key={slide.id}
-                    projectId={projectId}
-                    sampleReference={sample.sample_reference}
-                    slide={slide}
-                    onRefresh={onRefresh}
-                    onOpenLabel={onOpenLabel}
-                  />
-                ))}
-              </div>
-            )}
-          </LimsEditableSection>
-        </CardContent>
-      ) : null}
-    </Card>
-  );
-}
-
-function SlideBlock({
-  projectId,
-  sampleReference,
-  slide,
-  onRefresh,
-  onOpenLabel,
-}: {
-  projectId: string;
-  sampleReference: string;
-  slide: LimsProjectDetailPayload["samples"][0]["slides"][0];
-  onRefresh: () => void;
-  onOpenLabel: (p: LimsSlideLabelPayload) => void;
-}) {
-  const [notes, setNotes] = useState(slide.notes ?? "");
-  const [exp, setExp] = useState(false);
-
-  useEffect(() => {
-    setNotes(slide.notes ?? "");
-  }, [slide.notes, slide.id]);
-
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 p-4 dark:border-white/[0.08] dark:bg-white/[0.02]">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <button
-          type="button"
-          className="flex items-center gap-2 text-left font-mono text-sm font-medium"
-          onClick={() => setExp((e) => !e)}
-        >
-          {exp ? (
-            <ChevronDown className="h-4 w-4 shrink-0" />
-          ) : (
-            <ChevronRight className="h-4 w-4 shrink-0" />
-          )}
-          {slide.slide_reference}
-        </button>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              onOpenLabel({
-                slideReference: slide.slide_reference,
-                sampleReference,
-                createdAt: slide.created_at,
-              })
-            }
-          >
-            Print label
-          </Button>
-        </div>
-      </div>
-      {exp ? (
-        <div className="mt-4 space-y-3 border-t border-border pt-4 dark:border-white/[0.06]">
-          <LimsEditableSection
-            title="Slide notes"
-            description="Internal notes for this slide."
-          >
-            <div className="space-y-1">
-              <Label className="text-xs">Label / slide notes</Label>
-              <textarea
-                className={cn("min-h-[50px] w-full rounded-md border px-3 py-2 text-sm", fieldClass)}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                onBlur={() => {
-                  void (async () => {
-                    const res = await updateLimsSlideNotesAction({
-                      projectId,
-                      slideId: slide.id,
-                      notes,
-                    });
-                    if (res.ok) onRefresh();
-                  })();
-                }}
-              />
-            </div>
-          </LimsEditableSection>
-          <LimsEditableSection
-            title="Slide metadata"
-            description="Custom key–value fields for this slide."
-          >
-            <LimsKeyValueEditor
-              title="Slide metadata"
-              showTitle={false}
-              rows={slide.metadata.map((m) => ({
-                id: m.id,
-                key: m.key,
-                value: m.value,
-              }))}
-              onSave={async (key, value) => {
-                const res = await upsertLimsSlideMetadataAction({
-                  projectId,
-                  slideId: slide.id,
-                  key,
-                  value,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-              onDelete={async (metadataId) => {
-                const res = await deleteLimsSlideMetadataAction({
-                  projectId,
-                  slideId: slide.id,
-                  metadataId,
-                });
-                if (res.ok) onRefresh();
-                return res;
-              }}
-            />
-          </LimsEditableSection>
-        </div>
-      ) : null}
     </div>
   );
 }

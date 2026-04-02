@@ -91,6 +91,35 @@ export async function setLimsSlideStepCompletedAction(input: {
   return { ok: true };
 }
 
+export async function updateLimsSlideStepContentAction(input: {
+  projectId: string;
+  slideId: string;
+  stepId: string;
+  content: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  const ok = await assertSlideInProject(supabase, input.projectId, input.slideId);
+  if (!ok) return { ok: false, error: "Slide not found." };
+
+  const { error } = await supabase
+    .from("lims_slide_steps")
+    .update({ content: input.content.trim() })
+    .eq("id", input.stepId)
+    .eq("slide_id", input.slideId);
+
+  if (error) {
+    console.error(error);
+    return { ok: false, error: "Could not update step." };
+  }
+  revalidatePath(`/pathx/lims/projects/${input.projectId}`);
+  return { ok: true };
+}
+
 export async function deleteLimsSlideStepAction(input: {
   projectId: string;
   slideId: string;

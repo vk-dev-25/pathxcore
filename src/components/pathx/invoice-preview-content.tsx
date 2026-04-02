@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
 import { Printer } from "lucide-react";
 import Image from "next/image";
 
@@ -47,93 +46,6 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
   const preparedLine = [data.contact_name, data.project_title]
     .filter(Boolean)
     .join(" · ");
-
-  const cleanupPrintRef = useRef<null | (() => void)>(null);
-
-  const resetPrintScroll = useCallback(() => {
-    window.scrollTo(0, 0);
-    const nodes = document.querySelectorAll<HTMLElement>('[data-quote-print="true"]');
-    nodes.forEach((node) => {
-      node.scrollTop = 0;
-    });
-  }, []);
-
-  const preparePrintSurface = useCallback(() => {
-    resetPrintScroll();
-
-    const root = document.querySelector<HTMLElement>('[data-quote-print="true"]');
-    if (!root) return () => {};
-
-    const touched = new Map<HTMLElement, string>();
-    const remember = (el: HTMLElement) => {
-      if (!touched.has(el)) touched.set(el, el.style.cssText);
-    };
-
-    const forceWhite = (el: HTMLElement) => {
-      el.style.setProperty("background", "#fff", "important");
-      el.style.setProperty("background-color", "#fff", "important");
-      el.style.setProperty("color", "#111", "important");
-    };
-
-    const rootEl = document.documentElement;
-    const bodyEl = document.body;
-    remember(rootEl);
-    remember(bodyEl);
-    forceWhite(rootEl);
-    forceWhite(bodyEl);
-    bodyEl.style.setProperty("margin", "0", "important");
-    bodyEl.style.setProperty("padding", "0", "important");
-
-    const topChildren = Array.from(bodyEl.children) as HTMLElement[];
-    topChildren.forEach((child) => {
-      remember(child);
-      if (child.contains(root) || child === root) {
-        child.style.setProperty("display", "block", "important");
-        child.style.setProperty("visibility", "visible", "important");
-        forceWhite(child);
-      } else {
-        child.style.setProperty("display", "none", "important");
-      }
-    });
-
-    remember(root);
-    root.style.setProperty("position", "static", "important");
-    root.style.setProperty("left", "auto", "important");
-    root.style.setProperty("top", "auto", "important");
-    root.style.setProperty("width", "auto", "important");
-    root.style.setProperty("max-width", "none", "important");
-    root.style.setProperty("height", "auto", "important");
-    root.style.setProperty("max-height", "none", "important");
-    root.style.setProperty("overflow", "visible", "important");
-    root.style.setProperty("border", "0", "important");
-    root.style.setProperty("box-shadow", "none", "important");
-    forceWhite(root);
-
-    return () => {
-      touched.forEach((cssText, el) => {
-        el.style.cssText = cssText;
-      });
-    };
-  }, [resetPrintScroll]);
-
-  useEffect(() => {
-    const onBeforePrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = preparePrintSurface();
-    };
-    const onAfterPrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-    window.addEventListener("beforeprint", onBeforePrint);
-    window.addEventListener("afterprint", onAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", onBeforePrint);
-      window.removeEventListener("afterprint", onAfterPrint);
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-  }, [preparePrintSurface]);
 
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
@@ -280,11 +192,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => {
-            cleanupPrintRef.current?.();
-            cleanupPrintRef.current = preparePrintSurface();
-            window.requestAnimationFrame(() => window.print());
-          }}
+          onClick={() => window.print()}
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF
