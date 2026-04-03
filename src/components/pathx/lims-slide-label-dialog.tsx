@@ -35,14 +35,14 @@ function LabelBlock({
   return (
     <div
       className={cn(
-        "rounded-lg border border-white/[0.06] bg-white p-6 text-black print:border-0 print:bg-white print:p-0",
-        /* One label per sheet: fill page and center ID for die-cut / roll label printers */
-        "flex flex-col print:min-h-[calc(100vh-24mm)] print:w-full print:max-w-none print:items-center print:justify-center print:py-4",
+        "rounded-lg border border-white/[0.06] bg-white p-6 text-black print:border-0 print:bg-transparent print:p-0",
+        /* One compact label per printed page; padding comes from [data-lims-label-print] */
+        "flex flex-col print:min-h-[90mm] print:w-full print:max-w-none print:items-center print:justify-center print:py-6",
         printBreakAfter && "print:break-after-page",
       )}
     >
       <p
-        className="text-center font-mono text-2xl font-bold tracking-tight text-black print:text-4xl print:leading-tight print:text-black"
+        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-lg print:leading-snug print:text-black"
         aria-label={`Slide ${p.slideReference}`}
       >
         {p.slideReference}
@@ -67,9 +67,10 @@ export function LimsSlideLabelDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-quote-print="true"
+        data-lims-label-print="true"
         data-lims-slide-labels={items.length > 0 ? "true" : undefined}
         className={cn(
-          "flex max-h-[90vh] flex-col gap-0 overflow-hidden border border-white/[0.08] bg-background p-0 sm:max-w-md",
+          "flex max-h-[90vh] flex-col gap-0 overflow-hidden border border-white/[0.08] bg-background p-0 print:overflow-visible sm:max-w-md",
           items.length > 1 && "sm:max-w-2xl",
         )}
       >

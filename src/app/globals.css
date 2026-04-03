@@ -196,6 +196,18 @@ html.light body::before {
     page-break-after: auto !important;
   }
 
+  /*
+   * LIMS sample / slide labels: keep out-of-flow for print (see block comment above)
+   * but inset content so it stays inside the printable area; dialog fixed center
+   * + zero padding was clipping text at the top-left.
+   */
+  [data-quote-print="true"][data-lims-label-print="true"] {
+    padding: 10mm 12mm !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
   [data-quote-print="true"] * {
     box-shadow: none !important;
     outline: none !important;
