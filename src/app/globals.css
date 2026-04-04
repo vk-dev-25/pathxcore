@@ -197,15 +197,48 @@ html.light body::before {
   }
 
   /*
-   * LIMS sample / slide labels: keep out-of-flow for print (see block comment above)
-   * but inset content so it stays inside the printable area; dialog fixed center
-   * + zero padding was clipping text at the top-left.
+   * LIMS labels — Zebra ZD621 + 1.5" × 1" thermal roll (e.g. RL926, 1" core / 4" OD).
+   * CSS: 38.1mm × 25.4mm (width × height). Match this in the printer driver label size.
+   * If your driver swaps orientation, transpose width/height here to match the roll.
    */
-  [data-quote-print="true"][data-lims-label-print="true"] {
-    padding: 10mm 12mm !important;
+  @page limsZebraLabel {
+    size: 38.1mm 25.4mm;
+    margin: 0;
+  }
+
+  /* Single sample label: one page box = one label */
+  [data-quote-print="true"][data-lims-label-print="true"]:not([data-lims-slide-labels="true"]) {
+    page: limsZebraLabel !important;
+    width: 38.1mm !important;
+    height: 25.4mm !important;
+    max-width: 38.1mm !important;
+    max-height: 25.4mm !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+  }
+
+  /* Print-all slides: root grows; each .lims-zebra-label-page is one label */
+  [data-quote-print="true"][data-lims-slide-labels="true"] {
+    width: 38.1mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     max-height: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .lims-zebra-label-page {
+    page: limsZebraLabel !important;
+    box-sizing: border-box !important;
+    width: 38.1mm !important;
+    height: 25.4mm !important;
+    max-width: 38.1mm !important;
+    max-height: 25.4mm !important;
+    padding: 1mm !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
   }
 
   [data-quote-print="true"] * {

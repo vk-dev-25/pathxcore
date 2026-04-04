@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { HomeThemeToggle } from "@/components/home-theme-toggle";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -59,6 +60,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {pathname === "/" ? <HomeThemeToggle /> : null}
           <Button
             asChild
             variant="workspace"

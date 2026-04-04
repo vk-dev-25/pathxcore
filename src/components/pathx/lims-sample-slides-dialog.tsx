@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Loader2, Plus, Printer, Save, Trash2 } from "lucide-react";
 
 import type { LimsSlideLabelPayload } from "@/components/pathx/lims-slide-label-dialog";
@@ -24,6 +24,16 @@ import { updateLimsSlideNotesAction } from "@/lib/lims/update-slide-notes-action
 import { cn } from "@/lib/utils";
 
 import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
+
+function buildNotesMap(
+  slides: LimsSampleDetail["slides"],
+): Record<string, string> {
+  const next: Record<string, string> = {};
+  for (const sl of slides) {
+    next[sl.id] = sl.notes ?? "";
+  }
+  return next;
+}
 
 const cellPad = "border-b border-border p-2 align-top dark:border-white/[0.06]";
 const headCell =
@@ -209,15 +219,31 @@ export function LimsSampleSlidesDialog({
 }) {
   const [pending, start] = useTransition();
   const [bulkCount, setBulkCount] = useState("1");
-  const [notesBySlide, setNotesBySlide] = useState<Record<string, string>>({});
+
+  /* First paint must show server notes — empty initial state + useEffect caused a visible flash with many rows */
+  const [notesBySlide, setNotesBySlide] = useState<Record<string, string>>(() =>
+    buildNotesMap(sample.slides),
+  );
+
+  /* Stable across parent re-renders when only the slides array reference changes */
+  const slidesNotesSignature = useMemo(
+    () =>
+      sample.slides
+        .map((s) => `${s.id}:${s.notes ?? ""}`)
+        .sort()
+        .join("|"),
+    [sample.slides],
+  );
+
+  const lastSyncedSlidesSig = useRef(slidesNotesSignature);
 
   useEffect(() => {
-    const next: Record<string, string> = {};
-    for (const sl of sample.slides) {
-      next[sl.id] = sl.notes ?? "";
-    }
-    setNotesBySlide(next);
-  }, [sample.slides]);
+    if (!open) return;
+    if (lastSyncedSlidesSig.current === slidesNotesSignature) return;
+    lastSyncedSlidesSig.current = slidesNotesSignature;
+    setNotesBySlide(buildNotesMap(sample.slides));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sample.slides summarized by slidesNotesSignature
+  }, [open, slidesNotesSignature]);
 
   function notesFor(slideId: string) {
     return notesBySlide[slideId] ?? "";
@@ -229,7 +255,10 @@ export function LimsSampleSlidesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-[min(1200px,96vw)] flex-col gap-0 overflow-hidden border-border bg-background p-0 shadow-2xl duration-0 data-[state=open]:animate-none data-[state=closed]:animate-none">
+      <DialogContent
+        overlayClassName="duration-0 data-[state=open]:animate-none data-[state=closed]:animate-none data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+        className="flex max-h-[90vh] max-w-[min(1200px,96vw)] flex-col gap-0 overflow-hidden border-border bg-background p-0 shadow-2xl duration-0 data-[state=open]:animate-none data-[state=closed]:animate-none"
+      >
         <DialogHeader className="shrink-0 border-b border-border px-4 py-3 dark:border-white/[0.08]">
           <DialogTitle className="font-mono text-base">
             Slides · {sampleReference}
@@ -320,7 +349,7 @@ export function LimsSampleSlidesDialog({
                     <td
                       className={cn(
                         cellPad,
-                        "sticky left-0 z-[1] bg-background font-mono text-xs",
+                        "bg-background font-mono text-xs",
                       )}
                     >
                       {sl.slide_reference}

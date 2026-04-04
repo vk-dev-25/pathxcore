@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { printThermalLabel } from "@/lib/print-thermal-label";
 import { cn } from "@/lib/utils";
 
 export type LimsSlideLabelPayload = {
@@ -35,14 +36,13 @@ function LabelBlock({
   return (
     <div
       className={cn(
-        "rounded-lg border border-white/[0.06] bg-white p-6 text-black print:border-0 print:bg-transparent print:p-0",
-        /* One compact label per printed page; padding comes from [data-lims-label-print] */
-        "flex flex-col print:min-h-[90mm] print:w-full print:max-w-none print:items-center print:justify-center print:py-6",
+        "lims-zebra-label-page rounded-lg border border-white/[0.06] bg-white p-6 text-black",
+        "flex flex-col items-center justify-center print:rounded-none print:border-0",
         printBreakAfter && "print:break-after-page",
       )}
     >
       <p
-        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-lg print:leading-snug print:text-black"
+        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[8pt] print:leading-none print:text-black"
         aria-label={`Slide ${p.slideReference}`}
       >
         {p.slideReference}
@@ -94,17 +94,23 @@ export function LimsSlideLabelDialog({
           )}
         </div>
 
-        <div className="shrink-0 border-t border-border bg-background px-6 py-4 print:hidden">
+        <div className="shrink-0 space-y-2 border-t border-border bg-background px-6 py-4 print:hidden">
           <Button
             type="button"
             variant="outline"
             className="w-full border-neutral-300 text-black dark:border-white/20 dark:text-foreground"
             disabled={items.length === 0}
-            onClick={() => window.print()}
+            onClick={() => printThermalLabel()}
           >
             <Printer className="mr-2 h-4 w-4" />
             {printLabel}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            For Zebra/PDF: in the print dialog open{" "}
+            <span className="whitespace-nowrap">More settings</span> and turn off{" "}
+            <span className="whitespace-nowrap">Headers and footers</span> so the
+            time and page title are not printed.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

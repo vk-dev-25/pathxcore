@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { LimsSpeciesKind } from "@/lib/lims/types";
+import { printThermalLabel } from "@/lib/print-thermal-label";
 import { cn } from "@/lib/utils";
 
 /** Minimal fields for a cassette / container specimen label (LIMS accession practice). */
@@ -54,18 +55,18 @@ export function LimsSampleLabelDialog({
         <DialogHeader className="sr-only print:hidden">
           <DialogTitle>Sample label</DialogTitle>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 print:max-h-none print:overflow-visible print:p-0 print:px-0">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 print:h-full print:max-h-none print:overflow-visible print:p-0 print:px-0">
           {!payload ? (
             <p className="text-sm text-muted-foreground">No sample selected.</p>
           ) : (
             <div
               className={cn(
-                "rounded-lg border border-white/[0.06] bg-white p-8 text-black print:border-0 print:bg-transparent print:p-0",
-                "flex flex-col print:min-h-[90mm] print:w-full print:max-w-none print:items-center print:justify-center print:py-6",
+                "lims-zebra-label-page rounded-lg border border-white/[0.06] bg-white p-8 text-black",
+                "flex flex-col items-center justify-center print:rounded-none print:border-0",
               )}
             >
               <p
-                className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-lg print:leading-snug print:text-black"
+                className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[7pt] print:leading-none print:text-black"
                 aria-label={`Sample ${payload.sampleReference}`}
               >
                 {payload.sampleReference}
@@ -73,23 +74,29 @@ export function LimsSampleLabelDialog({
               <p className="mt-6 text-center text-sm font-medium text-neutral-700 print:hidden">
                 Date received
               </p>
-              <p className="mt-1 text-center text-lg font-semibold text-black print:mt-4 print:text-sm print:leading-snug print:text-black">
+              <p className="mt-1 text-center text-lg font-semibold text-black print:mt-0.5 print:text-[6pt] print:leading-none print:text-black">
                 {formatReceived(payload.dateReceived)}
               </p>
             </div>
           )}
         </div>
-        <div className="shrink-0 border-t border-border bg-background px-6 py-4 print:hidden">
+        <div className="shrink-0 space-y-2 border-t border-border bg-background px-6 py-4 print:hidden">
           <Button
             type="button"
             variant="outline"
             className="w-full border-neutral-300 text-black dark:border-white/20 dark:text-foreground"
             disabled={!payload}
-            onClick={() => window.print()}
+            onClick={() => printThermalLabel()}
           >
             <Printer className="mr-2 h-4 w-4" />
             Print / Save PDF
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            For Zebra/PDF: in the print dialog open{" "}
+            <span className="whitespace-nowrap">More settings</span> and turn off{" "}
+            <span className="whitespace-nowrap">Headers and footers</span> so the
+            time and page title are not printed.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
