@@ -133,10 +133,13 @@ html.light body::before {
 
 /*
  * Quote / invoice / LIMS label print-to-PDF.
- * [data-quote-print] lives in a Radix portal (direct child of body next to the app root).
- * Do NOT use visibility:hidden on the whole tree: hidden boxes still occupy layout height,
- * so a tall dashboard produces many blank pages and the label appears on the last page.
- * Hide only top-level body children that do not contain the print root (:has).
+ * [data-quote-print] lives in a Radix portal (usually a direct child of body).
+ * Do NOT use visibility:hidden on the whole tree: hidden boxes still occupy layout height.
+ *
+ * Primary: before print(), attachDataQuotePrintHost() sets html[data-print-data-quote] and
+ * marks the portal wrapper with data-print-quote-host (see print-data-quote.ts). This avoids
+ * relying on :has(), which can fail in some prod / print-to-PDF paths (tiny clipped corner).
+ * Fallback: :has() when the user prints without our hook (e.g. browser Cmd+P).
  */
 @media print {
   @page {
@@ -158,7 +161,18 @@ html.light body::before {
     print-color-adjust: exact;
   }
 
-  body > *:not(:has([data-quote-print="true"])) {
+  html[data-print-data-quote] body > *:not([data-print-quote-host]) {
+    display: none !important;
+  }
+
+  html[data-print-data-quote] body > [data-print-quote-host] {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html:not([data-print-data-quote]) body > *:not(:has([data-quote-print="true"])) {
     display: none !important;
   }
 

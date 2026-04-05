@@ -1,3 +1,8 @@
+import {
+  attachDataQuotePrintHost,
+  detachDataQuotePrintHost,
+} from "@/lib/print-data-quote";
+
 const LIMS_LABEL_PRINT_STYLE_ID = "lims-label-print-page-override";
 
 /**
@@ -13,6 +18,7 @@ const LIMS_LABEL_PRINT_STYLE_ID = "lims-label-print-page-override";
  * cascade and matches the 1" × 1" driver setting.
  */
 export function printThermalLabel(): void {
+  const host = attachDataQuotePrintHost();
   const previousTitle = document.title;
   document.title = "\u200b";
 
@@ -29,6 +35,7 @@ export function printThermalLabel(): void {
   document.head.appendChild(style);
 
   const cleanup = () => {
+    detachDataQuotePrintHost(host);
     document.title = previousTitle;
     style.remove();
   };

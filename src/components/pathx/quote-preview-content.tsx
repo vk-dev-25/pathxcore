@@ -6,6 +6,7 @@ import { Printer } from "lucide-react";
 import Image from "next/image";
 
 import type { PricingSettingsSnapshot } from "@/lib/quote-pricing";
+import { printWithDataQuoteIsolation } from "@/lib/print-data-quote";
 import { Button } from "@/components/ui/button";
 
 export function money(n: number) {
@@ -283,7 +284,7 @@ export function QuotePreviewContent({
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => window.print()}
+          onClick={() => printWithDataQuoteIsolation()}
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF

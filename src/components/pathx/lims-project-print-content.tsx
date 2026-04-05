@@ -9,6 +9,7 @@ import {
   formatLimsProjectStatusLabel,
   formatLimsSpeciesLabel,
 } from "@/lib/lims/types";
+import { printWithDataQuoteIsolation } from "@/lib/print-data-quote";
 
 function formatMediumDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -370,7 +371,7 @@ export function LimsProjectPrintContent({ data }: { data: LimsProjectDetailPaylo
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => window.print()}
+          onClick={() => printWithDataQuoteIsolation()}
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF

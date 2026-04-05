@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import type { InvoicePreviewData } from "@/lib/invoices/invoice-preview";
+import { printWithDataQuoteIsolation } from "@/lib/print-data-quote";
 
 export function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -192,7 +193,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => window.print()}
+          onClick={() => printWithDataQuoteIsolation()}
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF
