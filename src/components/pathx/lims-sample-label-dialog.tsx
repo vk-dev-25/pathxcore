@@ -66,7 +66,7 @@ export function LimsSampleLabelDialog({
               )}
             >
               <p
-                className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[7pt] print:leading-none print:text-black"
+                className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[6pt] print:leading-tight print:text-black"
                 aria-label={`Sample ${payload.sampleReference}`}
               >
                 {payload.sampleReference}
@@ -74,7 +74,7 @@ export function LimsSampleLabelDialog({
               <p className="mt-6 text-center text-sm font-medium text-neutral-700 print:hidden">
                 Date received
               </p>
-              <p className="mt-1 text-center text-lg font-semibold text-black print:mt-0.5 print:text-[6pt] print:leading-none print:text-black">
+              <p className="mt-1 text-center text-lg font-semibold text-black print:mt-0.5 print:text-[5pt] print:leading-tight print:text-black">
                 {formatReceived(payload.dateReceived)}
               </p>
             </div>
@@ -92,10 +92,9 @@ export function LimsSampleLabelDialog({
             Print / Save PDF
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            For Zebra/PDF: in the print dialog open{" "}
+            Label size is 1&quot; × 1&quot; — match this in the printer driver. For PDF: open{" "}
             <span className="whitespace-nowrap">More settings</span> and turn off{" "}
-            <span className="whitespace-nowrap">Headers and footers</span> so the
-            time and page title are not printed.
+            <span className="whitespace-nowrap">Headers and footers</span>.
           </p>
         </div>
       </DialogContent>

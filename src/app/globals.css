@@ -133,9 +133,10 @@ html.light body::before {
 
 /*
  * Quote / invoice / LIMS label print-to-PDF.
- * Use visibility (not display:none on body children): Radix portals nest
- * [data-quote-print] inside portal > dialog content; hiding portal children
- * made print preview a blank white page and broke the screen after cancel.
+ * [data-quote-print] lives in a Radix portal (direct child of body next to the app root).
+ * Do NOT use visibility:hidden on the whole tree: hidden boxes still occupy layout height,
+ * so a tall dashboard produces many blank pages and the label appears on the last page.
+ * Hide only top-level body children that do not contain the print root (:has).
  */
 @media print {
   @page {
@@ -157,13 +158,8 @@ html.light body::before {
     print-color-adjust: exact;
   }
 
-  body * {
-    visibility: hidden !important;
-  }
-
-  [data-quote-print="true"],
-  [data-quote-print="true"] * {
-    visibility: visible !important;
+  body > *:not(:has([data-quote-print="true"])) {
+    display: none !important;
   }
 
   [data-quote-print="true"] {
@@ -190,6 +186,34 @@ html.light body::before {
     page-break-after: avoid !important;
   }
 
+  /*
+   * LIMS labels: keep the dialog root in normal flow. Chrome/Safari often ignore @page on
+   * out-of-flow (absolute/fixed) boxes, which then use the global @page below (12mm + letter)
+   * so Save PDF shows a huge sheet with a clipped corner — unlike localhost timing luck.
+   */
+  [data-quote-print="true"][data-lims-label-print="true"] {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+
+  /* Dialog body uses flex-1/min-h-0 — that can clip the label in print if not reset */
+  [data-lims-label-print="true"] div.min-h-0 {
+    min-height: auto !important;
+    flex: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   /* Multi-slide print: allow one label per page (break-after on each block). */
   [data-quote-print="true"][data-lims-slide-labels="true"] {
     page-break-before: auto !important;
@@ -197,30 +221,29 @@ html.light body::before {
   }
 
   /*
-   * LIMS labels — Zebra ZD621 + 1.5" × 1" thermal roll (e.g. RL926, 1" core / 4" OD).
-   * CSS: 38.1mm × 25.4mm (width × height). Match this in the printer driver label size.
-   * If your driver swaps orientation, transpose width/height here to match the roll.
+   * LIMS labels — 1" × 1" (25.4mm) thermal. Set the same size in the printer driver.
+   * printThermalLabel() also injects matching @page rules at click time for Chrome/Save PDF.
    */
   @page limsZebraLabel {
-    size: 38.1mm 25.4mm;
+    size: 1in 1in;
     margin: 0;
   }
 
   /* Single sample label: one page box = one label */
   [data-quote-print="true"][data-lims-label-print="true"]:not([data-lims-slide-labels="true"]) {
     page: limsZebraLabel !important;
-    width: 38.1mm !important;
-    height: 25.4mm !important;
-    max-width: 38.1mm !important;
-    max-height: 25.4mm !important;
+    width: 1in !important;
+    height: 1in !important;
+    max-width: 1in !important;
+    max-height: 1in !important;
     padding: 0 !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   /* Print-all slides: root grows; each .lims-zebra-label-page is one label */
   [data-quote-print="true"][data-lims-slide-labels="true"] {
-    width: 38.1mm !important;
+    width: 1in !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -231,14 +254,15 @@ html.light body::before {
   .lims-zebra-label-page {
     page: limsZebraLabel !important;
     box-sizing: border-box !important;
-    width: 38.1mm !important;
-    height: 25.4mm !important;
-    max-width: 38.1mm !important;
-    max-height: 25.4mm !important;
-    padding: 1mm !important;
+    width: 1in !important;
+    height: 1in !important;
+    max-width: 1in !important;
+    max-height: 1in !important;
+    padding: 0.5mm !important;
     margin: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     background: #fff !important;
+    page-break-inside: avoid !important;
   }
 
   [data-quote-print="true"] * {

@@ -42,7 +42,7 @@ function LabelBlock({
       )}
     >
       <p
-        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[8pt] print:leading-none print:text-black"
+        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[7pt] print:leading-tight print:text-black"
         aria-label={`Slide ${p.slideReference}`}
       >
         {p.slideReference}
@@ -106,10 +106,9 @@ export function LimsSlideLabelDialog({
             {printLabel}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            For Zebra/PDF: in the print dialog open{" "}
+            Label size is 1&quot; × 1&quot; — match this in the printer driver. For PDF: open{" "}
             <span className="whitespace-nowrap">More settings</span> and turn off{" "}
-            <span className="whitespace-nowrap">Headers and footers</span> so the
-            time and page title are not printed.
+            <span className="whitespace-nowrap">Headers and footers</span>.
           </p>
         </div>
       </DialogContent>
