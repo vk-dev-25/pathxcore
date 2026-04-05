@@ -86,7 +86,14 @@ export function LimsSampleLabelDialog({
             variant="outline"
             className="w-full border-neutral-300 text-black dark:border-white/20 dark:text-foreground"
             disabled={!payload}
-            onClick={() => printThermalLabel()}
+            onClick={() =>
+              payload &&
+              printThermalLabel({
+                mode: "sample",
+                sampleReference: payload.sampleReference,
+                dateLine: formatReceived(payload.dateReceived),
+              })
+            }
           >
             <Printer className="mr-2 h-4 w-4" />
             Print / Save PDF

@@ -246,7 +246,7 @@ html.light body::before {
 
   /*
    * LIMS labels — 1" × 1" (25.4mm) thermal. Set the same size in the printer driver.
-   * printThermalLabel() also injects matching @page rules at click time for Chrome/Save PDF.
+   * Thermal labels print via a dedicated iframe (see print-thermal-label.ts), not these rules.
    */
   @page limsZebraLabel {
     size: 1in 1in;

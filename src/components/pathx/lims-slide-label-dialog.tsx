@@ -100,7 +100,12 @@ export function LimsSlideLabelDialog({
             variant="outline"
             className="w-full border-neutral-300 text-black dark:border-white/20 dark:text-foreground"
             disabled={items.length === 0}
-            onClick={() => printThermalLabel()}
+            onClick={() =>
+              printThermalLabel({
+                mode: "slides",
+                slideReferences: items.map((it) => it.slideReference),
+              })
+            }
           >
             <Printer className="mr-2 h-4 w-4" />
             {printLabel}
