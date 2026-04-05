@@ -36,13 +36,13 @@ function LabelBlock({
   return (
     <div
       className={cn(
-        "lims-zebra-label-page rounded-lg border border-white/[0.06] bg-white p-6 text-black",
+        "lims-zebra-label-page lims-zebra-label-page--slide rounded-lg border border-white/[0.06] bg-white p-6 text-black",
         "flex flex-col items-center justify-center print:rounded-none print:border-0",
         printBreakAfter && "print:break-after-page",
       )}
     >
       <p
-        className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[7pt] print:leading-tight print:text-black"
+        className="lims-label-print-line-primary max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
         aria-label={`Slide ${p.slideReference}`}
       >
         {p.slideReference}
@@ -74,13 +74,13 @@ export function LimsSlideLabelDialog({
           items.length > 1 && "sm:max-w-2xl",
         )}
       >
-        <DialogHeader className="sr-only print:hidden">
+        <DialogHeader className="lims-label-dialog-chrome sr-only">
           <DialogTitle>Slide labels</DialogTitle>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 print:max-h-none print:overflow-visible print:p-0 print:px-0">
           {items.length === 0 ? (
-            <p className="text-sm text-muted-foreground print:hidden">No slide selected.</p>
+            <p className="lims-label-dialog-chrome text-sm text-muted-foreground">No slide selected.</p>
           ) : (
             <div className="space-y-6 text-black print:space-y-0">
               {items.map((p, i) => (
@@ -94,7 +94,7 @@ export function LimsSlideLabelDialog({
           )}
         </div>
 
-        <div className="shrink-0 space-y-2 border-t border-border bg-background px-6 py-4 print:hidden">
+        <div className="lims-label-dialog-chrome shrink-0 space-y-2 border-t border-border bg-background px-6 py-4">
           <Button
             type="button"
             variant="outline"

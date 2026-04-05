@@ -52,7 +52,7 @@ export function LimsSampleLabelDialog({
         data-lims-label-print="true"
         className="flex max-h-[90vh] max-w-md flex-col gap-0 overflow-hidden border border-white/[0.08] bg-background p-0 print:overflow-visible sm:max-w-md"
       >
-        <DialogHeader className="sr-only print:hidden">
+        <DialogHeader className="lims-label-dialog-chrome sr-only">
           <DialogTitle>Sample label</DialogTitle>
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4 print:h-full print:max-h-none print:overflow-visible print:p-0 print:px-0">
@@ -66,21 +66,21 @@ export function LimsSampleLabelDialog({
               )}
             >
               <p
-                className="max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black print:text-[6pt] print:leading-tight print:text-black"
+                className="lims-label-print-line-primary max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
                 aria-label={`Sample ${payload.sampleReference}`}
               >
                 {payload.sampleReference}
               </p>
-              <p className="mt-6 text-center text-sm font-medium text-neutral-700 print:hidden">
+              <p className="lims-label-dialog-chrome mt-6 text-center text-sm font-medium text-neutral-700">
                 Date received
               </p>
-              <p className="mt-1 text-center text-lg font-semibold text-black print:mt-0.5 print:text-[5pt] print:leading-tight print:text-black">
+              <p className="lims-label-print-line-secondary mt-1 text-center text-lg font-semibold text-black">
                 {formatReceived(payload.dateReceived)}
               </p>
             </div>
           )}
         </div>
-        <div className="shrink-0 space-y-2 border-t border-border bg-background px-6 py-4 print:hidden">
+        <div className="lims-label-dialog-chrome shrink-0 space-y-2 border-t border-border bg-background px-6 py-4">
           <Button
             type="button"
             variant="outline"
