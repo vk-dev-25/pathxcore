@@ -7,12 +7,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { clinicalSpecialties } from "@/lib/site-content";
+import { marketingMetadata } from "@/lib/site-seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingMetadata({
   title: "Clinical services | PathXdx",
   description:
     "Clinical diagnostic pathology services for hospitals, clinics, and doctors' offices across multiple specialties.",
-};
+  path: "/clinical-services",
+});
 
 export default function ClinicalServicesPage() {
   return (

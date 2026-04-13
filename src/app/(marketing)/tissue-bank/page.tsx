@@ -27,13 +27,17 @@ import {
   parseTissueSearchParams,
   serializeTissueQuery,
 } from "@/lib/tissue/search-params";
+import { marketingMetadata } from "@/lib/site-seo";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Tissue Blocks | PathXDx",
-  description:
-    "Browse PathXDx tissue block inventory — filters, metrics, and export.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return marketingMetadata({
+    title: "Tissue Blocks | PathXdx",
+    description:
+      "Browse PathXdx tissue block inventory—filters, metrics, and export.",
+    path: "/tissue-bank",
+  });
+}
 
 const fieldClass =
   "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm";

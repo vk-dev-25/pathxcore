@@ -7,12 +7,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { preclinicalSteps } from "@/lib/site-content";
+import { marketingMetadata } from "@/lib/site-seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingMetadata({
   title: "Preclinical services | PathXdx",
   description:
     "Preclinical pathology workflow from accessioning and processing through staining, IHC, and pathologist evaluation.",
-};
+  path: "/preclinical-services",
+});
 
 export default function PreclinicalServicesPage() {
   return (

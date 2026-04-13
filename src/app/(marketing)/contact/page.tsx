@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Clock, Mail, Phone } from "lucide-react";
 
 import { ContactUsForm } from "@/components/contact-us-form";
+import { marketingMetadata } from "@/lib/site-seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingMetadata({
   title: "Contact | PathXdx",
   description:
     "Contact PathXdx for clinical or preclinical pathology services. South San Francisco, CA.",
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

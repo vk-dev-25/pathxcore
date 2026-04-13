@@ -3,6 +3,20 @@ import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
+import {
+  SITE_EMAIL_PRIMARY,
+  SITE_EMAIL_SECONDARY,
+  SITE_PHONE_DISPLAY,
+  SITE_PHONE_E164,
+  siteAddressLine,
+} from "@/lib/site-identity";
+
+const serviceLinks = [
+  { href: "/clinical-services", label: "Clinical services" },
+  { href: "/preclinical-services", label: "Preclinical services" },
+  { href: "/tissue-bank", label: "Tissue bank" },
+  { href: "/contact", label: "Contact" },
+] as const;
 
 export function SiteFooter() {
   return (
@@ -28,6 +42,17 @@ export function SiteFooter() {
               specialized staining, evaluation, and consultation. South San
               Francisco laboratory partner for care teams and discovery teams.
             </p>
+            <nav aria-label="Services" className="flex flex-wrap gap-x-4 gap-y-2">
+              {serviceLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           </div>
           <div className="space-y-4">
             <p className="text-sm font-semibold text-foreground">Contact</p>
@@ -35,32 +60,32 @@ export function SiteFooter() {
               <li className="flex items-start gap-2">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <a
-                  href="tel:+16507971269"
+                  href={`tel:${SITE_PHONE_E164}`}
                   className="transition-colors hover:text-foreground"
                 >
-                  Main: 650-797-1269
+                  Main: {SITE_PHONE_DISPLAY}
                 </a>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-lab-purple" />
                 <div className="flex flex-col gap-1">
                   <a
-                    href="mailto:info@pathxdx.com"
+                    href={`mailto:${SITE_EMAIL_PRIMARY}`}
                     className="transition-colors hover:text-foreground"
                   >
-                    info@pathxdx.com
+                    {SITE_EMAIL_PRIMARY}
                   </a>
                   <a
-                    href="mailto:nick@pathxdx.com"
+                    href={`mailto:${SITE_EMAIL_SECONDARY}`}
                     className="transition-colors hover:text-foreground"
                   >
-                    nick@pathxdx.com
+                    {SITE_EMAIL_SECONDARY}
                   </a>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <span>South San Francisco, CA 94080</span>
+                <span>{siteAddressLine()}</span>
               </li>
             </ul>
           </div>

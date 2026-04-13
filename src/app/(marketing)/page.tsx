@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -22,6 +23,9 @@ import {
   type ServiceSlide,
 } from "@/components/services-slideshow";
 import { commonServicesBlurb } from "@/lib/site-content";
+import { homePageMetadata } from "@/lib/site-seo";
+
+export const metadata: Metadata = homePageMetadata;
 
 const pillars = [
   {

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/", label: "Home" },
+  { href: "/clinical-services", label: "Clinical services" },
   { href: "/preclinical-services", label: "Preclinical services" },
   { href: "/tissue-bank", label: "Tissue Blocks" },
   { href: "/contact", label: "Contact" },

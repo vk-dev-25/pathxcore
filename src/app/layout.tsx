@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { PathXThemeProvider } from "@/components/pathx/pathx-theme-provider";
+import { DEFAULT_OG_IMAGE_PATH } from "@/lib/site-identity";
 
 import "./globals.css";
 
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
   description:
     "PathXdx provides clinical and preclinical pathology services—from accessioning and processing through staining, IHC, and pathologist evaluation.",
   metadataBase: new URL("https://pathxdx.com"),
+  icons: {
+    icon: [{ url: DEFAULT_OG_IMAGE_PATH, type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
