@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { PathXTissueBankNavLink } from "@/components/pathx/tissue-bank-entry-confirm";
 import { cn } from "@/lib/utils";
 
 const items: { href: string; label: string; match: "exact" | "prefix" }[] = [
@@ -33,17 +34,25 @@ export function PathXNav() {
       <div className="mx-auto flex max-w-6xl flex-wrap gap-1 px-4 py-2 sm:px-6">
         {items.map((item) => {
           const active = isActive(pathname, item.href, item.match);
+          const className = cn(
+            "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            active
+              ? "bg-primary/15 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)]"
+              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+          );
+          if (item.href === "/pathx/tissue-bank") {
+            return (
+              <PathXTissueBankNavLink
+                key={item.href}
+                active={active}
+                className={className}
+              >
+                {item.label}
+              </PathXTissueBankNavLink>
+            );
+          }
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-primary/15 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25)]"
-                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-              )}
-            >
+            <Link key={item.href} href={item.href} className={className}>
               {item.label}
             </Link>
           );

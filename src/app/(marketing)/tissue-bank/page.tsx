@@ -1,3 +1,8 @@
+/**
+ * NOTE: `/tissue-bank` is temporarily redirected to https://tissuesxdx.com in
+ * `next.config.ts` so this route does not run (avoids heavy DB work). Keep this
+ * implementation; remove the redirect when bringing the catalog back on-site.
+ */
 import type { Metadata } from "next";
 import Link from "next/link";
 

@@ -8,6 +8,7 @@ import {
   Settings2,
 } from "lucide-react";
 
+import { PathXTissueBankDashboardTile } from "@/components/pathx/tissue-bank-entry-confirm";
 import {
   Card,
   CardContent,
@@ -73,20 +74,27 @@ export default function PathXHomePage() {
       <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {modules.map((m) => (
           <li key={m.href}>
-            <Link href={m.href} className="group block h-full">
-              <Card className="h-full border-border/80 transition-all group-hover:border-primary/40 group-hover:shadow-md">
-                <CardHeader>
-                  <m.icon className="h-9 w-9 text-primary" />
-                  <CardTitle className="text-xl">{m.title}</CardTitle>
-                  <CardDescription>{m.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <span className="text-sm font-medium text-primary group-hover:underline">
-                    Open →
-                  </span>
-                </CardContent>
-              </Card>
-            </Link>
+            {m.href === "/pathx/tissue-bank" ? (
+              <PathXTissueBankDashboardTile
+                title={m.title}
+                description={m.description}
+              />
+            ) : (
+              <Link href={m.href} className="group block h-full">
+                <Card className="h-full border-border/80 transition-all group-hover:border-primary/40 group-hover:shadow-md">
+                  <CardHeader>
+                    <m.icon className="h-9 w-9 text-primary" />
+                    <CardTitle className="text-xl">{m.title}</CardTitle>
+                    <CardDescription>{m.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-sm font-medium text-primary group-hover:underline">
+                      Open →
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
           </li>
         ))}
       </ul>
