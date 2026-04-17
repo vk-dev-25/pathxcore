@@ -5,7 +5,6 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
   SITE_EMAIL_PRIMARY,
-  SITE_EMAIL_SECONDARY,
   SITE_PHONE_DISPLAY,
   SITE_PHONE_E164,
   siteAddressLine,
@@ -68,20 +67,12 @@ export function SiteFooter() {
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-lab-purple" />
-                <div className="flex flex-col gap-1">
-                  <a
-                    href={`mailto:${SITE_EMAIL_PRIMARY}`}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {SITE_EMAIL_PRIMARY}
-                  </a>
-                  <a
-                    href={`mailto:${SITE_EMAIL_SECONDARY}`}
-                    className="transition-colors hover:text-foreground"
-                  >
-                    {SITE_EMAIL_SECONDARY}
-                  </a>
-                </div>
+                <a
+                  href={`mailto:${SITE_EMAIL_PRIMARY}`}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {SITE_EMAIL_PRIMARY}
+                </a>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />

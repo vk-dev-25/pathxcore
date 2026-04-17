@@ -14,8 +14,6 @@ export const SITE_PHONE_DISPLAY = "650-797-1269";
 
 export const SITE_EMAIL_PRIMARY = "info@pathxdx.com";
 
-export const SITE_EMAIL_SECONDARY = "nick@pathxdx.com";
-
 export const SITE_ADDRESS = {
   addressLocality: "South San Francisco",
   addressRegion: "CA",

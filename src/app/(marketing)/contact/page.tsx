@@ -3,6 +3,7 @@ import { Clock, Mail, Phone } from "lucide-react";
 
 import { ContactUsForm } from "@/components/contact-us-form";
 import { marketingMetadata } from "@/lib/site-seo";
+import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
 
 export const metadata: Metadata = marketingMetadata({
   title: "Contact | PathXdx",
@@ -42,10 +43,10 @@ export default function ContactPage() {
               <div>
                 <h2 className="font-semibold text-foreground">Email</h2>
                 <a
-                  href="mailto:info@pathxdx.com"
+                  href={`mailto:${SITE_EMAIL_PRIMARY}`}
                   className="mt-1 block text-muted-foreground hover:text-foreground"
                 >
-                  info@PathXdx.com
+                  {SITE_EMAIL_PRIMARY}
                 </a>
               </div>
             </div>
