@@ -21,6 +21,7 @@ export type InvoiceDetailPayload = {
   contact_name: string;
   project_title: string;
   invoice_reference: string;
+  po_reference: string;
   status: InvoiceStatus;
   due_date: string;
   subtotal_amount: number;
@@ -44,7 +45,7 @@ export async function getInvoiceDetailAction(
   const { data: invoice, error: iErr } = await supabase
     .from("invoices")
     .select(
-      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, status, due_date, subtotal_amount, total_amount, created_at, updated_at, last_updated_by_email",
+      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, po_reference, status, due_date, subtotal_amount, total_amount, created_at, updated_at, last_updated_by_email",
     )
     .eq("id", invoiceId)
     .maybeSingle();
@@ -79,6 +80,7 @@ export async function getInvoiceDetailAction(
       contact_name: invoice.contact_name ?? "",
       project_title: invoice.project_title ?? "",
       invoice_reference: invoice.invoice_reference ?? "",
+      po_reference: invoice.po_reference ?? "",
       status,
       due_date: invoice.due_date ?? "",
       subtotal_amount: Number(invoice.subtotal_amount),

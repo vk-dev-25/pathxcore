@@ -112,6 +112,10 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           <dd className="print:text-black">{issuedLabel}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">Due date</dt>
           <dd className="print:text-black">{dueLabel}</dd>
+          <dt className="text-muted-foreground print:text-neutral-600">PO reference</dt>
+          <dd className="print:text-black">
+            {data.po_reference?.trim() ? data.po_reference.trim() : "—"}
+          </dd>
         </dl>
       </div>
 

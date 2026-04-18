@@ -55,6 +55,7 @@ export async function updateInvoiceAction(input: {
         client_address: input.header.client_address.trim() || null,
         contact_name: input.header.contact_name.trim() || null,
         project_title: input.header.project_title.trim() || null,
+        po_reference: input.header.po_reference.trim() || null,
         status: input.header.status,
         due_date: input.header.due_date || null,
         subtotal_amount: subtotal,

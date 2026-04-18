@@ -3,6 +3,7 @@ import type { InvoiceStatus } from "@/lib/invoices/types";
 
 export type InvoicePreviewData = {
   invoice_reference: string;
+  po_reference: string;
   status: InvoiceStatus;
   due_date: string;
   created_at: string;
@@ -22,6 +23,7 @@ export type InvoicePreviewData = {
 export function invoiceDetailToPreview(d: InvoiceDetailPayload): InvoicePreviewData {
   return {
     invoice_reference: d.invoice_reference || "—",
+    po_reference: d.po_reference ?? "",
     status: d.status,
     due_date: d.due_date,
     created_at: d.created_at,
@@ -41,6 +43,7 @@ export function invoiceDetailToPreview(d: InvoiceDetailPayload): InvoicePreviewD
 
 export function invoiceDraftToPreview(args: {
   invoiceRef: string;
+  poReference: string;
   status: InvoiceStatus;
   dueDate: string;
   createdAtIso: string;
@@ -62,6 +65,7 @@ export function invoiceDraftToPreview(args: {
   const total_amount = lines.reduce((s, l) => s + l.line_total, 0);
   return {
     invoice_reference: args.invoiceRef || "—",
+    po_reference: args.poReference ?? "",
     status: args.status,
     due_date: args.dueDate,
     created_at: args.createdAtIso,

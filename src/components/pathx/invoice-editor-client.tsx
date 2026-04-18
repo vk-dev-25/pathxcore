@@ -56,6 +56,7 @@ export function InvoiceEditorClient({
     contact_name: string;
     project_title: string;
     invoice_reference: string;
+    po_reference: string;
     status: InvoiceStatus;
     due_date: string;
     created_at: string;
@@ -80,6 +81,7 @@ export function InvoiceEditorClient({
   const invoiceRef = invoice.invoice_reference;
   const [status, setStatus] = useState<InvoiceStatus>(invoice.status);
   const [dueDate, setDueDate] = useState(invoice.due_date);
+  const [poReference, setPoReference] = useState(invoice.po_reference ?? "");
   const [pickId, setPickId] = useState("");
   const [addQty, setAddQty] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +147,7 @@ export function InvoiceEditorClient({
           contact_name: contactName,
           project_title: projectTitle,
           invoice_reference: invoiceRef,
+          po_reference: poReference,
           status,
           due_date: dueDate,
         },
@@ -163,6 +166,7 @@ export function InvoiceEditorClient({
 
   const previewData = invoiceDraftToPreview({
     invoiceRef: invoiceRef,
+    poReference,
     status,
     dueDate,
     createdAtIso: invoice.created_at,
@@ -264,6 +268,17 @@ export function InvoiceEditorClient({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 className={fieldClass}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice-po">PO reference</Label>
+              <Input
+                id="invoice-po"
+                value={poReference}
+                onChange={(e) => setPoReference(e.target.value)}
+                placeholder="Optional"
+                className={fieldClass}
+                autoComplete="off"
               />
             </div>
             <div className="space-y-2 sm:col-span-2">

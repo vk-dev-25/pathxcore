@@ -190,11 +190,6 @@ export function QuotePreviewContent({
                   >
                     <td className="px-3 py-2.5 align-top font-medium print:text-black">
                       {l.label}
-                      {l.is_price_overridden ? (
-                        <span className="ml-1 text-xs font-normal text-muted-foreground print:text-neutral-600">
-                          (override)
-                        </span>
-                      ) : null}
                     </td>
                     <td className="px-3 py-2.5 align-top text-muted-foreground print:text-neutral-700">
                       {money(l.unit_price)} / unit
