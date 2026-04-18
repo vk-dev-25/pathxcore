@@ -20,6 +20,7 @@ import {
   pathxFieldClass as fieldClass,
 } from "@/components/pathx/workspace-field-classes";
 import type { QuoteDraftPayload } from "@/lib/quotes/get-quote-draft-action";
+import { formatAuditTrail } from "@/lib/format-audit-trail";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
 import { updateQuoteAction } from "@/lib/quotes/update-quote-action";
 import {
@@ -181,6 +182,14 @@ export function QuoteBuilderClient({
   const rpPct = pricingSettings.rush_priority_percent;
   const r2Pct = pricingSettings.rush_2day_percent;
 
+  const quoteEditAuditLine = useMemo(() => {
+    if (mode !== "edit" || !initialDraft) return null;
+    return formatAuditTrail(
+      initialDraft.updated_at,
+      initialDraft.last_updated_by_email,
+    );
+  }, [mode, initialDraft]);
+
   function addService() {
     const svc = catalog.find((c) => c.id === pickId);
     if (!svc) return;
@@ -317,6 +326,9 @@ export function QuoteBuilderClient({
               ? "Update client details, services, segment, volume, and client-facing notes—then save."
               : "Configure services, segment, and volume. Override any line price when needed—defaults follow quote price config; your quote is saved for the team."}
           </p>
+          {quoteEditAuditLine ? (
+            <p className="mt-3 text-sm text-muted-foreground">{quoteEditAuditLine}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">

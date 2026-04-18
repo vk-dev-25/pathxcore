@@ -26,6 +26,9 @@ export type InvoiceDetailPayload = {
   subtotal_amount: number;
   total_amount: number;
   created_at: string;
+  /** Row `updated_at` — last header/lines save. */
+  updated_at: string;
+  last_updated_by_email: string | null;
   lines: InvoiceDetailLine[];
 };
 
@@ -41,7 +44,7 @@ export async function getInvoiceDetailAction(
   const { data: invoice, error: iErr } = await supabase
     .from("invoices")
     .select(
-      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, status, due_date, subtotal_amount, total_amount, created_at",
+      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, status, due_date, subtotal_amount, total_amount, created_at, updated_at, last_updated_by_email",
     )
     .eq("id", invoiceId)
     .maybeSingle();
@@ -81,6 +84,8 @@ export async function getInvoiceDetailAction(
       subtotal_amount: Number(invoice.subtotal_amount),
       total_amount: Number(invoice.total_amount),
       created_at: invoice.created_at,
+      updated_at: invoice.updated_at,
+      last_updated_by_email: invoice.last_updated_by_email ?? null,
       lines: (lines ?? []).map((line) => ({
         id: line.id,
         catalog_service_id: line.catalog_service_id,

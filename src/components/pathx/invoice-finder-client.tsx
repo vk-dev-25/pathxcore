@@ -14,6 +14,7 @@ import {
   invoiceDetailToPreview,
   type InvoicePreviewData,
 } from "@/lib/invoices/invoice-preview";
+import { formatShortDateTime } from "@/lib/format-audit-trail";
 import { isInvoiceOverdue, type InvoiceStatus } from "@/lib/invoices/types";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,8 @@ export type InvoiceListRow = {
   status: InvoiceStatus;
   due_date: string | null;
   created_at: string;
+  updated_at: string;
+  last_updated_by_email: string | null;
 };
 
 type SortKey = "date_desc" | "date_asc" | "due_asc" | "due_desc" | "company_asc" | "company_desc";
@@ -69,6 +72,7 @@ function haystack(row: InvoiceListRow): string {
     row.project_title,
     row.invoice_reference,
     row.status,
+    row.last_updated_by_email,
   ]
     .filter(Boolean)
     .join(" ")
@@ -227,7 +231,7 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
           </Card>
         ) : (
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
-            <table className="w-full min-w-[860px] text-left text-sm">
+            <table className="w-full min-w-[1020px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                   <th className="px-4 py-3">Date</th>
@@ -237,6 +241,7 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                   <th className="px-4 py-3">Status</th>
                   <th className="w-[72px] px-2 py-3 text-center">PDF</th>
                   <th className="px-4 py-3 text-right">Total</th>
+                  <th className="min-w-[168px] px-4 py-3">Last saved</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,6 +330,16 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-primary">
                         {money(row.total_amount)}
+                      </td>
+                      <td className="max-w-[200px] px-4 py-3 align-top text-xs text-muted-foreground">
+                        <div className="space-y-1">
+                          <div className="font-medium text-foreground/90">
+                            {row.last_updated_by_email?.trim() || "—"}
+                          </div>
+                          <div className="tabular-nums">
+                            {formatShortDateTime(row.updated_at)}
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   );

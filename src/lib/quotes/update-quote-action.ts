@@ -115,6 +115,8 @@ export async function updateQuoteAction(input: {
       rush_uplift_amount: totals.rush_uplift_amount,
       total_amount: totals.total_amount,
       updated_at: new Date().toISOString(),
+      last_updated_by: user.id,
+      last_updated_by_email: user.email ?? null,
     })
     .eq("id", input.quoteId);
 

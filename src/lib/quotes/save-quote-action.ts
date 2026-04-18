@@ -87,6 +87,10 @@ export async function saveQuoteAction(input: {
       after_volume_amount: totals.after_volume_amount,
       rush_uplift_amount: totals.rush_uplift_amount,
       total_amount: totals.total_amount,
+      created_by: user.id,
+      created_by_email: user.email ?? null,
+      last_updated_by: user.id,
+      last_updated_by_email: user.email ?? null,
     })
     .select("id")
     .single();

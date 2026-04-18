@@ -16,25 +16,47 @@ function defaultDueDateIso(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Calendar year in America/Los_Angeles (lab locale). */
+function currentInvoiceYearPacific(): string {
+  return (
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+    })
+      .formatToParts(new Date())
+      .find((p) => p.type === "year")?.value ?? String(new Date().getUTCFullYear())
+  );
+}
+
+const INVOICE_REF_SEQ_MIN = 2023;
+
+function invoiceRefSuffixPadded(seq: number): string {
+  return String(seq).padStart(5, "0");
+}
+
+/** e.g. PTDX-2026-02023, PTDX-2026-02024, … (year + 5-digit sequence from 2023). */
 async function allocateInvoiceReference(supabase: SupabaseClient): Promise<string> {
-  const prefix = "PTDX-INVC-";
-  const { data } = await supabase
+  const year = currentInvoiceYearPacific();
+  const prefix = `PTDX-${year}-`;
+
+  const { data: rows } = await supabase
     .from("invoices")
     .select("invoice_reference")
-    .like("invoice_reference", `${prefix}%`)
-    .order("invoice_reference", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .like("invoice_reference", `${prefix}%`);
 
-  let next = 1;
-  if (data?.invoice_reference?.startsWith(prefix)) {
-    const tail = data.invoice_reference.slice(prefix.length);
+  let maxSeq = INVOICE_REF_SEQ_MIN - 1;
+  for (const row of rows ?? []) {
+    const ref = row.invoice_reference;
+    if (typeof ref !== "string" || !ref.startsWith(prefix)) continue;
+    const tail = ref.slice(prefix.length).trim();
     const n = parseInt(tail, 10);
-    if (!Number.isNaN(n)) next = n + 1;
+    if (!Number.isNaN(n)) maxSeq = Math.max(maxSeq, n);
   }
 
+  const next = maxSeq >= INVOICE_REF_SEQ_MIN ? maxSeq + 1 : INVOICE_REF_SEQ_MIN;
+
   for (let bump = 0; bump < 100_000; bump++) {
-    const ref = `${prefix}${String(next + bump).padStart(6, "0")}`;
+    const ref = `${prefix}${invoiceRefSuffixPadded(next + bump)}`;
     const { count } = await supabase
       .from("invoices")
       .select("id", { count: "exact", head: true })
@@ -101,6 +123,8 @@ export async function createInvoiceFromQuoteAction(
           due_date: defaultDueDateIso(),
           subtotal_amount: subtotal,
           total_amount: subtotal,
+          last_updated_by: user.id,
+          last_updated_by_email: user.email ?? null,
         })
         .select("id")
         .single();

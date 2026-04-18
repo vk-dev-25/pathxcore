@@ -25,6 +25,9 @@ export type QuoteDraftPayload = {
   rush_priority: boolean;
   rush_2day: boolean;
   notes: string;
+  /** Last successful save (server `quotes.updated_at`). */
+  updated_at: string;
+  last_updated_by_email: string | null;
   lines: QuoteDraftLine[];
 };
 
@@ -44,7 +47,7 @@ export async function getQuoteDraftAction(
   const { data: row, error: qErr } = await supabase
     .from("quotes")
     .select(
-      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes",
+      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, updated_at, last_updated_by_email",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -91,6 +94,8 @@ export async function getQuoteDraftAction(
       rush_priority: Boolean(row.rush_priority),
       rush_2day: Boolean(row.rush_2day),
       notes: row.notes ?? "",
+      updated_at: row.updated_at,
+      last_updated_by_email: row.last_updated_by_email ?? null,
       lines,
     },
   };

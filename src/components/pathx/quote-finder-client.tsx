@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatShortDateTime } from "@/lib/format-audit-trail";
 import { cn } from "@/lib/utils";
 
 import {
@@ -30,6 +31,9 @@ export type QuoteListRow = {
   quote_reference: string | null;
   total_amount: number;
   created_at: string;
+  updated_at: string;
+  created_by_email: string | null;
+  last_updated_by_email: string | null;
   /** Signed-in user can open edit (shared workspace). */
   can_edit?: boolean;
 };
@@ -60,6 +64,8 @@ function haystack(q: QuoteListRow): string {
     q.contact_name,
     q.project_title,
     q.quote_reference,
+    q.created_by_email,
+    q.last_updated_by_email,
   ]
     .filter(Boolean)
     .join(" ")
@@ -251,7 +257,7 @@ export function QuoteFinderClient({
           </Card>
         ) : (
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[1040px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                   <th className="px-4 py-3">Date</th>
@@ -260,6 +266,8 @@ export function QuoteFinderClient({
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3 text-right">Total</th>
+                  <th className="min-w-[160px] px-4 py-3">Created</th>
+                  <th className="min-w-[160px] px-4 py-3">Last updated</th>
                   <th className="w-[200px] px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -295,6 +303,26 @@ export function QuoteFinderClient({
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-medium tabular-nums text-primary">
                       {money(row.total_amount)}
+                    </td>
+                    <td className="max-w-[200px] px-4 py-3 align-top text-xs text-muted-foreground">
+                      <div className="space-y-1">
+                        <div className="font-medium text-foreground/90">
+                          {row.created_by_email?.trim() || "—"}
+                        </div>
+                        <div className="tabular-nums">
+                          {formatShortDateTime(row.created_at)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="max-w-[200px] px-4 py-3 align-top text-xs text-muted-foreground">
+                      <div className="space-y-1">
+                        <div className="font-medium text-foreground/90">
+                          {row.last_updated_by_email?.trim() || "—"}
+                        </div>
+                        <div className="tabular-nums">
+                          {formatShortDateTime(row.updated_at)}
+                        </div>
+                      </div>
                     </td>
                     <td
                       className="px-4 py-2 text-right"

@@ -11,9 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { InvoicePreviewDialog } from "@/components/pathx/invoice-preview-dialog";
-import {
-  updateInvoiceAction,
-} from "@/lib/invoices/update-invoice-action";
+import { formatAuditTrail } from "@/lib/format-audit-trail";
+import { updateInvoiceAction } from "@/lib/invoices/update-invoice-action";
 import { invoiceDraftToPreview } from "@/lib/invoices/invoice-preview";
 import { isInvoiceOverdue, type InvoiceStatus } from "@/lib/invoices/types";
 import { cn } from "@/lib/utils";
@@ -60,6 +59,8 @@ export function InvoiceEditorClient({
     status: InvoiceStatus;
     due_date: string;
     created_at: string;
+    updated_at: string;
+    last_updated_by_email: string | null;
     lines: {
       id: string;
       catalog_service_id: string | null;
@@ -94,6 +95,10 @@ export function InvoiceEditorClient({
   );
 
   const overdue = isInvoiceOverdue({ status, due_date: dueDate || null });
+  const invoiceAuditLine = useMemo(
+    () => formatAuditTrail(invoice.updated_at, invoice.last_updated_by_email),
+    [invoice.updated_at, invoice.last_updated_by_email],
+  );
   const subtotal = useMemo(
     () =>
       lines.reduce((sum, line) => sum + line.quantity * line.unit_price, 0),
@@ -201,6 +206,9 @@ export function InvoiceEditorClient({
               </Link>
             </p>
           ) : null}
+          {invoiceAuditLine ? (
+            <p className="mt-3 text-sm text-muted-foreground">{invoiceAuditLine}</p>
+          ) : null}
         </div>
 
         {overdue ? (
@@ -226,7 +234,9 @@ export function InvoiceEditorClient({
                 readOnly
               />
               <p className="text-xs text-muted-foreground">
-                Auto-generated invoice number. Linked quote is tracked separately.
+                Auto-generated number: year (Pacific) plus a 5-digit sequence
+                starting at 02023 (e.g. PTDX-2026-02023). Linked quote is tracked
+                separately.
               </p>
             </div>
             <div className="space-y-2">

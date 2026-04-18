@@ -48,7 +48,7 @@ export async function updateInvoiceAction(input: {
       ),
     );
 
-    const { error: hErr } = await supabase
+    const { data: updatedHeader, error: hErr } = await supabase
       .from("invoices")
       .update({
         client_org_name: input.header.client_org_name.trim() || null,
@@ -60,11 +60,20 @@ export async function updateInvoiceAction(input: {
         subtotal_amount: subtotal,
         total_amount: subtotal,
         updated_at: new Date().toISOString(),
+        last_updated_by: user.id,
+        last_updated_by_email: user.email ?? null,
       })
-      .eq("id", input.invoiceId);
+      .eq("id", input.invoiceId)
+      .select("id");
     if (hErr) {
       console.error(hErr);
       return { ok: false, error: "Could not update invoice." };
+    }
+    if (!updatedHeader?.length) {
+      return {
+        ok: false,
+        error: "Invoice not found or you do not have permission to edit it.",
+      };
     }
 
     const { error: delErr } = await supabase

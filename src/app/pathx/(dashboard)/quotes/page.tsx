@@ -25,7 +25,7 @@ export default async function QuoteFinderPage({
   const { data, error } = await supabase
     .from("quotes")
     .select(
-      "id, client_org_name, contact_name, project_title, quote_reference, total_amount, created_at",
+      "id, client_org_name, contact_name, project_title, quote_reference, total_amount, created_at, updated_at, created_by_email, last_updated_by_email",
     )
     .order("created_at", { ascending: false });
 
@@ -37,6 +37,9 @@ export default async function QuoteFinderPage({
     quote_reference: row.quote_reference,
     total_amount: Number(row.total_amount),
     created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by_email: row.created_by_email ?? null,
+    last_updated_by_email: row.last_updated_by_email ?? null,
     can_edit: Boolean(user?.id),
   }));
 

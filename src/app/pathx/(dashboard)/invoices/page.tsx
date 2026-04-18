@@ -17,7 +17,7 @@ export default async function InvoiceFinderPage() {
   const { data, error } = await supabase
     .from("invoices")
     .select(
-      "id, client_org_name, contact_name, project_title, invoice_reference, total_amount, status, due_date, created_at",
+      "id, client_org_name, contact_name, project_title, invoice_reference, total_amount, status, due_date, created_at, updated_at, last_updated_by_email",
     )
     .order("created_at", { ascending: false });
 
@@ -31,6 +31,8 @@ export default async function InvoiceFinderPage() {
     status: isInvoiceStatus(row.status) ? row.status : "created",
     due_date: row.due_date,
     created_at: row.created_at,
+    updated_at: row.updated_at,
+    last_updated_by_email: row.last_updated_by_email ?? null,
   }));
 
   if (error) {
