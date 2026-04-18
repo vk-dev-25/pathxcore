@@ -193,7 +193,13 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => printWithDataQuoteIsolation()}
+          onClick={() =>
+            printWithDataQuoteIsolation({
+              pdfTitle: data.invoice_reference?.trim()
+                ? `Invoice-${data.invoice_reference.trim()}`
+                : "Invoice-preview",
+            })
+          }
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF

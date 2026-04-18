@@ -284,7 +284,13 @@ export function QuotePreviewContent({
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => printWithDataQuoteIsolation()}
+          onClick={() =>
+            printWithDataQuoteIsolation({
+              pdfTitle: quoteRef.trim()
+                ? `Quote-${quoteRef.trim()}`
+                : "Quote-preview",
+            })
+          }
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF
