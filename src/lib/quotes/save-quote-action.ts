@@ -109,7 +109,7 @@ export async function saveQuoteAction(input: {
   const lineRows = input.lines.map((l, i) => ({
     quote_id: quote.id,
     catalog_service_id: l.catalog_service_id?.trim() || null,
-    label: l.label,
+    label: l.label.trim(),
     quantity: l.quantity,
     unit_price: roundMoney(l.unit_price),
     default_unit_price_snapshot: roundMoney(l.default_unit_price_snapshot),

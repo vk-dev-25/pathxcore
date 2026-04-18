@@ -241,6 +241,10 @@ export function QuoteBuilderClient({
   function save() {
     setSaveMsg(null);
     setSaveErr(null);
+    if (lines.some((l) => !l.label.trim())) {
+      setSaveErr("Each line needs a service name.");
+      return;
+    }
     startTransition(async () => {
       const payload = {
         client_org_name: clientOrg,
@@ -587,8 +591,9 @@ export function QuoteBuilderClient({
                 Services
               </CardTitle>
               <CardDescription>
-                Add catalog lines, adjust quantity, and override unit price when
-                needed (per-quote overrides only).
+                Add catalog lines, edit the service name on each line if needed,
+                adjust quantity, and override unit price when needed (per-quote
+                overrides only).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -658,9 +663,23 @@ export function QuoteBuilderClient({
                       >
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1 space-y-2">
-                            <p className="font-semibold leading-tight text-foreground">
-                              {line.label}
-                            </p>
+                            <div className="space-y-1">
+                              <Label
+                                htmlFor={`quote-line-label-${line.key}`}
+                                className="text-xs text-foreground"
+                              >
+                                Service name
+                              </Label>
+                              <Input
+                                id={`quote-line-label-${line.key}`}
+                                value={line.label}
+                                onChange={(e) =>
+                                  updateLine(line.key, { label: e.target.value })
+                                }
+                                className={cn(fieldClass, "font-medium")}
+                                autoComplete="off"
+                              />
+                            </div>
                             <div className="flex flex-wrap gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs text-foreground">

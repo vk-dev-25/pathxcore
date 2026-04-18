@@ -138,7 +138,7 @@ export async function updateQuoteAction(input: {
   const lineRows = input.lines.map((l, i) => ({
     quote_id: input.quoteId,
     catalog_service_id: catalogIdForInsert(l.catalog_service_id, validCatalogIds),
-    label: l.label,
+    label: l.label.trim(),
     quantity: l.quantity,
     unit_price: roundMoney(l.unit_price),
     default_unit_price_snapshot: roundMoney(l.default_unit_price_snapshot),
