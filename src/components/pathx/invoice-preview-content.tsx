@@ -99,7 +99,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
         <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
-            Invoice reference
+            Invoice number
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {data.invoice_reference || "—"}
