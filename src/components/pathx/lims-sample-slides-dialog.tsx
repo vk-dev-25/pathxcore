@@ -312,8 +312,7 @@ export function LimsSampleSlidesDialog({
                 onPrintAllLabels(
                   sample.slides.map((sl) => ({
                     slideReference: sl.slide_reference,
-                    sampleReference,
-                    createdAt: sl.created_at,
+                    clientSampleId: sample.client_sample_id,
                   })),
                 )
               }
@@ -407,8 +406,7 @@ export function LimsSampleSlidesDialog({
                         onClick={() =>
                           onOpenLabel({
                             slideReference: sl.slide_reference,
-                            sampleReference,
-                            createdAt: sl.created_at,
+                            clientSampleId: sample.client_sample_id,
                           })
                         }
                       >

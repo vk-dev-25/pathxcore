@@ -15,9 +15,13 @@ import { cn } from "@/lib/utils";
 
 export type LimsSlideLabelPayload = {
   slideReference: string;
-  sampleReference: string;
-  createdAt: string;
+  clientSampleId: string | null;
 };
+
+function clientLine(id: string | null): string {
+  const t = id?.trim();
+  return t && t.length > 0 ? t : "—";
+}
 
 function normalizePayloads(
   payload: LimsSlideLabelPayload | LimsSlideLabelPayload[] | null,
@@ -36,13 +40,16 @@ function LabelBlock({
   return (
     <div
       className={cn(
-        "lims-zebra-label-page lims-zebra-label-page--slide rounded-lg border border-white/[0.06] bg-white p-6 text-black",
+        "lims-zebra-label-page rounded-lg border border-white/[0.06] bg-white p-6 text-black",
         "flex flex-col items-center justify-center print:rounded-none print:border-0",
         printBreakAfter && "print:break-after-page",
       )}
     >
+      <p className="lims-label-print-line-secondary max-w-full break-words text-center text-lg font-semibold text-black">
+        {clientLine(p.clientSampleId)}
+      </p>
       <p
-        className="lims-label-print-line-primary max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
+        className="lims-label-print-line-primary mt-2 max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
         aria-label={`Slide ${p.slideReference}`}
       >
         {p.slideReference}
@@ -85,7 +92,7 @@ export function LimsSlideLabelDialog({
             <div className="space-y-6 text-black print:space-y-0">
               {items.map((p, i) => (
                 <LabelBlock
-                  key={`${p.slideReference}-${p.createdAt}`}
+                  key={`${p.slideReference}-${i}`}
                   p={p}
                   printBreakAfter={i < items.length - 1}
                 />
@@ -103,7 +110,10 @@ export function LimsSlideLabelDialog({
             onClick={() =>
               printThermalLabel({
                 mode: "slides",
-                slideReferences: items.map((it) => it.slideReference),
+                pages: items.map((it) => ({
+                  clientSampleId: it.clientSampleId,
+                  slideReference: it.slideReference,
+                })),
               })
             }
           >

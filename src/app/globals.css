@@ -339,11 +339,6 @@ html.light body::before {
     line-height: 1.08 !important;
   }
 
-  /* Slide label: one line only (sample label keeps two <p> including print:hidden helper) */
-  .lims-zebra-label-page--slide .lims-label-print-line-primary {
-    font-size: 6.25pt !important;
-  }
-
   [data-quote-print="true"] * {
     box-shadow: none !important;
     outline: none !important;

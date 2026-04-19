@@ -23,17 +23,11 @@ export type LimsSampleLabelPayload = {
   tissueType: string;
   organAbbrev: string | null;
   species_kind: LimsSpeciesKind;
-  dateReceived: string | null;
 };
 
-function formatReceived(raw: string | null): string {
-  if (!raw?.trim()) return "—";
-  try {
-    const d = raw.includes("T") ? new Date(raw) : new Date(`${raw.trim()}T12:00:00`);
-    return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(d);
-  } catch {
-    return raw.trim();
-  }
+function clientLine(id: string | null): string {
+  const t = id?.trim();
+  return t && t.length > 0 ? t : "—";
 }
 
 export function LimsSampleLabelDialog({
@@ -65,17 +59,14 @@ export function LimsSampleLabelDialog({
                 "flex flex-col items-center justify-center print:rounded-none print:border-0",
               )}
             >
+              <p className="lims-label-print-line-secondary max-w-full break-words text-center text-lg font-semibold text-black">
+                {clientLine(payload.clientSampleId)}
+              </p>
               <p
-                className="lims-label-print-line-primary max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
+                className="lims-label-print-line-primary mt-2 max-w-full break-words text-center font-mono text-2xl font-bold tracking-tight text-black"
                 aria-label={`Sample ${payload.sampleReference}`}
               >
                 {payload.sampleReference}
-              </p>
-              <p className="lims-label-dialog-chrome mt-6 text-center text-sm font-medium text-neutral-700">
-                Date received
-              </p>
-              <p className="lims-label-print-line-secondary mt-1 text-center text-lg font-semibold text-black">
-                {formatReceived(payload.dateReceived)}
               </p>
             </div>
           )}
@@ -90,8 +81,8 @@ export function LimsSampleLabelDialog({
               payload &&
               printThermalLabel({
                 mode: "sample",
+                clientSampleId: payload.clientSampleId,
                 sampleReference: payload.sampleReference,
-                dateLine: formatReceived(payload.dateReceived),
               })
             }
           >

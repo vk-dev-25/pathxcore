@@ -15,16 +15,13 @@ function escapeHtml(text: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function buildLimsLabelHtml(pages: { primary: string; secondary?: string }[]): string {
+/** Top = client sample ID, bottom = LIMS sample ID or slide ID (1\" thermal). */
+function buildLimsLabelHtml(pages: { top: string; bottom: string }[]): string {
   const body = pages
-    .map((p) => {
-      const two = p.secondary != null && String(p.secondary).length > 0;
-      const sheetClass = two ? "sheet sheet--two" : "sheet sheet--one";
-      const sec = two
-        ? `<p class="secondary">${escapeHtml(String(p.secondary))}</p>`
-        : "";
-      return `<div class="${sheetClass}"><p class="primary">${escapeHtml(p.primary)}</p>${sec}</div>`;
-    })
+    .map(
+      (p) =>
+        `<div class="sheet"><p class="label-top">${escapeHtml(p.top)}</p><p class="label-bottom">${escapeHtml(p.bottom)}</p></div>`,
+    )
     .join("");
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><title>&#8203;</title>
@@ -49,20 +46,7 @@ function buildLimsLabelHtml(pages: { primary: string; secondary?: string }[]): s
     page-break-after: auto;
     break-after: auto;
   }
-  .primary {
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    word-break: break-word;
-    max-width: 100%;
-    font-family: ui-monospace, Consolas, "Liberation Mono", Menlo, monospace;
-    font-weight: 700;
-    line-height: 1.08;
-    color: #000;
-  }
-  .sheet--one .primary { font-size: 6.25pt; }
-  .sheet--two .primary { font-size: 5.25pt; }
-  .secondary {
+  .label-top {
     margin: 0;
     padding: 0;
     text-align: center;
@@ -74,24 +58,47 @@ function buildLimsLabelHtml(pages: { primary: string; secondary?: string }[]): s
     font-size: 4.5pt;
     color: #000;
   }
+  .label-bottom {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    word-break: break-word;
+    max-width: 100%;
+    font-family: ui-monospace, Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 700;
+    line-height: 1.08;
+    font-size: 5.25pt;
+    color: #000;
+  }
 </style></head><body>${body}</body></html>`;
 }
 
 export type PrintThermalLabelOptions =
-  | { mode: "sample"; sampleReference: string; dateLine: string }
-  | { mode: "slides"; slideReferences: string[] };
+  | { mode: "sample"; clientSampleId: string | null; sampleReference: string }
+  | {
+      mode: "slides";
+      pages: { clientSampleId: string | null; slideReference: string }[];
+    };
+
+function labelTopLine(clientSampleId: string | null): string {
+  const t = clientSampleId?.trim();
+  return t && t.length > 0 ? t : "—";
+}
 
 export function printThermalLabel(options: PrintThermalLabelOptions): void {
-  let pages: { primary: string; secondary?: string }[];
+  let pages: { top: string; bottom: string }[];
   if (options.mode === "sample") {
     pages = [
       {
-        primary: options.sampleReference,
-        secondary: options.dateLine,
+        top: labelTopLine(options.clientSampleId),
+        bottom: options.sampleReference,
       },
     ];
   } else {
-    pages = options.slideReferences.map((ref) => ({ primary: ref }));
+    pages = options.pages.map((p) => ({
+      top: labelTopLine(p.clientSampleId),
+      bottom: p.slideReference,
+    }));
   }
   if (pages.length === 0) return;
 

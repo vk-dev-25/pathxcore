@@ -104,6 +104,10 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           <dd className="font-medium tabular-nums print:text-black">
             {data.invoice_reference || "—"}
           </dd>
+          <dt className="text-muted-foreground print:text-neutral-600">PO reference</dt>
+          <dd className="print:text-black">
+            {data.po_reference?.trim() ? data.po_reference.trim() : "—"}
+          </dd>
           <dt className="text-muted-foreground print:text-neutral-600">Status</dt>
           <dd className="capitalize print:text-black">{statusLabel(data.status)}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
@@ -112,10 +116,6 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           <dd className="print:text-black">{issuedLabel}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">Due date</dt>
           <dd className="print:text-black">{dueLabel}</dd>
-          <dt className="text-muted-foreground print:text-neutral-600">PO reference</dt>
-          <dd className="print:text-black">
-            {data.po_reference?.trim() ? data.po_reference.trim() : "—"}
-          </dd>
         </dl>
       </div>
 

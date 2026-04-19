@@ -78,12 +78,6 @@ function validateOrganAbbrev(raw: string): string | null {
   return null;
 }
 
-function dateReceivedForLabel(form: ExtendedSampleForm, sample: SampleRow): string | null {
-  const fromForm = form.date_received.trim();
-  if (fromForm) return fromForm;
-  return sample.date_received;
-}
-
 const th =
   "sticky top-0 z-[1] whitespace-nowrap border-b border-r border-border bg-muted/95 px-2 py-2 text-left text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm last:border-r-0 dark:border-white/[0.08] dark:bg-background/95";
 const td =
@@ -408,8 +402,6 @@ function SampleSheetRow({
   const inp = cn("h-8 w-full min-w-[72px] text-xs", fieldClass);
   const txt = cn("min-h-[56px] w-full min-w-[100px] resize-y text-xs", fieldClass);
 
-  const labelDate = dateReceivedForLabel(form, sample);
-
   return (
     <tr>
       <td className={cn(tdSticky, "min-w-[128px]")}>
@@ -549,7 +541,6 @@ function SampleSheetRow({
               tissueType: sample.tissue_type,
               organAbbrev: sample.organ_abbrev,
               species_kind: sample.species_kind,
-              dateReceived: labelDate,
             })
           }
         >
