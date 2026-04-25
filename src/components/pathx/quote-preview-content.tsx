@@ -96,12 +96,12 @@ export function QuotePreviewContent({
       <div className="flex items-end justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
         <div>
           <p className="text-2xl font-semibold tracking-tight print:text-black">
-            Pathology X Diagnostics
+            Pathology X Diagnostic Services, Inc.
           </p>
         </div>
         <Image
           src="/images/pathxlogo.jpeg"
-          alt="Pathology X Diagnostics logo"
+          alt="Pathology X Diagnostic Services, Inc. logo"
           width={258}
           height={236}
           priority
@@ -112,7 +112,7 @@ export function QuotePreviewContent({
       <div className="grid gap-6 sm:grid-cols-[1fr_320px] sm:items-start">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
-            Prepared for
+            Prepared For
           </p>
           <p className="mt-2 text-base font-semibold leading-snug print:text-black">
             {clientOrg || "—"}
@@ -130,21 +130,21 @@ export function QuotePreviewContent({
         </div>
         <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
-            Quote reference
+            Quote Reference
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {quoteRef || "—"}
           </dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Date issued
+            Date Issued
           </dt>
           <dd className="print:text-black">{issuedLabel}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Valid until
+            Valid Until
           </dt>
           <dd className="print:text-black">{validLabel}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Total samples / blocks
+            Total Samples / Blocks
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {Math.max(0, Math.floor(sampleVolume))}
@@ -258,7 +258,7 @@ export function QuotePreviewContent({
       <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
         Prices are valid for {pricingSettings.quote_validity_days} days from the
         date of issue. Final pricing may vary based on sample quality and
-        complexity. Pathology X Diagnostics reserves the right to adjust pricing upon project
+        complexity. Pathology X Diagnostic Services, Inc. reserves the right to adjust pricing upon project
         review.
       </p>
 
@@ -270,7 +270,7 @@ export function QuotePreviewContent({
       ) : null}
 
       <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
-        {quoteRef || "—"} · Pathology X Diagnostics · {year}
+        {quoteRef || "—"} · Pathology X Diagnostic Services, Inc. · {year}
       </p>
 
       <div className="flex flex-col gap-2 print:hidden">

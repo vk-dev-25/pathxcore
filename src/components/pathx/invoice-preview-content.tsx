@@ -59,7 +59,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
         <div>
           <p className="text-2xl font-semibold tracking-tight print:text-black">
-            Pathology X Diagnostics
+            Pathology X Diagnostic Services, Inc.
           </p>
           <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
             200 Valley Drive, Suite 29{"\n"}
@@ -70,7 +70,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
         <Image
           src="/images/pathxlogo.jpeg"
-          alt="Pathology X Diagnostics logo"
+          alt="Pathology X Diagnostic Services, Inc. logo"
           width={258}
           height={236}
           priority
@@ -81,7 +81,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       <div className="grid gap-6 sm:grid-cols-[1fr_320px] sm:items-start">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
-            Bill to
+            Bill To
           </p>
           <p className="mt-2 text-base font-semibold leading-snug print:text-black">
             {data.client_org_name || "—"}
@@ -99,29 +99,29 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
         <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
-            Invoice number
+            Invoice Number
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {data.invoice_reference || "—"}
           </dd>
-          <dt className="text-muted-foreground print:text-neutral-600">PO reference</dt>
+          <dt className="text-muted-foreground print:text-neutral-600">PO Reference</dt>
           <dd className="print:text-black">
             {data.po_reference?.trim() ? data.po_reference.trim() : "—"}
           </dd>
           <dt className="text-muted-foreground print:text-neutral-600">Status</dt>
           <dd className="capitalize print:text-black">{statusLabel(data.status)}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Date issued
+            Date Issued
           </dt>
           <dd className="print:text-black">{issuedLabel}</dd>
-          <dt className="text-muted-foreground print:text-neutral-600">Due date</dt>
+          <dt className="text-muted-foreground print:text-neutral-600">Due Date</dt>
           <dd className="print:text-black">{dueLabel}</dd>
         </dl>
       </div>
 
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
-          Line items
+          Line Items
         </p>
         <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06] print:border-neutral-300">
           <table className="w-full border-collapse text-sm">
@@ -189,7 +189,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       </div>
 
       <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
-        {data.invoice_reference || "—"} · Pathology X Diagnostics · {year}
+        {data.invoice_reference || "—"} · Pathology X Diagnostic Services, Inc. · {year}
       </p>
 
       <div className="flex flex-col gap-2 print:hidden">
