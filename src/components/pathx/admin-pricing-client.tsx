@@ -13,9 +13,7 @@ import {
 } from "@/lib/quotes/pricing-admin-actions";
 import { slugifyCatalogSlug } from "@/lib/quotes/catalog-slug";
 import {
-  SEGMENT_OPTIONS,
   type PricingSettingsSnapshot,
-  type Segment,
 } from "@/lib/quote-pricing";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,17 +115,6 @@ export function AdminPricingClient({
       return next;
     });
   }, [initialCatalog]);
-
-  function setSegMult(seg: Segment, v: string) {
-    const n = parseFloat(v);
-    setSettings((s) => ({
-      ...s,
-      segment_multipliers: {
-        ...s.segment_multipliers,
-        [seg]: Number.isFinite(n) ? n : s.segment_multipliers[seg] ?? 1,
-      },
-    }));
-  }
 
   function onNewNameChange(v: string) {
     setNewName(v);
@@ -235,8 +222,8 @@ export function AdminPricingClient({
               Quote price config
             </h1>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Edit catalog services, base unit prices, rush rates, and segment
-              multipliers. Changes apply to new quotes and saved quote totals.
+              Edit catalog services, base unit prices, and rush rates. Changes
+              apply to new quotes and saved quote totals.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
@@ -511,31 +498,6 @@ export function AdminPricingClient({
                     ))}
                   </>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card className={cardClass}>
-              <CardHeader>
-                <CardTitle className="text-lg">Segment multipliers</CardTitle>
-                <CardDescription>
-                  Applied to services subtotal before volume discount.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                {SEGMENT_OPTIONS.map((o) => (
-                  <div key={o.value} className="space-y-2">
-                    <Label htmlFor={`seg-${o.value}`}>{o.label}</Label>
-                    <Input
-                      id={`seg-${o.value}`}
-                      type="number"
-                      min={0.01}
-                      step={0.01}
-                      value={settings.segment_multipliers[o.value] ?? ""}
-                      onChange={(e) => setSegMult(o.value, e.target.value)}
-                      className={cn(fieldClass)}
-                    />
-                  </div>
-                ))}
               </CardContent>
             </Card>
 

@@ -36,7 +36,7 @@ const DEFAULT_VOLUME_TIERS: VolumeTier[] = [
 ];
 
 const DEFAULT_SEGMENT_MULTIPLIERS: Record<string, number> = {
-  academic: 0.9,
+  academic: 1,
   small_biopharma: 1,
   mid_biopharma: 1.12,
   large_biopharma: 1.22,
@@ -94,6 +94,8 @@ export function normalizeSegmentMultipliers(raw: unknown): Record<string, number
       const n = parseFloat(v);
       if (Number.isFinite(n)) base[seg] = n;
     }
+    // Segment multipliers can increase quote pricing, but must not apply discounts.
+    base[seg] = Math.max(1, base[seg]);
   }
   return base;
 }
@@ -134,8 +136,8 @@ export function segmentMultiplier(
   settings?: PricingSettingsSnapshot,
 ): number {
   const m = settings?.segment_multipliers?.[segment];
-  if (typeof m === "number" && Number.isFinite(m) && m > 0) return m;
-  return DEFAULT_SEGMENT_MULTIPLIERS[segment] ?? 1;
+  if (typeof m === "number" && Number.isFinite(m) && m > 0) return Math.max(1, m);
+  return Math.max(1, DEFAULT_SEGMENT_MULTIPLIERS[segment] ?? 1);
 }
 
 /** Percent discount on amount after segment adjustment (0–100). */
@@ -172,6 +174,7 @@ export function computeQuoteTotals(
   rushPriority: boolean,
   rush2day: boolean,
   settings?: PricingSettingsSnapshot,
+  options?: { applyVolumeDiscount?: boolean },
 ) {
   const snap = settings ?? defaultPricingSettings();
   const servicesSubtotal = roundMoney(
@@ -180,8 +183,11 @@ export function computeQuoteTotals(
   const mult = segmentMultiplier(segment, snap);
   const afterSegment = roundMoney(servicesSubtotal * mult);
   const segmentAdjustmentAmount = roundMoney(afterSegment - servicesSubtotal);
-  const volPct = volumeDiscountPercent(sampleVolume, snap);
-  const volumeDiscountAmount = roundMoney(afterSegment * (volPct / 100));
+  const applyVolumeDiscount = options?.applyVolumeDiscount ?? true;
+  const volPct = applyVolumeDiscount ? volumeDiscountPercent(sampleVolume, snap) : 0;
+  const volumeDiscountAmount = applyVolumeDiscount
+    ? roundMoney(afterSegment * (volPct / 100))
+    : 0;
   const afterVolume = roundMoney(afterSegment - volumeDiscountAmount);
   const rp = snap.rush_priority_percent / 100;
   const r2 = snap.rush_2day_percent / 100;

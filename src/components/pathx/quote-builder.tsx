@@ -28,6 +28,7 @@ import {
   defaultPricingSettings,
   roundMoney,
   SEGMENT_OPTIONS,
+  volumeDiscountPercent,
   type PricingSettingsSnapshot,
   type QuoteLineInput,
   type Segment,
@@ -99,6 +100,7 @@ export function QuoteBuilderClient({
   const [sampleVolume, setSampleVolume] = useState(12);
   const [rushPriority, setRushPriority] = useState(false);
   const [rush2day, setRush2day] = useState(false);
+  const [applyVolumeDiscount, setApplyVolumeDiscount] = useState(true);
   const [clientOrg, setClientOrg] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [contactName, setContactName] = useState("");
@@ -120,6 +122,8 @@ export function QuoteBuilderClient({
     setSampleVolume(d.sample_volume);
     setRushPriority(d.rush_priority);
     setRush2day(d.rush_2day);
+    const defaultVolPct = volumeDiscountPercent(d.sample_volume, pricingSettings);
+    setApplyVolumeDiscount(!(defaultVolPct > 0 && d.volume_discount_amount === 0));
     setClientOrg(d.client_org_name);
     setClientAddress(d.client_address);
     setContactName(d.contact_name);
@@ -141,7 +145,7 @@ export function QuoteBuilderClient({
     } else {
       setQuoteRef(d.quote_reference.trim() || newRef());
     }
-  }, [initialDraft, mode]);
+  }, [initialDraft, mode, pricingSettings]);
 
   const lineInputs: QuoteLineInput[] = useMemo(
     () =>
@@ -166,6 +170,7 @@ export function QuoteBuilderClient({
             rushPriority,
             rush2day,
             pricingSettings,
+            { applyVolumeDiscount },
           )
         : null,
     [
@@ -175,6 +180,7 @@ export function QuoteBuilderClient({
       sampleVolume,
       rushPriority,
       rush2day,
+      applyVolumeDiscount,
       pricingSettings,
     ],
   );
@@ -233,6 +239,7 @@ export function QuoteBuilderClient({
     setSampleVolume(12);
     setRushPriority(false);
     setRush2day(false);
+    setApplyVolumeDiscount(true);
     setAddQty(1);
     setSaveMsg(null);
     setSaveErr(null);
@@ -256,6 +263,7 @@ export function QuoteBuilderClient({
         sample_volume: sampleVolume,
         rush_priority: rushPriority,
         rush_2day: rush2day,
+        apply_volume_discount: applyVolumeDiscount,
         notes,
         lines: lineInputs,
       };
@@ -509,8 +517,8 @@ export function QuoteBuilderClient({
                 Segment & options
               </CardTitle>
               <CardDescription>
-                Segment adjusts list pricing; volume drives discount tiers; rush
-                options add uplift on the amount after discounts.
+                Segment adjusts list pricing; volume can apply discount tiers;
+                rush options add uplift on the amount after discounts.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -554,6 +562,15 @@ export function QuoteBuilderClient({
                   className={cn(fieldClass)}
                 />
               </div>
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={applyVolumeDiscount}
+                  onChange={(e) => setApplyVolumeDiscount(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-background/80 text-primary accent-primary focus:ring-2 focus:ring-primary/40"
+                />
+                <span>Apply volume discount</span>
+              </label>
               <div className="flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center">
                 <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                   <input
@@ -849,8 +866,21 @@ export function QuoteBuilderClient({
                   <Separator className="bg-white/[0.08]" />
                   <div className="flex justify-between gap-4">
                     <span className="text-muted-foreground">Volume discount</span>
-                    <span className="tabular-nums text-primary">
-                      −{money(totals.volume_discount_amount)}
+                    <span className="flex items-center gap-2">
+                      <span className="tabular-nums text-primary">
+                        −{money(totals.volume_discount_amount)}
+                      </span>
+                      {mode === "edit" && applyVolumeDiscount && totals.volume_discount_amount > 0 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => setApplyVolumeDiscount(false)}
+                        >
+                          Remove
+                        </Button>
+                      ) : null}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">

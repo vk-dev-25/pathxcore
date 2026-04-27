@@ -27,6 +27,7 @@ export async function updateQuoteAction(input: {
   sample_volume: number;
   rush_priority: boolean;
   rush_2day: boolean;
+  apply_volume_discount?: boolean;
   notes: string;
   lines: QuoteLineInput[];
 }): Promise<SaveQuoteState> {
@@ -92,6 +93,7 @@ export async function updateQuoteAction(input: {
     input.rush_priority,
     input.rush_2day,
     pricingSettings,
+    { applyVolumeDiscount: input.apply_volume_discount ?? true },
   );
 
   const { error: uErr } = await db
