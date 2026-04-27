@@ -22,6 +22,7 @@ import {
   pathxCardClass as cardClass,
   pathxFieldClass as fieldClass,
 } from "@/components/pathx/workspace-field-classes";
+import type { QuoteStatus } from "@/lib/quotes/types";
 
 export type QuoteListRow = {
   id: string;
@@ -29,6 +30,7 @@ export type QuoteListRow = {
   contact_name: string | null;
   project_title: string | null;
   quote_reference: string | null;
+  status: QuoteStatus;
   total_amount: number;
   created_at: string;
   updated_at: string;
@@ -64,12 +66,20 @@ function haystack(q: QuoteListRow): string {
     q.contact_name,
     q.project_title,
     q.quote_reference,
+    q.status,
     q.created_by_email,
     q.last_updated_by_email,
   ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+function quoteStatusClass(s: QuoteStatus): string {
+  if (s === "approved") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
+  if (s === "sent") return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
+  if (s === "created") return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
+  return "bg-muted text-muted-foreground";
 }
 
 export function QuoteFinderClient({
@@ -263,6 +273,7 @@ export function QuoteFinderClient({
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Company</th>
                   <th className="px-4 py-3">Reference</th>
+                  <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3 text-right">Total</th>
@@ -294,6 +305,16 @@ export function QuoteFinderClient({
                     </td>
                     <td className="max-w-[140px] truncate px-4 py-3 text-muted-foreground">
                       {row.quote_reference ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                          quoteStatusClass(row.status),
+                        )}
+                      >
+                        {row.status}
+                      </span>
                     </td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-muted-foreground">
                       {row.project_title ?? "—"}

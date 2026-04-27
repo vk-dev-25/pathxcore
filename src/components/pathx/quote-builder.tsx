@@ -22,6 +22,7 @@ import {
 import type { QuoteDraftPayload } from "@/lib/quotes/get-quote-draft-action";
 import { formatAuditTrail } from "@/lib/format-audit-trail";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
+import { type QuoteStatus } from "@/lib/quotes/types";
 import { updateQuoteAction } from "@/lib/quotes/update-quote-action";
 import {
   computeQuoteTotals,
@@ -106,6 +107,7 @@ export function QuoteBuilderClient({
   const [contactName, setContactName] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [quoteRef, setQuoteRef] = useState(newRef);
+  const [status, setStatus] = useState<QuoteStatus>("created");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([]);
   const [pickId, setPickId] = useState<string>("");
@@ -128,6 +130,7 @@ export function QuoteBuilderClient({
     setClientAddress(d.client_address);
     setContactName(d.contact_name);
     setProjectTitle(d.project_title);
+    setStatus(d.status);
     setNotes(d.notes);
     setLines(
       d.lines.map((ln) => ({
@@ -141,6 +144,7 @@ export function QuoteBuilderClient({
       })),
     );
     if (mode === "copy") {
+      setStatus("created");
       setQuoteRef(newRef());
     } else {
       setQuoteRef(d.quote_reference.trim() || newRef());
@@ -234,6 +238,7 @@ export function QuoteBuilderClient({
     setContactName("");
     setProjectTitle("");
     setQuoteRef(newRef());
+    setStatus("created");
     setNotes("");
     setSegment("small_biopharma");
     setSampleVolume(12);
@@ -259,6 +264,7 @@ export function QuoteBuilderClient({
         contact_name: contactName,
         project_title: projectTitle,
         quote_reference: quoteRef,
+        status,
         segment,
         sample_volume: sampleVolume,
         rush_priority: rushPriority,
@@ -507,6 +513,36 @@ export function QuoteBuilderClient({
                   placeholder="QX-…"
                   className={cn(fieldClass)}
                 />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="quote-status" className="text-foreground">
+                  Status
+                </Label>
+                <select
+                  id="quote-status"
+                  className={cn(
+                    "flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors",
+                    fieldClass,
+                  )}
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as QuoteStatus)}
+                >
+                  <option value="created" className="bg-card text-foreground">
+                    Created
+                  </option>
+                  <option value="sent" className="bg-card text-foreground">
+                    Sent
+                  </option>
+                  <option value="approved" className="bg-card text-foreground">
+                    Approved
+                  </option>
+                  <option value="cancelled" className="bg-card text-foreground">
+                    Cancelled
+                  </option>
+                  <option value="discarded" className="bg-card text-foreground">
+                    Discarded
+                  </option>
+                </select>
               </div>
             </CardContent>
           </Card>

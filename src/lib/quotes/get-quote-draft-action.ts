@@ -1,6 +1,7 @@
 "use server";
 
 import { isValidSegment, type Segment } from "@/lib/quote-pricing";
+import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
 import { createClient } from "@/lib/supabase/server";
 
 export type QuoteDraftLine = {
@@ -20,6 +21,7 @@ export type QuoteDraftPayload = {
   contact_name: string;
   project_title: string;
   quote_reference: string;
+  status: QuoteStatus;
   segment: Segment;
   sample_volume: number;
   rush_priority: boolean;
@@ -48,7 +50,7 @@ export async function getQuoteDraftAction(
   const { data: row, error: qErr } = await supabase
     .from("quotes")
     .select(
-      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, volume_discount_amount, notes, updated_at, last_updated_by_email",
+      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, status, segment, sample_volume, rush_priority, rush_2day, volume_discount_amount, notes, updated_at, last_updated_by_email",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -70,6 +72,7 @@ export async function getQuoteDraftAction(
   }
 
   const segment = isValidSegment(row.segment) ? row.segment : "small_biopharma";
+  const status = isQuoteStatus(row.status) ? row.status : "created";
 
   const lines: QuoteDraftLine[] = (lineRows ?? []).map((l) => ({
     catalog_service_id: l.catalog_service_id as string | null,
@@ -90,6 +93,7 @@ export async function getQuoteDraftAction(
       contact_name: row.contact_name ?? "",
       project_title: row.project_title ?? "",
       quote_reference: row.quote_reference ?? "",
+      status,
       segment,
       sample_volume: Math.max(0, Math.floor(Number(row.sample_volume))),
       rush_priority: Boolean(row.rush_priority),

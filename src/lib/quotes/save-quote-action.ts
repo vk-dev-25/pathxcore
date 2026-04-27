@@ -10,6 +10,7 @@ import {
   type Segment,
 } from "@/lib/quote-pricing";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
+import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
 import { createClient } from "@/lib/supabase/server";
 
 export type SaveQuoteState =
@@ -22,6 +23,7 @@ export async function saveQuoteAction(input: {
   contact_name: string;
   project_title: string;
   quote_reference: string;
+  status?: string;
   segment: string;
   sample_volume: number;
   rush_priority: boolean;
@@ -43,6 +45,8 @@ export async function saveQuoteAction(input: {
     return { ok: false, error: "Invalid segment." };
   }
   const segment = input.segment as Segment;
+  const rawStatus = input.status ?? "";
+  const status: QuoteStatus = isQuoteStatus(rawStatus) ? rawStatus : "created";
 
   if (!input.lines.length) {
     return { ok: false, error: "Add at least one service line." };
@@ -77,6 +81,7 @@ export async function saveQuoteAction(input: {
       contact_name: input.contact_name.trim() || null,
       project_title: input.project_title.trim() || null,
       quote_reference: input.quote_reference.trim() || null,
+      status,
       segment: input.segment,
       sample_volume: Math.max(0, Math.floor(input.sample_volume)),
       rush_priority: input.rush_priority,

@@ -4,6 +4,7 @@ import {
   QuoteFinderClient,
   type QuoteListRow,
 } from "@/components/pathx/quote-finder-client";
+import { isQuoteStatus } from "@/lib/quotes/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default async function QuoteFinderPage({
   const { data, error } = await supabase
     .from("quotes")
     .select(
-      "id, client_org_name, contact_name, project_title, quote_reference, total_amount, created_at, updated_at, created_by_email, last_updated_by_email",
+      "id, client_org_name, contact_name, project_title, quote_reference, status, total_amount, created_at, updated_at, created_by_email, last_updated_by_email",
     )
     .order("created_at", { ascending: false });
 
@@ -35,6 +36,7 @@ export default async function QuoteFinderPage({
     contact_name: row.contact_name,
     project_title: row.project_title,
     quote_reference: row.quote_reference,
+    status: isQuoteStatus(row.status) ? row.status : "created",
     total_amount: Number(row.total_amount),
     created_at: row.created_at,
     updated_at: row.updated_at,
