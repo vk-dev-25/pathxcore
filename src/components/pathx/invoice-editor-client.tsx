@@ -59,6 +59,7 @@ export function InvoiceEditorClient({
     po_reference: string;
     status: InvoiceStatus;
     due_date: string;
+    notes: string;
     created_at: string;
     updated_at: string;
     last_updated_by_email: string | null;
@@ -82,6 +83,7 @@ export function InvoiceEditorClient({
   const [status, setStatus] = useState<InvoiceStatus>(invoice.status);
   const [dueDate, setDueDate] = useState(invoice.due_date);
   const [poReference, setPoReference] = useState(invoice.po_reference ?? "");
+  const [notes, setNotes] = useState(invoice.notes ?? "");
   const [pickId, setPickId] = useState("");
   const [addQty, setAddQty] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -148,6 +150,7 @@ export function InvoiceEditorClient({
           project_title: projectTitle,
           invoice_reference: invoiceRef,
           po_reference: poReference,
+          notes,
           status,
           due_date: dueDate,
         },
@@ -174,6 +177,7 @@ export function InvoiceEditorClient({
     clientAddress,
     contactName,
     projectTitle,
+    notes,
     lines: lines.map((l) => ({
       label: l.label,
       quantity: l.quantity,
@@ -444,27 +448,49 @@ export function InvoiceEditorClient({
                 Total: {money(subtotal)}
               </p>
             </div>
-
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPreviewOpen(true)}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Preview PDF
-              </Button>
-              <Button type="button" onClick={saveInvoice} disabled={pending}>
-                <Save className="mr-2 h-4 w-4" />
-                {pending ? "Saving…" : "Save invoice"}
-              </Button>
-              <Button asChild type="button" variant="outline">
-                <Link href="/pathx/invoices">Back to invoices</Link>
-              </Button>
-              {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            </div>
           </CardContent>
         </Card>
+
+        <Card className={cn(cardClass, "mt-6")}>
+          <CardHeader className="space-y-1">
+            <CardTitle>Notes</CardTitle>
+            <CardDescription>
+              Shown on the invoice preview and PDF when this field has text—appears
+              after the bill-to block and before the line items table, with no
+              heading (same as quotes).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <textarea
+              className={cn(
+                fieldClass,
+                "min-h-[240px] w-full resize-y rounded-md border px-4 py-3 text-base leading-relaxed",
+              )}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Special instructions or anything the client should see on the invoice…"
+            />
+          </CardContent>
+        </Card>
+
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPreviewOpen(true)}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Preview PDF
+          </Button>
+          <Button type="button" onClick={saveInvoice} disabled={pending}>
+            <Save className="mr-2 h-4 w-4" />
+            {pending ? "Saving…" : "Save invoice"}
+          </Button>
+          <Button asChild type="button" variant="outline">
+            <Link href="/pathx/invoices">Back to invoices</Link>
+          </Button>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        </div>
       </div>
 
       <InvoicePreviewDialog

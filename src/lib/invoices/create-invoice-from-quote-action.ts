@@ -79,7 +79,7 @@ export async function createInvoiceFromQuoteAction(
     const { data: quote, error: qErr } = await supabase
       .from("quotes")
       .select(
-        "id, client_org_name, client_address, contact_name, project_title",
+        "id, client_org_name, client_address, contact_name, project_title, notes",
       )
       .eq("id", quoteId)
       .maybeSingle();
@@ -118,6 +118,7 @@ export async function createInvoiceFromQuoteAction(
           client_address: quote.client_address,
           contact_name: quote.contact_name,
           project_title: quote.project_title,
+          notes: quote.notes ?? null,
           invoice_reference: invoiceReference,
           status: "created" as const,
           due_date: defaultDueDateIso(),

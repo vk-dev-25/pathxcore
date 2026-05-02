@@ -15,6 +15,7 @@ export type InvoiceHeaderInput = {
   project_title: string;
   invoice_reference: string;
   po_reference: string;
+  notes: string;
   status: InvoiceStatus;
   due_date: string;
 };

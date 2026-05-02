@@ -11,6 +11,7 @@ export type InvoicePreviewData = {
   client_address: string;
   contact_name: string;
   project_title: string;
+  notes: string;
   lines: {
     label: string;
     quantity: number;
@@ -31,6 +32,7 @@ export function invoiceDetailToPreview(d: InvoiceDetailPayload): InvoicePreviewD
     client_address: d.client_address,
     contact_name: d.contact_name,
     project_title: d.project_title,
+    notes: d.notes ?? "",
     lines: d.lines.map((l) => ({
       label: l.label,
       quantity: l.quantity,
@@ -51,6 +53,7 @@ export function invoiceDraftToPreview(args: {
   clientAddress: string;
   contactName: string;
   projectTitle: string;
+  notes: string;
   lines: { label: string; quantity: number; unit_price: number }[];
 }): InvoicePreviewData {
   const lines = args.lines.map((l) => {
@@ -73,6 +76,7 @@ export function invoiceDraftToPreview(args: {
     client_address: args.clientAddress,
     contact_name: args.contactName,
     project_title: args.projectTitle,
+    notes: args.notes ?? "",
     lines,
     total_amount,
   };

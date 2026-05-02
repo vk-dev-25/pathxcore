@@ -231,12 +231,13 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
           </Card>
         ) : (
           <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card/60 dark:border-white/[0.08] dark:bg-card/40">
-            <table className="w-full min-w-[1020px] text-left text-sm">
+            <table className="w-full min-w-[1180px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs font-medium uppercase tracking-wider text-muted-foreground dark:border-white/[0.08]">
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Due</th>
                   <th className="px-4 py-3">Company</th>
+                  <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Reference</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="w-[72px] px-2 py-3 text-center">PDF</th>
@@ -282,6 +283,9 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                       </td>
                       <td className="max-w-[200px] truncate px-4 py-3 font-medium text-foreground">
                         {row.client_org_name ?? "—"}
+                      </td>
+                      <td className="max-w-[220px] truncate px-4 py-3 text-muted-foreground">
+                        {row.project_title?.trim() ? row.project_title.trim() : "—"}
                       </td>
                       <td className="max-w-[160px] truncate px-4 py-3 text-muted-foreground">
                         {row.invoice_reference ?? "—"}

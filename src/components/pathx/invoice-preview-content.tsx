@@ -119,6 +119,12 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </dl>
       </div>
 
+      {data.notes.trim() ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground print:text-black">
+          <span className="font-semibold">Note:</span> {data.notes.trim()}
+        </p>
+      ) : null}
+
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
           Line Items
