@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { FileText, Loader2, Plus, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+import { Check, ChevronDown, FileText, Loader2, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ExcelStatusColumnFilter } from "@/components/pathx/excel-status-column-filter";
 import { InvoicePreviewDialog } from "@/components/pathx/invoice-preview-dialog";
 import { getInvoiceDetailAction } from "@/lib/invoices/get-invoice-detail-action";
 import {
@@ -15,7 +17,14 @@ import {
   type InvoicePreviewData,
 } from "@/lib/invoices/invoice-preview";
 import { formatShortDateTime } from "@/lib/format-audit-trail";
+import { patchInvoiceStatusAction } from "@/lib/invoices/patch-invoice-status-action";
 import { isInvoiceOverdue, type InvoiceStatus } from "@/lib/invoices/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 import {
@@ -39,6 +48,8 @@ export type InvoiceListRow = {
 
 type SortKey = "date_desc" | "date_asc" | "due_asc" | "due_desc" | "company_asc" | "company_desc";
 
+const INVOICE_STATUS_ORDER: InvoiceStatus[] = ["created", "sent", "paid", "cancelled"];
+
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -57,14 +68,6 @@ function formatDate(iso: string) {
   }
 }
 
-function statusBadge(status: InvoiceStatus, overdue: boolean): string {
-  if (overdue) return "bg-destructive/15 text-destructive";
-  if (status === "paid") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
-  if (status === "sent") return "bg-primary/15 text-primary";
-  if (status === "cancelled") return "bg-muted text-muted-foreground";
-  return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-}
-
 function haystack(row: InvoiceListRow): string {
   return [
     row.client_org_name,
@@ -80,16 +83,26 @@ function haystack(row: InvoiceListRow): string {
 }
 
 export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }) {
+  const router = useRouter();
+  const [statusPending, startStatusTransition] = useTransition();
   const [query, setQuery] = useState("");
+  const [statusIncluded, setStatusIncluded] = useState(
+    () => new Set<InvoiceStatus>(INVOICE_STATUS_ORDER),
+  );
   const [sort, setSort] = useState<SortKey>("date_desc");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<InvoicePreviewData | null>(null);
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [statusUiOverride, setStatusUiOverride] = useState<
+    Partial<Record<string, InvoiceStatus>>
+  >({});
 
   const filteredSorted = useMemo(() => {
+    let rows = invoices.filter((r) => statusIncluded.has(r.status));
     const q = query.trim().toLowerCase();
-    const rows = q ? invoices.filter((r) => haystack(r).includes(q)) : [...invoices];
+    if (q) rows = rows.filter((r) => haystack(r).includes(q));
 
     const companyKey = (r: InvoiceListRow) =>
       (r.client_org_name ?? "").trim().toLowerCase() || "\uffff";
@@ -118,7 +131,7 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
         break;
     }
     return rows;
-  }, [invoices, query, sort]);
+  }, [invoices, query, sort, statusIncluded]);
 
   return (
     <div className="relative">
@@ -152,7 +165,8 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
           <CardHeader className="space-y-1">
             <CardTitle className="text-lg">Filter &amp; sort</CardTitle>
             <CardDescription>
-              Match text in organization, contact, project, reference, or status.
+              Search and sort. Status filtering uses the funnel control on the Status
+              column in the table below.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -209,6 +223,12 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
           </CardContent>
         </Card>
 
+        {statusError ? (
+          <p className="mt-4 text-sm text-destructive" role="alert">
+            {statusError}
+          </p>
+        ) : null}
+
         <p className="mt-6 text-sm text-muted-foreground">
           {filteredSorted.length === invoices.length
             ? `${invoices.length} invoice${invoices.length === 1 ? "" : "s"}`
@@ -221,12 +241,10 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
           </p>
         ) : null}
 
-        {filteredSorted.length === 0 ? (
+        {invoices.length === 0 ? (
           <Card className={cn(cardClass, "mt-6 border-dashed")}>
             <CardContent className="py-12 text-center text-sm text-muted-foreground">
-              {invoices.length === 0
-                ? "No invoices yet. Open a quote and create your first invoice."
-                : "No invoices match your search."}
+              No invoices yet. Open a quote and create your first invoice.
             </CardContent>
           </Card>
         ) : (
@@ -239,16 +257,67 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                   <th className="px-4 py-3">Company</th>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Reference</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 align-bottom">
+                    <ExcelStatusColumnFilter
+                      allValues={INVOICE_STATUS_ORDER}
+                      included={statusIncluded}
+                      setIncluded={setStatusIncluded}
+                    />
+                  </th>
                   <th className="w-[72px] px-2 py-3 text-center">PDF</th>
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="min-w-[168px] px-4 py-3">Last saved</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredSorted.map((row) => {
+                {filteredSorted.length === 0 ? (
+                  <tr className="border-b border-border dark:border-white/[0.06]">
+                    <td colSpan={9} className="px-4 py-10 text-center align-top">
+                      <div className="mx-auto max-w-md space-y-3 text-sm text-muted-foreground">
+                        {statusIncluded.size === 0 ? (
+                          <>
+                            <p className="text-foreground">
+                              No statuses selected. Use the Status column header (funnel
+                              icon) to check at least one value.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="font-medium"
+                              onClick={() =>
+                                setStatusIncluded(new Set(INVOICE_STATUS_ORDER))
+                              }
+                            >
+                              Show all statuses
+                            </Button>
+                          </>
+                        ) : query.trim() ? (
+                          <p>No invoices match your search.</p>
+                        ) : (
+                          <>
+                            <p>No invoices match the current status selection.</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="font-medium"
+                              onClick={() =>
+                                setStatusIncluded(new Set(INVOICE_STATUS_ORDER))
+                              }
+                            >
+                              Show all statuses
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSorted.map((row) => {
+                  const displayStatus = statusUiOverride[row.id] ?? row.status;
                   const overdue = isInvoiceOverdue({
-                    status: row.status,
+                    status: displayStatus,
                     due_date: row.due_date,
                   });
                   return (
@@ -291,14 +360,66 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                         {row.invoice_reference ?? "—"}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={cn(
-                            "inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize",
-                            statusBadge(row.status, overdue),
-                          )}
-                        >
-                          {overdue ? "overdue" : row.status}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={statusPending}
+                                className="h-8 min-w-[132px] justify-between gap-2 capitalize"
+                                aria-label={`Invoice status: ${displayStatus}. Change status.`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <span>{displayStatus}</span>
+                                <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="start"
+                              className="w-44"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {INVOICE_STATUS_ORDER.map((s) => (
+                                <DropdownMenuItem
+                                  key={s}
+                                  className="flex cursor-pointer items-center justify-between gap-3 capitalize"
+                                  onSelect={() => {
+                                    if (s === displayStatus) return;
+                                    setStatusError(null);
+                                    startStatusTransition(async () => {
+                                      const res = await patchInvoiceStatusAction(row.id, s);
+                                      if (!res.ok) {
+                                        setStatusError(res.error);
+                                        return;
+                                      }
+                                      setStatusUiOverride((m) => ({ ...m, [row.id]: s }));
+                                      await router.refresh();
+                                      setStatusUiOverride((m) => {
+                                        const next = { ...m };
+                                        delete next[row.id];
+                                        return next;
+                                      });
+                                    });
+                                  }}
+                                >
+                                  {s}
+                                  {displayStatus === s ? (
+                                    <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                                  ) : (
+                                    <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
+                                  )}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          {overdue ? (
+                            <span className="text-xs font-medium uppercase tracking-wide text-destructive">
+                              Overdue
+                            </span>
+                          ) : null}
+                        </div>
                       </td>
                       <td
                         className="px-2 py-2 text-center"
@@ -347,7 +468,8 @@ export function InvoiceFinderClient({ invoices }: { invoices: InvoiceListRow[] }
                       </td>
                     </tr>
                   );
-                })}
+                  })
+                )}
               </tbody>
             </table>
           </div>

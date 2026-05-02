@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description: "Search and sort saved quotes from your PathX workspace.",
 };
 
+/** Always refetch list after status patches etc. — avoids stale RSC cache on router.refresh(). */
+export const dynamic = "force-dynamic";
+
 export default async function QuoteFinderPage({
   searchParams,
 }: {

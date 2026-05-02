@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Copy, FileText, Plus, Search, Settings2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+import { Check, ChevronDown, Copy, FileText, Plus, Search, Settings2 } from "lucide-react";
 
 import { QuoteSavedPreviewDialog } from "@/components/pathx/quote-saved-preview-dialog";
 import { Button } from "@/components/ui/button";
@@ -15,13 +16,21 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ExcelStatusColumnFilter } from "@/components/pathx/excel-status-column-filter";
 import { formatShortDateTime } from "@/lib/format-audit-trail";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 import {
   pathxCardClass as cardClass,
   pathxFieldClass as fieldClass,
 } from "@/components/pathx/workspace-field-classes";
+import { patchQuoteStatusAction } from "@/lib/quotes/patch-quote-status-action";
 import type { QuoteStatus } from "@/lib/quotes/types";
 
 export type QuoteListRow = {
@@ -41,6 +50,14 @@ export type QuoteListRow = {
 };
 
 type SortKey = "date_desc" | "date_asc" | "company_asc" | "company_desc";
+
+const QUOTE_STATUS_ORDER: QuoteStatus[] = [
+  "created",
+  "sent",
+  "approved",
+  "cancelled",
+  "discarded",
+];
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -75,13 +92,6 @@ function haystack(q: QuoteListRow): string {
     .toLowerCase();
 }
 
-function quoteStatusClass(s: QuoteStatus): string {
-  if (s === "approved") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
-  if (s === "sent") return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
-  if (s === "created") return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-  return "bg-muted text-muted-foreground";
-}
-
 export function QuoteFinderClient({
   quotes,
   initialQuery = "",
@@ -91,15 +101,24 @@ export function QuoteFinderClient({
   initialQuery?: string;
   initialPreviewId?: string | null;
 }) {
+  const router = useRouter();
+  const [statusPending, startStatusTransition] = useTransition();
   const [query, setQuery] = useState(initialQuery);
+  const [statusIncluded, setStatusIncluded] = useState(
+    () => new Set<QuoteStatus>(QUOTE_STATUS_ORDER),
+  );
   const [sort, setSort] = useState<SortKey>("date_desc");
   const [previewId, setPreviewId] = useState<string | null>(initialPreviewId);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  /** Until router.refresh() completes, show the status we just saved (fixes stale button label). */
+  const [statusUiOverride, setStatusUiOverride] = useState<
+    Partial<Record<string, QuoteStatus>>
+  >({});
 
   const filteredSorted = useMemo(() => {
+    let rows = quotes.filter((r) => statusIncluded.has(r.status));
     const q = query.trim().toLowerCase();
-    const rows = q
-      ? quotes.filter((r) => haystack(r).includes(q))
-      : [...quotes];
+    if (q) rows = rows.filter((r) => haystack(r).includes(q));
 
     const companyKey = (r: QuoteListRow) =>
       (r.client_org_name ?? "").trim().toLowerCase() || "\uffff";
@@ -127,7 +146,7 @@ export function QuoteFinderClient({
         break;
     }
     return rows;
-  }, [quotes, query, sort]);
+  }, [quotes, query, sort, statusIncluded]);
 
   return (
     <div className="relative">
@@ -181,8 +200,8 @@ export function QuoteFinderClient({
           <CardHeader className="space-y-1">
             <CardTitle className="text-lg">Filter &amp; sort</CardTitle>
             <CardDescription>
-              Match text in organization, contact, project, or reference. Sort by
-              date or company name.
+              Search and sort. Status filtering uses the funnel control on the Status
+              column in the table below.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -233,36 +252,36 @@ export function QuoteFinderClient({
           </CardContent>
         </Card>
 
+        {statusError ? (
+          <p className="mt-4 text-sm text-destructive" role="alert">
+            {statusError}
+          </p>
+        ) : null}
+
         <p className="mt-6 text-sm text-muted-foreground">
           {filteredSorted.length === quotes.length
             ? `${quotes.length} quote${quotes.length === 1 ? "" : "s"}`
             : `${filteredSorted.length} of ${quotes.length} quote${quotes.length === 1 ? "" : "s"}`}
         </p>
 
-        {filteredSorted.length === 0 ? (
+        {quotes.length === 0 ? (
           <Card className={cn(cardClass, "mt-6 border-dashed")}>
             <CardContent className="flex flex-col items-center gap-4 py-12 text-center text-sm text-muted-foreground">
-              {quotes.length === 0 ? (
-                <>
-                  <p>No saved quotes yet. Create one to get started.</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button asChild size="sm" className="font-medium">
-                      <Link href="/pathx/quotebuilder">
-                        <Plus className="mr-2 h-4 w-4" aria-hidden />
-                        New quote
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm" className="font-medium">
-                      <Link href="/pathx/admin/pricing">
-                        <Settings2 className="mr-2 h-4 w-4" aria-hidden />
-                        Quote price config
-                      </Link>
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                "No quotes match your search."
-              )}
+              <p>No saved quotes yet. Create one to get started.</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button asChild size="sm" className="font-medium">
+                  <Link href="/pathx/quotebuilder">
+                    <Plus className="mr-2 h-4 w-4" aria-hidden />
+                    New quote
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" className="font-medium">
+                  <Link href="/pathx/admin/pricing">
+                    <Settings2 className="mr-2 h-4 w-4" aria-hidden />
+                    Quote price config
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -273,7 +292,13 @@ export function QuoteFinderClient({
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Company</th>
                   <th className="px-4 py-3">Reference</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 align-bottom">
+                    <ExcelStatusColumnFilter
+                      allValues={QUOTE_STATUS_ORDER}
+                      included={statusIncluded}
+                      setIncluded={setStatusIncluded}
+                    />
+                  </th>
                   <th className="px-4 py-3">Project</th>
                   <th className="px-4 py-3">Contact</th>
                   <th className="px-4 py-3 text-right">Total</th>
@@ -283,7 +308,53 @@ export function QuoteFinderClient({
                 </tr>
               </thead>
               <tbody>
-                {filteredSorted.map((row) => (
+                {filteredSorted.length === 0 ? (
+                  <tr className="border-b border-border dark:border-white/[0.06]">
+                    <td colSpan={10} className="px-4 py-10 text-center align-top">
+                      <div className="mx-auto max-w-md space-y-3 text-sm text-muted-foreground">
+                        {statusIncluded.size === 0 ? (
+                          <>
+                            <p className="text-foreground">
+                              No statuses selected. Use the Status column header (funnel
+                              icon) to check at least one value.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="font-medium"
+                              onClick={() =>
+                                setStatusIncluded(new Set(QUOTE_STATUS_ORDER))
+                              }
+                            >
+                              Show all statuses
+                            </Button>
+                          </>
+                        ) : query.trim() ? (
+                          <p>No quotes match your search.</p>
+                        ) : (
+                          <>
+                            <p>No quotes match the current status selection.</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="font-medium"
+                              onClick={() =>
+                                setStatusIncluded(new Set(QUOTE_STATUS_ORDER))
+                              }
+                            >
+                              Show all statuses
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredSorted.map((row) => {
+                    const displayStatus = statusUiOverride[row.id] ?? row.status;
+                    return (
                   <tr
                     key={row.id}
                     role="button"
@@ -307,14 +378,59 @@ export function QuoteFinderClient({
                       {row.quote_reference ?? "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                          quoteStatusClass(row.status),
-                        )}
-                      >
-                        {row.status}
-                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={statusPending}
+                            className="h-8 min-w-[148px] justify-between gap-2 capitalize"
+                            aria-label={`Quote status: ${displayStatus}. Change status.`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span>{displayStatus}</span>
+                            <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="start"
+                          className="w-48"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {QUOTE_STATUS_ORDER.map((s) => (
+                            <DropdownMenuItem
+                              key={s}
+                              className="flex cursor-pointer items-center justify-between gap-3 capitalize"
+                              onSelect={() => {
+                                if (s === displayStatus) return;
+                                setStatusError(null);
+                                startStatusTransition(async () => {
+                                  const res = await patchQuoteStatusAction(row.id, s);
+                                  if (!res.ok) {
+                                    setStatusError(res.error);
+                                    return;
+                                  }
+                                  setStatusUiOverride((m) => ({ ...m, [row.id]: s }));
+                                  await router.refresh();
+                                  setStatusUiOverride((m) => {
+                                    const next = { ...m };
+                                    delete next[row.id];
+                                    return next;
+                                  });
+                                });
+                              }}
+                            >
+                              {s}
+                              {displayStatus === s ? (
+                                <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                              ) : (
+                                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
+                              )}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                     <td className="max-w-[220px] truncate px-4 py-3 text-muted-foreground">
                       {row.project_title ?? "—"}
@@ -365,7 +481,9 @@ export function QuoteFinderClient({
                       </div>
                     </td>
                   </tr>
-                ))}
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

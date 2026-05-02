@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Search and sort invoices from your PathX workspace.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function InvoiceFinderPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
