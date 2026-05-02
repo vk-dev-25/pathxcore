@@ -169,9 +169,31 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
       </div>
 
-      <div className="flex justify-between gap-4 border-t border-white/[0.06] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
-        <span>Total (USD)</span>
-        <span className="tabular-nums">{money(data.total_amount)}</span>
+      <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground print:text-neutral-700">
+            Sales tax
+          </span>
+          <span className="print:text-black">{money(0)}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Shipping<sup className="ml-0.5 align-super text-[10px] leading-none">
+                *
+              </sup>
+            </span>
+            <span className="print:text-black">{money(0)}</span>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-600">
+            <sup>*</sup> Shipping is free unless otherwise specified in the
+            description.
+          </p>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-white/[0.06] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
+          <span>Total (USD)</span>
+          <span>{money(data.total_amount)}</span>
+        </div>
       </div>
 
       <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm print:border-neutral-300">
