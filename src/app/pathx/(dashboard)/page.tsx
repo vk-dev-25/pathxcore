@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   ClipboardList,
   FileSpreadsheet,
+  FlaskConical,
   Layers,
   Search,
   Settings2,
@@ -57,6 +58,13 @@ const modules = [
     description:
       "Laboratory information workflows—specimens, accessioning, and operational views (module scaffold).",
     icon: ClipboardList,
+  },
+  {
+    href: "/pathx/antibodies",
+    title: "Antibody registry",
+    description:
+      "Track antibodies: search across fields, narrow by vendor, species, detection, or date range.",
+    icon: FlaskConical,
   },
 ];
 

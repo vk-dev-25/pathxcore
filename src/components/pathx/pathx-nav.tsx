@@ -14,6 +14,11 @@ const items: { href: string; label: string; match: "exact" | "prefix" }[] = [
   { href: "/pathx/admin/pricing", label: "Quote prices", match: "prefix" },
   { href: "/pathx/tissue-bank", label: "Tissue Blocks", match: "prefix" },
   { href: "/pathx/lims", label: "LIMS", match: "prefix" },
+  {
+    href: "/pathx/antibodies",
+    label: "Antibodies",
+    match: "prefix",
+  },
 ];
 
 function isActive(pathname: string, href: string, match: "exact" | "prefix") {
