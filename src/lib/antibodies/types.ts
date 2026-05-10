@@ -1,6 +1,8 @@
 export type AntibodyRow = {
   id: string;
   antibody_name: string;
+  /** Present after migration `20260509100000_pathx_antibodies_clone`. */
+  clone_detail?: string;
   vendor_name: string;
   catalog: string;
   lot_number: string;
@@ -17,6 +19,7 @@ export type AntibodyRow = {
 
 export type AntibodySortKey =
   | "antibody_name"
+  | "clone_detail"
   | "vendor_name"
   | "catalog"
   | "lot_number"

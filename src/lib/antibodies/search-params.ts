@@ -5,6 +5,7 @@ import type {
 
 const SORT_KEYS: readonly AntibodySortKey[] = [
   "antibody_name",
+  "clone_detail",
   "vendor_name",
   "catalog",
   "lot_number",

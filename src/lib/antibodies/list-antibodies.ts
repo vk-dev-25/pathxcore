@@ -14,6 +14,7 @@ const DEFAULT_PAGE_SIZE = 40;
 function sortColumn(key: AntibodySortKey): string {
   const map: Record<AntibodySortKey, string> = {
     antibody_name: "antibody_name",
+    clone_detail: "clone_detail",
     vendor_name: "vendor_name",
     catalog: "catalog",
     lot_number: "lot_number",
@@ -48,6 +49,7 @@ export function applyAntibodyFilters(
     query = query.or(
       [
         `antibody_name.ilike.${p}`,
+        `clone_detail.ilike.${p}`,
         `vendor_name.ilike.${p}`,
         `catalog.ilike.${p}`,
         `lot_number.ilike.${p}`,
@@ -121,6 +123,28 @@ export async function listAntibodiesInternal(params: {
     page,
     pageSize,
   };
+}
+
+const EXPORT_PAGE_SIZE = 1000;
+
+/** Full export for CSV — authenticated caller only (API route). */
+export async function fetchAllAntibodiesForExport(): Promise<AntibodyRow[]> {
+  const supabase = await createClient();
+  const all: AntibodyRow[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await supabase
+      .from("pathx_antibodies")
+      .select("*")
+      .order("id", { ascending: true })
+      .range(from, from + EXPORT_PAGE_SIZE - 1);
+    if (error) throw error;
+    const chunk = (data ?? []) as AntibodyRow[];
+    all.push(...chunk);
+    if (chunk.length < EXPORT_PAGE_SIZE) break;
+    from += EXPORT_PAGE_SIZE;
+  }
+  return all;
 }
 
 /** Distinct values for search-panel selects (lightweight full scan of three columns). */

@@ -23,6 +23,7 @@ async function currentUserLabel(): Promise<
 
 export async function createAntibodyAction(input: {
   antibody_name: string;
+  clone_detail?: string;
   vendor_name?: string;
   catalog?: string;
   lot_number?: string;
@@ -48,6 +49,7 @@ export async function createAntibodyAction(input: {
 
   const { error } = await supabase.from("pathx_antibodies").insert({
     antibody_name: name,
+    clone_detail: input.clone_detail?.trim() ?? "",
     vendor_name: input.vendor_name?.trim() ?? "",
     catalog: input.catalog?.trim() ?? "",
     lot_number: input.lot_number?.trim() ?? "",
@@ -73,6 +75,7 @@ export async function createAntibodyAction(input: {
 export async function updateAntibodyAction(input: {
   id: string;
   antibody_name: string;
+  clone_detail?: string;
   vendor_name?: string;
   catalog?: string;
   lot_number?: string;
@@ -100,6 +103,7 @@ export async function updateAntibodyAction(input: {
     .from("pathx_antibodies")
     .update({
       antibody_name: name,
+      clone_detail: input.clone_detail?.trim() ?? "",
       vendor_name: input.vendor_name?.trim() ?? "",
       catalog: input.catalog?.trim() ?? "",
       lot_number: input.lot_number?.trim() ?? "",

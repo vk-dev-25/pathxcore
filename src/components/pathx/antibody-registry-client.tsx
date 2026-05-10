@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Pencil, Plus, Trash2 } from "lucide-react";
 
 import {
   createAntibodyAction,
@@ -110,6 +110,7 @@ function formatUpdatedAt(iso: string): string {
 
 type FormState = {
   antibody_name: string;
+  clone_detail: string;
   vendor_name: string;
   catalog: string;
   lot_number: string;
@@ -124,6 +125,7 @@ type FormState = {
 function emptyForm(): FormState {
   return {
     antibody_name: "",
+    clone_detail: "",
     vendor_name: "",
     catalog: "",
     lot_number: "",
@@ -139,6 +141,7 @@ function emptyForm(): FormState {
 function rowToForm(row: AntibodyRow): FormState {
   return {
     antibody_name: row.antibody_name,
+    clone_detail: row.clone_detail ?? "",
     vendor_name: row.vendor_name,
     catalog: row.catalog,
     lot_number: row.lot_number,
@@ -178,6 +181,17 @@ function AntibodyFormFields({
           className={fieldClass}
           disabled={disabled}
           required
+        />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="ab-clone">Clone</Label>
+        <Input
+          id="ab-clone"
+          value={form.clone_detail}
+          onChange={on("clone_detail")}
+          className={fieldClass}
+          disabled={disabled}
+          placeholder="Clone name, identifier, or lineage notes"
         />
       </div>
       <div className="space-y-2">
@@ -222,36 +236,6 @@ function AntibodyFormFields({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="ab-wc">Working concentration</Label>
-        <Input
-          id="ab-wc"
-          value={form.working_concentration}
-          onChange={on("working_concentration")}
-          className={fieldClass}
-          disabled={disabled}
-        />
-      </div>
-      <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="ab-ar">Antigen retrieval</Label>
-        <Input
-          id="ab-ar"
-          value={form.antigen_retrieval}
-          onChange={on("antigen_retrieval")}
-          className={fieldClass}
-          disabled={disabled}
-        />
-      </div>
-      <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="ab-dm">Detection method</Label>
-        <Input
-          id="ab-dm"
-          value={form.detection_method}
-          onChange={on("detection_method")}
-          className={fieldClass}
-          disabled={disabled}
-        />
-      </div>
-      <div className="space-y-2">
         <Label htmlFor="ab-pb">Provided by</Label>
         <Input
           id="ab-pb"
@@ -268,6 +252,36 @@ function AntibodyFormFields({
           type="date"
           value={form.date_provided}
           onChange={on("date_provided")}
+          className={fieldClass}
+          disabled={disabled}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="ab-wc">Working concentration</Label>
+        <Input
+          id="ab-wc"
+          value={form.working_concentration}
+          onChange={on("working_concentration")}
+          className={fieldClass}
+          disabled={disabled}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="ab-ar">Antigen retrieval</Label>
+        <Input
+          id="ab-ar"
+          value={form.antigen_retrieval}
+          onChange={on("antigen_retrieval")}
+          className={fieldClass}
+          disabled={disabled}
+        />
+      </div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="ab-dm">Detection method</Label>
+        <Input
+          id="ab-dm"
+          value={form.detection_method}
+          onChange={on("detection_method")}
           className={fieldClass}
           disabled={disabled}
         />
@@ -323,6 +337,7 @@ export function AntibodyRegistryClient({
     startTransition(async () => {
       const payload = {
         antibody_name: form.antibody_name,
+        clone_detail: form.clone_detail,
         vendor_name: form.vendor_name,
         catalog: form.catalog,
         lot_number: form.lot_number,
@@ -380,15 +395,23 @@ export function AntibodyRegistryClient({
             in the table.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={openCreate}
-          className="shrink-0 gap-2"
-          disabled={!!loadError}
-        >
-          <Plus className="h-4 w-4" />
-          Add antibody
-        </Button>
+        <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+          <Button asChild variant="outline" size="default" className="gap-2">
+            <a href="/api/pathx/antibodies/export">
+              <Download className="h-4 w-4" />
+              Download CSV
+            </a>
+          </Button>
+          <Button
+            type="button"
+            onClick={openCreate}
+            className="gap-2"
+            disabled={!!loadError}
+          >
+            <Plus className="h-4 w-4" />
+            Create Antibody
+          </Button>
+        </div>
       </div>
 
       {loadError ? (
@@ -428,8 +451,8 @@ export function AntibodyRegistryClient({
                 autoComplete="off"
               />
               <p className="text-xs text-muted-foreground">
-                Finds partial matches in antibody name, vendor, catalog, lot,
-                species, concentrations, detection, and other text fields.
+                Finds partial matches in antibody name, clone, vendor, catalog,
+                lot, species, concentrations, detection, and other text fields.
               </p>
             </div>
 
@@ -530,195 +553,206 @@ export function AntibodyRegistryClient({
 
       <div className="mt-8 overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1320px] border-collapse text-[13px] leading-snug">
+          <table className="w-full min-w-[1480px] border-collapse text-[13px] leading-snug">
             <thead>
               <tr className="border-b border-border bg-muted/50 text-left text-[12px] font-medium tracking-normal text-muted-foreground">
                 <th className="min-w-[11rem] px-3 py-3">
-                <SortLink
-                  label="Antibody"
-                  col="antibody_name"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Vendor"
-                  col="vendor_name"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Catalog"
-                  col="catalog"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Lot"
-                  col="lot_number"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Ig species"
-                  col="ig_species"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Working conc."
-                  col="working_concentration"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Antigen retrieval"
-                  col="antigen_retrieval"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Detection"
-                  col="detection_method"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Last updated by"
-                  col="last_updated_by"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Provided by"
-                  col="provided_by"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Date provided"
-                  col="date_provided"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="px-3 py-3">
-                <SortLink
-                  label="Updated"
-                  col="updated_at"
-                  current={parsed}
-                  basePath={basePath}
-                />
-              </th>
-              <th className="w-[7rem] min-w-[7rem] px-3 py-3 text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && !loadError ? (
-              <tr>
-                <td
-                  colSpan={13}
-                  className="px-4 py-10 text-center text-muted-foreground"
-                >
-                  No antibodies match this search. Add a record or adjust your
-                  search.
-                </td>
+                  <SortLink
+                    label="Antibody"
+                    col="antibody_name"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="min-w-[9rem] px-3 py-3">
+                  <SortLink
+                    label="Clone"
+                    col="clone_detail"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Vendor"
+                    col="vendor_name"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Catalog"
+                    col="catalog"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Lot"
+                    col="lot_number"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Ig species"
+                    col="ig_species"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Provided by"
+                    col="provided_by"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Date provided"
+                    col="date_provided"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Working conc."
+                    col="working_concentration"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Antigen retrieval"
+                    col="antigen_retrieval"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Detection"
+                    col="detection_method"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Last updated by"
+                    col="last_updated_by"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="px-3 py-3">
+                  <SortLink
+                    label="Updated"
+                    col="updated_at"
+                    current={parsed}
+                    basePath={basePath}
+                  />
+                </th>
+                <th className="w-[7rem] min-w-[7rem] px-3 py-3 text-right">
+                  Actions
+                </th>
               </tr>
-            ) : (
-              rows.map((row, i) => (
-                <tr
-                  key={row.id}
-                  className={cn(
-                    "border-b border-border/50 transition-colors",
-                    i % 2 === 0 ? "bg-card" : "bg-muted/[0.35]",
-                    "hover:bg-muted/60",
-                  )}
-                >
-                  <td className="max-w-[14rem] break-words px-3 py-3.5 align-top font-semibold text-foreground">
-                    {row.antibody_name || "—"}
-                  </td>
-                  <td className="max-w-[11rem] break-words px-3 py-3.5 align-top">
-                    {row.vendor_name || "—"}
-                  </td>
-                  <td className="max-w-[9rem] break-words px-3 py-3.5 align-top tabular-nums">
-                    {row.catalog || "—"}
-                  </td>
-                  <td className="max-w-[8rem] break-words px-3 py-3.5 align-top tabular-nums">
-                    {row.lot_number || "—"}
-                  </td>
-                  <td className="max-w-[8rem] break-words px-3 py-3.5 align-top">
-                    {row.ig_species || "—"}
-                  </td>
-                  <td className="max-w-[10rem] break-words px-3 py-3.5 align-top">
-                    {row.working_concentration || "—"}
-                  </td>
-                  <td className="max-w-[12rem] break-words px-3 py-3.5 align-top">
-                    {row.antigen_retrieval || "—"}
-                  </td>
-                  <td className="max-w-[11rem] break-words px-3 py-3.5 align-top">
-                    {row.detection_method || "—"}
-                  </td>
-                  <td className="max-w-[12rem] break-all px-3 py-3.5 align-top text-[12px] leading-relaxed text-muted-foreground">
-                    {row.last_updated_by || "—"}
-                  </td>
-                  <td className="max-w-[12rem] break-words px-3 py-3.5 align-top">
-                    {row.provided_by || "—"}
-                  </td>
-                  <td className="min-w-[9.5rem] whitespace-nowrap px-3 py-3.5 align-top tabular-nums text-muted-foreground">
-                    {formatLocaleDate(row.date_provided)}
-                  </td>
-                  <td className="min-w-[11rem] max-w-[13rem] px-3 py-3.5 align-top tabular-nums text-[12px] leading-relaxed text-muted-foreground">
-                    {formatUpdatedAt(row.updated_at)}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 align-middle text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 px-2"
-                      onClick={() => openEdit(row)}
-                      disabled={pending}
-                      aria-label="Edit"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 px-2 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(row.id)}
-                      disabled={pending}
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            </thead>
+            <tbody>
+              {rows.length === 0 && !loadError ? (
+                <tr>
+                  <td
+                    colSpan={14}
+                    className="px-4 py-10 text-center text-muted-foreground"
+                  >
+                    No antibodies match this search. Add a record or adjust
+                    your search.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
+              ) : (
+                rows.map((row, i) => (
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      "border-b border-border/50 transition-colors",
+                      i % 2 === 0 ? "bg-card" : "bg-muted/[0.35]",
+                      "hover:bg-muted/60",
+                    )}
+                  >
+                    <td className="max-w-[14rem] break-words px-3 py-3.5 align-top font-semibold text-foreground">
+                      {row.antibody_name || "—"}
+                    </td>
+                    <td className="max-w-[12rem] break-words px-3 py-3.5 align-top">
+                      {row.clone_detail?.trim() ? row.clone_detail : "—"}
+                    </td>
+                    <td className="max-w-[11rem] break-words px-3 py-3.5 align-top">
+                      {row.vendor_name || "—"}
+                    </td>
+                    <td className="max-w-[9rem] break-words px-3 py-3.5 align-top tabular-nums">
+                      {row.catalog || "—"}
+                    </td>
+                    <td className="max-w-[8rem] break-words px-3 py-3.5 align-top tabular-nums">
+                      {row.lot_number || "—"}
+                    </td>
+                    <td className="max-w-[8rem] break-words px-3 py-3.5 align-top">
+                      {row.ig_species || "—"}
+                    </td>
+                    <td className="max-w-[12rem] break-words px-3 py-3.5 align-top">
+                      {row.provided_by || "—"}
+                    </td>
+                    <td className="min-w-[9.5rem] whitespace-nowrap px-3 py-3.5 align-top tabular-nums text-muted-foreground">
+                      {formatLocaleDate(row.date_provided)}
+                    </td>
+                    <td className="max-w-[10rem] break-words px-3 py-3.5 align-top">
+                      {row.working_concentration || "—"}
+                    </td>
+                    <td className="max-w-[12rem] break-words px-3 py-3.5 align-top">
+                      {row.antigen_retrieval || "—"}
+                    </td>
+                    <td className="max-w-[11rem] break-words px-3 py-3.5 align-top">
+                      {row.detection_method || "—"}
+                    </td>
+                    <td className="max-w-[12rem] break-all px-3 py-3.5 align-top text-[12px] leading-relaxed text-muted-foreground">
+                      {row.last_updated_by || "—"}
+                    </td>
+                    <td className="min-w-[11rem] max-w-[13rem] px-3 py-3.5 align-top tabular-nums text-[12px] leading-relaxed text-muted-foreground">
+                      {formatUpdatedAt(row.updated_at)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-3 align-middle text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-2"
+                        onClick={() => openEdit(row)}
+                        disabled={pending}
+                        aria-label="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 px-2 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(row.id)}
+                        disabled={pending}
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
         </table>
         </div>
       </div>
@@ -786,7 +820,7 @@ export function AntibodyRegistryClient({
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {dialogMode === "create" ? "Add antibody" : "Edit antibody"}
+              {dialogMode === "create" ? "Create Antibody" : "Edit antibody"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -808,7 +842,11 @@ export function AntibodyRegistryClient({
                 Cancel
               </Button>
               <Button type="submit" disabled={pending}>
-                {pending ? "Saving…" : dialogMode === "create" ? "Create" : "Save"}
+                {pending
+                  ? "Saving…"
+                  : dialogMode === "create"
+                    ? "Create Antibody"
+                    : "Save"}
               </Button>
             </div>
           </form>
