@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { Loader2, Plus, Printer, Save, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Download, Loader2, Plus, Printer, Save, Trash2 } from "lucide-react";
 
 import { LimsLinkedServicesCell } from "@/components/pathx/lims-linked-services-cell";
 import type { LimsSampleLabelPayload } from "@/components/pathx/lims-sample-label-dialog";
@@ -28,12 +28,17 @@ import {
   LIMS_SPECIES_KINDS,
   type LimsSpeciesKind,
 } from "@/lib/lims/types";
+import { LIMS_TISSUE_OPTIONS } from "@/lib/lims/tissue-abbrev";
 import { updateLimsSampleAction } from "@/lib/lims/update-sample-action";
 import { cn } from "@/lib/utils";
 
 import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 
 type SampleRow = LimsProjectDetailPayload["samples"][0];
+
+type SaveSampleResult = { ok: true } | { ok: false; error: string };
+type SaveSampleHandler = () => Promise<SaveSampleResult>;
+type RegisterSampleSave = (id: string, handler: SaveSampleHandler | null) => void;
 
 type ExtendedSampleForm = {
   client_sample_id: string;
@@ -76,6 +81,115 @@ function validateOrganAbbrev(raw: string): string | null {
     return "Organ abbreviation must be 2–4 uppercase letters (A–Z).";
   }
   return null;
+}
+
+function tissueOptionsForValue(value: string): string[] {
+  const current = value.trim();
+  if (
+    current &&
+    !LIMS_TISSUE_OPTIONS.some(
+      (option) => option.toLowerCase() === current.toLowerCase(),
+    )
+  ) {
+    return [current, ...LIMS_TISSUE_OPTIONS];
+  }
+  return [...LIMS_TISSUE_OPTIONS];
+}
+
+function csvCell(value: string | number | null | undefined): string {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
+function joinedCsvList(values: string[]): string {
+  return values.filter(Boolean).join("; ");
+}
+
+function safeCsvFilenamePart(value: string): string {
+  return value.trim().replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "");
+}
+
+function sampleToCsvLine(
+  projectReference: string,
+  sample: SampleRow,
+): string {
+  const serviceLines = joinedCsvList(
+    sample.service_lines.map((line) =>
+      line.quantity > 1 ? `${line.label} x${line.quantity}` : line.label,
+    ),
+  );
+  const metadata = joinedCsvList(
+    sample.metadata.map((m) => `${m.key}: ${m.value}`),
+  );
+  const slides = joinedCsvList(sample.slides.map((slide) => slide.slide_reference));
+
+  return [
+    projectReference,
+    sample.sample_reference,
+    sample.name,
+    sample.client_sample_id,
+    sample.species_kind,
+    sample.tissue_type,
+    sample.organ_abbrev,
+    sample.diagnostic,
+    sample.date_received,
+    sample.date_of_dissection,
+    sample.dob,
+    sample.special_care_instructions,
+    sample.services_notes,
+    sample.instructions_notes,
+    serviceLines,
+    metadata,
+    sample.slides.length,
+    slides,
+    sample.created_at,
+    sample.updated_at,
+  ]
+    .map(csvCell)
+    .join(",");
+}
+
+function buildSamplesCsv(projectReference: string, samples: SampleRow[]): string {
+  const header = [
+    "Project ID",
+    "Sample ID",
+    "Sample name",
+    "Client sample ID",
+    "Species",
+    "Tissue",
+    "Organ abbreviation",
+    "Diagnostic",
+    "Date received",
+    "Date of dissection",
+    "DOB",
+    "Special care instructions",
+    "Services notes",
+    "Instructions",
+    "Catalog services",
+    "Custom metadata",
+    "Slide count",
+    "Slide IDs",
+    "Created at",
+    "Updated at",
+  ].map(csvCell).join(",");
+
+  return [header, ...samples.map((sample) => sampleToCsvLine(projectReference, sample))].join(
+    "\n",
+  );
+}
+
+function downloadSamplesCsv(projectReference: string, samples: SampleRow[]) {
+  const csv = buildSamplesCsv(projectReference, samples);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const safeProjectRef = safeCsvFilenamePart(projectReference) || "project";
+  a.href = url;
+  a.download = `${safeProjectRef}_samples_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 const th =
@@ -146,6 +260,7 @@ function DraftSampleSheetRow({
   pending,
   start,
   onRemove,
+  registerSave,
 }: {
   draftId: string;
   projectId: string;
@@ -153,6 +268,7 @@ function DraftSampleSheetRow({
   pending: boolean;
   start: (fn: () => void) => void;
   onRemove: (id: string) => void;
+  registerSave: RegisterSampleSave;
 }) {
   const [form, setForm] = useState<ExtendedSampleForm>(emptyDraftForm);
   const [saveErr, setSaveErr] = useState<string | null>(null);
@@ -160,21 +276,24 @@ function DraftSampleSheetRow({
   const inp = cn("h-8 w-full min-w-[72px] text-xs", fieldClass);
   const txt = cn("min-h-[56px] w-full min-w-[100px] resize-y text-xs", fieldClass);
 
-  function saveNewSample() {
-    setSaveErr(null);
-    if (!form.tissue_type.trim()) {
-      setSaveErr("Tissue type is required to assign a sample ID.");
-      return;
-    }
-    const ab = form.organ_abbrev.trim().toUpperCase();
-    if (form.organ_abbrev.trim()) {
-      const v = validateOrganAbbrev(ab);
-      if (v) {
-        setSaveErr(v);
-        return;
+  const submitNewSample = useCallback(
+    async ({ refresh = true }: { refresh?: boolean } = {}): Promise<SaveSampleResult> => {
+      setSaveErr(null);
+      if (!form.tissue_type.trim()) {
+        const error = "Tissue type is required to assign a sample ID.";
+        setSaveErr(error);
+        return { ok: false, error };
       }
-    }
-    start(async () => {
+
+      const ab = form.organ_abbrev.trim().toUpperCase();
+      if (form.organ_abbrev.trim()) {
+        const v = validateOrganAbbrev(ab);
+        if (v) {
+          setSaveErr(v);
+          return { ok: false, error: v };
+        }
+      }
+
       const res = await createLimsSampleAction({
         projectId,
         client_sample_id: form.client_sample_id || undefined,
@@ -185,11 +304,26 @@ function DraftSampleSheetRow({
         date_of_dissection: form.date_of_dissection || undefined,
         instructions_notes: form.instructions_notes || undefined,
       });
-      if (!res.ok) setSaveErr(res.error);
-      else {
-        onRemove(draftId);
-        onRefresh();
+      if (!res.ok) {
+        setSaveErr(res.error);
+        return res;
       }
+
+      onRemove(draftId);
+      if (refresh) onRefresh();
+      return { ok: true };
+    },
+    [draftId, form, onRefresh, onRemove, projectId],
+  );
+
+  useEffect(() => {
+    registerSave(`draft:${draftId}`, () => submitNewSample({ refresh: false }));
+    return () => registerSave(`draft:${draftId}`, null);
+  }, [draftId, registerSave, submitNewSample]);
+
+  function saveNewSample() {
+    start(() => {
+      void submitNewSample({ refresh: true });
     });
   }
 
@@ -231,12 +365,18 @@ function DraftSampleSheetRow({
         </select>
       </td>
       <td className={td}>
-        <Input
-          className={inp}
+        <select
+          className={cn(inp, "px-2")}
           value={form.tissue_type}
           onChange={(e) => setForm((f) => ({ ...f, tissue_type: e.target.value }))}
-          placeholder="Required"
-        />
+        >
+          <option value="">Select tissue</option>
+          {LIMS_TISSUE_OPTIONS.map((tissue) => (
+            <option key={tissue} value={tissue}>
+              {tissue}
+            </option>
+          ))}
+        </select>
       </td>
       <td className={td}>
         <Input
@@ -342,6 +482,7 @@ function SampleSheetRow({
   onOpenSampleLabel,
   onOpenSlides,
   onOpenMetadata,
+  registerSave,
 }: {
   projectId: string;
   projectReference: string;
@@ -355,6 +496,7 @@ function SampleSheetRow({
   onOpenSampleLabel: (p: LimsSampleLabelPayload) => void;
   onOpenSlides: () => void;
   onOpenMetadata: () => void;
+  registerSave: RegisterSampleSave;
 }) {
   const [form, setForm] = useState<ExtendedSampleForm>(() => sampleToForm(sample));
   const [saveErr, setSaveErr] = useState<string | null>(null);
@@ -363,21 +505,24 @@ function SampleSheetRow({
     setForm(sampleToForm(sample));
   }, [sample]);
 
-  function saveSample() {
-    setSaveErr(null);
-    if (!form.tissue_type.trim()) {
-      setSaveErr("Tissue type is required.");
-      return;
-    }
-    const ab = form.organ_abbrev.trim().toUpperCase();
-    if (form.organ_abbrev.trim()) {
-      const v = validateOrganAbbrev(ab);
-      if (v) {
-        setSaveErr(v);
-        return;
+  const submitSample = useCallback(
+    async ({ refresh = true }: { refresh?: boolean } = {}): Promise<SaveSampleResult> => {
+      setSaveErr(null);
+      if (!form.tissue_type.trim()) {
+        const error = "Tissue type is required.";
+        setSaveErr(error);
+        return { ok: false, error };
       }
-    }
-    start(async () => {
+
+      const ab = form.organ_abbrev.trim().toUpperCase();
+      if (form.organ_abbrev.trim()) {
+        const v = validateOrganAbbrev(ab);
+        if (v) {
+          setSaveErr(v);
+          return { ok: false, error: v };
+        }
+      }
+
       const res = await updateLimsSampleAction({
         projectId,
         sampleId: sample.id,
@@ -394,13 +539,31 @@ function SampleSheetRow({
         services_notes: sample.services_notes ?? undefined,
         instructions_notes: form.instructions_notes || undefined,
       });
-      if (!res.ok) setSaveErr(res.error);
-      else onRefresh();
+      if (!res.ok) {
+        setSaveErr(res.error);
+        return res;
+      }
+
+      if (refresh) onRefresh();
+      return { ok: true };
+    },
+    [form, onRefresh, projectId, sample],
+  );
+
+  useEffect(() => {
+    registerSave(sample.id, () => submitSample({ refresh: false }));
+    return () => registerSave(sample.id, null);
+  }, [registerSave, sample.id, submitSample]);
+
+  function saveSample() {
+    start(() => {
+      void submitSample({ refresh: true });
     });
   }
 
   const inp = cn("h-8 w-full min-w-[72px] text-xs", fieldClass);
   const txt = cn("min-h-[56px] w-full min-w-[100px] resize-y text-xs", fieldClass);
+  const tissueOptions = tissueOptionsForValue(form.tissue_type);
 
   return (
     <tr>
@@ -437,12 +600,18 @@ function SampleSheetRow({
         </select>
       </td>
       <td className={td}>
-        <Input
-          className={inp}
+        <select
+          className={cn(inp, "px-2")}
           value={form.tissue_type}
           onChange={(e) => setForm((f) => ({ ...f, tissue_type: e.target.value }))}
-          placeholder="Required"
-        />
+        >
+          <option value="">Select tissue</option>
+          {tissueOptions.map((tissue) => (
+            <option key={tissue} value={tissue}>
+              {tissue}
+            </option>
+          ))}
+        </select>
       </td>
       <td className={td}>
         <Input
@@ -608,13 +777,64 @@ export function LimsSamplesSheet({
   const [draftIds, setDraftIds] = useState<string[]>([]);
   const [slidesFor, setSlidesFor] = useState<SampleRow | null>(null);
   const [metadataFor, setMetadataFor] = useState<SampleRow | null>(null);
+  const [saveAllErr, setSaveAllErr] = useState<string | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
+  const saveHandlers = useRef(new Map<string, SaveSampleHandler>());
 
   function addDraftRow() {
+    setSaveAllErr(null);
     setDraftIds((ids) => [...ids, crypto.randomUUID()]);
   }
 
   function removeDraftRow(id: string) {
+    saveHandlers.current.delete(`draft:${id}`);
     setDraftIds((ids) => ids.filter((x) => x !== id));
+  }
+
+  const registerSave = useCallback<RegisterSampleSave>((id, handler) => {
+    if (handler) saveHandlers.current.set(id, handler);
+    else saveHandlers.current.delete(id);
+  }, []);
+
+  function saveAllSamples() {
+    setSaveAllErr(null);
+    const handlers = [
+      ...draftIds
+        .map((id) => saveHandlers.current.get(`draft:${id}`))
+        .filter((handler): handler is SaveSampleHandler => !!handler),
+      ...samples
+        .map((sample) => saveHandlers.current.get(sample.id))
+        .filter((handler): handler is SaveSampleHandler => !!handler),
+    ];
+
+    if (handlers.length === 0) {
+      setSaveAllErr("No samples to save.");
+      return;
+    }
+
+    setSavingAll(true);
+    start(() => {
+      void (async () => {
+        try {
+          const results: SaveSampleResult[] = [];
+          for (const handler of handlers) {
+            results.push(await handler());
+          }
+
+          const failures = results.filter((res) => !res.ok);
+          if (failures.length > 0) {
+            setSaveAllErr(
+              `${failures.length} sample${failures.length === 1 ? "" : "s"} could not be saved. Check row errors.`,
+            );
+            return;
+          }
+
+          onRefresh();
+        } finally {
+          setSavingAll(false);
+        }
+      })();
+    });
   }
 
   const slidesSample =
@@ -638,14 +858,52 @@ export function LimsSamplesSheet({
           <span className="font-medium text-foreground">Save</span> to create{" "}
           <span className="font-mono text-xs">PRJ…-LG-01</span>-style IDs.
         </p>
-        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={addDraftRow}>
-          {pending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="mr-2 h-4 w-4" />
-          )}
-          Add sample
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {saveAllErr ? (
+            <p className="text-xs text-destructive">{saveAllErr}</p>
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={samples.length === 0}
+            onClick={() => downloadSamplesCsv(projectReference, samples)}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export samples CSV
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={
+              pending ||
+              savingAll ||
+              (samples.length === 0 && draftIds.length === 0)
+            }
+            onClick={saveAllSamples}
+          >
+            {pending || savingAll ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Save all samples
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={pending || savingAll}
+            onClick={addDraftRow}
+          >
+            {pending || savingAll ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
+            Add sample
+          </Button>
+        </div>
       </div>
 
       {tableEmpty ? (
@@ -682,9 +940,10 @@ export function LimsSamplesSheet({
                   draftId={draftId}
                   projectId={projectId}
                   onRefresh={onRefresh}
-                  pending={pending}
+                  pending={pending || savingAll}
                   start={start}
                   onRemove={removeDraftRow}
+                  registerSave={registerSave}
                 />
               ))}
               {samples.map((sample) => (
@@ -697,11 +956,12 @@ export function LimsSamplesSheet({
                   catalog={catalog}
                   catalogLoading={catalogLoading}
                   onRefresh={onRefresh}
-                  pending={pending}
+                  pending={pending || savingAll}
                   start={start}
                   onOpenSampleLabel={onOpenSampleLabel}
                   onOpenSlides={() => setSlidesFor(sample)}
                   onOpenMetadata={() => setMetadataFor(sample)}
+                  registerSave={registerSave}
                 />
               ))}
             </tbody>
