@@ -15,11 +15,16 @@ export const SITE_PHONE_DISPLAY = "650-797-1269";
 export const SITE_EMAIL_PRIMARY = "info@pathxdx.com";
 
 export const SITE_ADDRESS = {
-  addressLocality: "South San Francisco",
+  addressLocality: "Brisbane",
   addressRegion: "CA",
-  postalCode: "94080",
+  postalCode: "94005",
   addressCountry: "US",
 } as const;
+
+export function siteAddressShort(): string {
+  const { addressLocality, addressRegion } = SITE_ADDRESS;
+  return `${addressLocality}, ${addressRegion}`;
+}
 
 export function siteAddressLine(): string {
   const { addressLocality, addressRegion, postalCode } = SITE_ADDRESS;

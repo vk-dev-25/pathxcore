@@ -8,7 +8,7 @@ import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
 export const metadata: Metadata = marketingMetadata({
   title: "Contact | PathXdx",
   description:
-    "Contact PathXdx for clinical or preclinical pathology services. South San Francisco, CA.",
+    "Contact PathXdx for clinical or preclinical pathology services. Brisbane, CA.",
   path: "/contact",
 });
 

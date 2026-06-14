@@ -43,10 +43,10 @@ export function marketingMetadata({
 }
 
 const HOME_TITLE_ABSOLUTE =
-  "PathXdx | Clinical & preclinical pathology partner in South San Francisco";
+  "PathXdx | Clinical & preclinical pathology partner in Brisbane, CA";
 
 const HOME_DESCRIPTION =
-  "PathXdx is a South San Francisco pathology partner for hospitals, clinics, biotech, and academia—from accessioning and processing through IHC, special stains, and pathologist evaluation.";
+  "PathXdx is a Brisbane, CA pathology partner for hospitals, clinics, biotech, and academia—from accessioning and processing through IHC, special stains, and pathologist evaluation.";
 
 export const homePageMetadata: Metadata = {
   title: { absolute: HOME_TITLE_ABSOLUTE },

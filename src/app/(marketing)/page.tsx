@@ -23,6 +23,7 @@ import {
   type ServiceSlide,
 } from "@/components/services-slideshow";
 import { commonServicesBlurb } from "@/lib/site-content";
+import { siteAddressShort } from "@/lib/site-identity";
 import { homePageMetadata } from "@/lib/site-seo";
 
 export const metadata: Metadata = homePageMetadata;
@@ -47,7 +48,7 @@ const pillars = [
 
 const highlights = [
   { label: "Coverage", value: "24/7 reach", icon: Clock },
-  { label: "Location", value: "South San Francisco", icon: Microscope },
+  { label: "Location", value: siteAddressShort(), icon: Microscope },
   { label: "Model", value: "Dedicated technologist", icon: Users },
 ];
 

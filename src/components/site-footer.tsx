@@ -38,8 +38,8 @@ export function SiteFooter() {
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Clinical and preclinical pathology services—accessioning through
-              specialized staining, evaluation, and consultation. South San
-              Francisco laboratory partner for care teams and discovery teams.
+              specialized staining, evaluation, and consultation. Brisbane, CA
+              laboratory partner for care teams and discovery teams.
             </p>
             <nav aria-label="Services" className="flex flex-wrap gap-x-4 gap-y-2">
               {serviceLinks.map((item) => (
