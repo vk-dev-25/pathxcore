@@ -4,7 +4,6 @@ import {
   SITE_EMAIL_PRIMARY,
   SITE_NAME,
   SITE_ORIGIN,
-  SITE_PHONE_E164,
 } from "@/lib/site-identity";
 
 const structuredData = [
@@ -14,7 +13,6 @@ const structuredData = [
     name: SITE_NAME,
     url: SITE_ORIGIN,
     logo: ORGANIZATION_LOGO_URL,
-    telephone: SITE_PHONE_E164,
     email: SITE_EMAIL_PRIMARY,
     address: {
       "@type": "PostalAddress",

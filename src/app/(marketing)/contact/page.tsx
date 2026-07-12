@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, Mail, Phone } from "lucide-react";
+import { Clock, Mail } from "lucide-react";
 
 import { ContactUsForm } from "@/components/contact-us-form";
 import { marketingMetadata } from "@/lib/site-seo";
@@ -22,21 +22,6 @@ export default function ContactPage() {
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-8 text-sm">
-          <section>
-            <div className="flex gap-3">
-              <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <h2 className="font-semibold text-foreground">Telephone</h2>
-                <a
-                  href="tel:+16507971269"
-                  className="mt-1 block text-muted-foreground hover:text-foreground"
-                >
-                  Tel: 650-797-1269
-                </a>
-              </div>
-            </div>
-          </section>
-
           <section>
             <div className="flex gap-3">
               <Mail className="mt-0.5 h-5 w-5 shrink-0 text-primary" />

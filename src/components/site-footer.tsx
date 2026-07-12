@@ -1,12 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import {
   SITE_EMAIL_PRIMARY,
-  SITE_PHONE_DISPLAY,
-  SITE_PHONE_E164,
   siteAddressLine,
 } from "@/lib/site-identity";
 
@@ -56,15 +54,6 @@ export function SiteFooter() {
           <div className="space-y-4">
             <p className="text-sm font-semibold text-foreground">Contact</p>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <a
-                  href={`tel:${SITE_PHONE_E164}`}
-                  className="transition-colors hover:text-foreground"
-                >
-                  Main: {SITE_PHONE_DISPLAY}
-                </a>
-              </li>
               <li className="flex items-start gap-2">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-lab-purple" />
                 <a

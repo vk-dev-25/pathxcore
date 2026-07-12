@@ -8,10 +8,6 @@ export const DEFAULT_OG_IMAGE_PATH = "/images/pathxdx-logo.svg";
 
 export const ORGANIZATION_LOGO_URL = `${SITE_ORIGIN}${DEFAULT_OG_IMAGE_PATH}`;
 
-export const SITE_PHONE_E164 = "+16507971269";
-
-export const SITE_PHONE_DISPLAY = "650-797-1269";
-
 export const SITE_EMAIL_PRIMARY = "info@pathxdx.com";
 
 export const SITE_ADDRESS = {
