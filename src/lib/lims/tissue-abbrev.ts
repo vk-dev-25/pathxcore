@@ -10,6 +10,7 @@ export const LIMS_TISSUE_OPTIONS = [
   "Bone marrow",
   "Brain",
   "Breast",
+  "Cell pellet",
   "Colon",
   "Eye",
   "Heart",
@@ -27,6 +28,7 @@ export const LIMS_TISSUE_OPTIONS = [
   "Stomach",
   "Testis",
   "Thyroid",
+  "Tonsil",
   "Uterus",
 ] as const;
 
@@ -54,9 +56,12 @@ const TISSUE_TO_ABBREV: Record<string, string> = {
   pancreas: "PN",
   prostate: "PR",
   breast: "BT",
+  "cell pellet": "CP",
   ovary: "OV",
   ovaries: "OV",
   thyroid: "TY",
+  tonsil: "TN",
+  tonsils: "TN",
   lymph: "LN",
   "lymph node": "LN",
   "lymph nodes": "LN",
