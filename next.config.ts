@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
         destination: "https://tissuesxdx.com",
         permanent: false,
       },
+      {
+        source: "/clinical-services",
+        destination: "/areas-of-expertise",
+        permanent: true,
+      },
+      {
+        source: "/therapeutic-areas",
+        destination: "/areas-of-expertise",
+        permanent: true,
+      },
     ];
   },
 };

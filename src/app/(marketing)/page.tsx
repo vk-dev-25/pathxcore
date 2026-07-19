@@ -30,7 +30,7 @@ export const metadata: Metadata = homePageMetadata;
 
 const pillars = [
   {
-    title: "Partner in diagnostic pathology",
+    title: "Partner in preclinical pathology",
     body: "Technologists and pathologists aligned to your protocol, turnaround, and quality bar.",
     icon: ShieldCheck,
   },
@@ -40,8 +40,8 @@ const pillars = [
     icon: Layers,
   },
   {
-    title: "Built for clinical & preclinical",
-    body: "Hospitals and clinics alongside biotech, CRO, and academic discovery programs.",
+    title: "Built for biotech, pharma & academia",
+    body: "Preclinical and discovery programs for research teams and CRO partners.",
     icon: Sparkles,
   },
 ];
@@ -54,11 +54,11 @@ const highlights = [
 
 const serviceSlides: ServiceSlide[] = [
   {
-    title: "Clinical diagnostic pathology",
+    title: "Histology & IHC for discovery",
     description:
-      "Specialty-focused support for hospitals, clinics, and physicians—cardiology, dermatology, neurology, and more—aligned to the diagnoses you deliver for patients.",
-    href: "/contact",
-    cta: "Contact us",
+      "Specimen handling, H&E, special stains, and IHC panels for biotech, pharma, and academic research programs—aligned to your study design.",
+    href: "/preclinical-services",
+    cta: "See preclinical workflow",
     imageSrc: "/images/hero-lab-team.png",
     imageAlt:
       "PathXdx technologists collaborating at laboratory instrumentation",
@@ -122,7 +122,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto flex min-h-[min(92vh,920px)] max-w-6xl flex-col justify-center px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-            Pathology · Diagnostics · Partnership
+            Pathology · Preclinical · Partnership
           </p>
           <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:max-w-2xl sm:text-5xl lg:text-[3.25rem]">
             Shorten the path from specimen to{" "}
@@ -130,7 +130,7 @@ export default function HomePage() {
             .
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            PathXdx supports hospitals, clinics, biotech, and academia—from
+            PathXdx supports biotech, pharma, CROs, and academic research—from
             accessioning and processing through staining, IHC, and pathologist
             evaluation—with a team that shows up on your timeline.
           </p>
@@ -273,8 +273,8 @@ export default function HomePage() {
             Services aligned to pathxdx.com
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Clinical diagnostics and preclinical programs—with shared
-            operational excellence—shown as rotating featured services below.
+            Preclinical and discovery programs—with shared operational
+            excellence—shown as rotating featured services below.
           </p>
         </div>
         <ServicesSlideshow slides={serviceSlides} />
@@ -305,9 +305,9 @@ export default function HomePage() {
           <div className="space-y-3">
             <h3 className="text-lg font-semibold">Our mission</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Our ultimate mission is serving patients. By understanding your
+              Our mission is advancing discovery. By understanding your study
               needs we can provide the best solution so you may maximize your
-              potential in the pursuit of your mission.
+              potential in the pursuit of your research goals.
             </p>
           </div>
           <div className="space-y-3">

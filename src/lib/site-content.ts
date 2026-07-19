@@ -1,7 +1,8 @@
 export const commonServicesBlurb =
-  "The following services are provided for both clinical and preclinical settings: accessioning, grossing / dictation / trimming, tissue processing, embedding, sectioning (frozen and fixed), staining (H&E, special stain, IHC), glass cover-slipping, DNA/RNA analyses, tissue banking services, tissue micro-array (TMA), clinical chemistry, consulting, and more.";
+  "The following services support preclinical and discovery programs: accessioning, grossing / dictation / trimming, tissue processing, embedding, sectioning (frozen and fixed), staining (H&E, special stain, IHC), glass cover-slipping, DNA/RNA analyses, tissue banking services, tissue micro-array (TMA), chemistry / biomarker assays, consulting, and more.";
 
-export const clinicalSpecialties = [
+/** Organ systems and disease areas we support for preclinical / discovery work. */
+export const expertiseAreas = [
   "Cardiology",
   "Gynecology",
   "Neurology",

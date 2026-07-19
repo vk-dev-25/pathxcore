@@ -9,8 +9,8 @@ import {
 } from "@/lib/site-identity";
 
 const serviceLinks = [
-  { href: "/clinical-services", label: "Clinical services" },
   { href: "/preclinical-services", label: "Preclinical services" },
+  { href: "/areas-of-expertise", label: "Areas of expertise" },
   { href: "/tissue-bank", label: "Tissue bank" },
   { href: "/contact", label: "Contact" },
 ] as const;
@@ -35,9 +35,9 @@ export function SiteFooter() {
               />
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Clinical and preclinical pathology services—accessioning through
+              Preclinical pathology and histology services—accessioning through
               specialized staining, evaluation, and consultation. Brisbane, CA
-              laboratory partner for care teams and discovery teams.
+              laboratory partner for biotech, pharma, and discovery teams.
             </p>
             <nav aria-label="Services" className="flex flex-wrap gap-x-4 gap-y-2">
               {serviceLinks.map((item) => (

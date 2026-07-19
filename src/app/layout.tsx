@@ -18,11 +18,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "PathXdx | Clinical & preclinical pathology",
+    default: "PathXdx | Preclinical pathology & histology",
     template: "%s | PathXdx",
   },
   description:
-    "PathXdx provides clinical and preclinical pathology services—from accessioning and processing through staining, IHC, and pathologist evaluation.",
+    "PathXdx provides preclinical pathology and histology services for biotech, pharma, and research teams—from accessioning and processing through staining, IHC, and pathologist evaluation.",
   metadataBase: new URL("https://pathxdx.com"),
   icons: {
     icon: [{ url: DEFAULT_OG_IMAGE_PATH, type: "image/svg+xml" }],
