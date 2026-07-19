@@ -5,6 +5,7 @@ import {
   type QuoteBuilderMode,
 } from "@/components/pathx/quote-builder";
 import type { CatalogServiceRow } from "@/components/pathx/quote-builder";
+import { listClientsAction } from "@/lib/clients/list-clients-action";
 import {
   getQuoteDraftAction,
   type QuoteDraftPayload,
@@ -36,13 +37,14 @@ export default async function PathXQuoteBuilderPage({
   }
 
   const supabase = await createClient();
-  const [{ data }, pricingSettings] = await Promise.all([
+  const [{ data }, pricingSettings, clients] = await Promise.all([
     supabase
       .from("quote_catalog_services")
       .select("id, slug, name, description, default_unit_price, sort_order")
       .eq("active", true)
       .order("sort_order", { ascending: true }),
     loadPricingSettings(),
+    listClientsAction(),
   ]);
 
   const catalog: CatalogServiceRow[] = (data ?? []).map((row) => ({
@@ -61,6 +63,7 @@ export default async function PathXQuoteBuilderPage({
       pricingSettings={pricingSettings}
       mode={mode}
       initialDraft={initialDraft}
+      clients={clients}
     />
   );
 }

@@ -42,7 +42,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ClientCombobox } from "@/components/ui/client-combobox";
 import { Input } from "@/components/ui/input";
+import type { ClientSuggestion } from "@/lib/clients/types";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -87,12 +89,14 @@ export function QuoteBuilderClient({
   mode = "create",
   quoteId = null,
   initialDraft = null,
+  clients = [],
 }: {
   catalog: CatalogServiceRow[];
   pricingSettings?: PricingSettingsSnapshot;
   mode?: QuoteBuilderMode;
   quoteId?: string | null;
   initialDraft?: QuoteDraftPayload | null;
+  clients?: ClientSuggestion[];
 }) {
   const router = useRouter();
   const pricingSettings = pricingSettingsProp ?? defaultPricingSettings();
@@ -454,11 +458,17 @@ export function QuoteBuilderClient({
                 <Label htmlFor="org" className="text-foreground">
                   Client / organization name
                 </Label>
-                <Input
+                <ClientCombobox
                   id="org"
                   value={clientOrg}
-                  onChange={(e) => setClientOrg(e.target.value)}
-                  placeholder="Organization"
+                  onChange={setClientOrg}
+                  onSelect={(c) => {
+                    setClientOrg(c.org_name);
+                    if (c.address) setClientAddress(c.address);
+                    if (c.contact_name) setContactName(c.contact_name);
+                  }}
+                  clients={clients}
+                  placeholder="Start typing to find an existing client…"
                   className={cn(fieldClass)}
                 />
               </div>

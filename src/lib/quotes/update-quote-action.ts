@@ -9,6 +9,7 @@ import {
   type QuoteLineInput,
   type Segment,
 } from "@/lib/quote-pricing";
+import { findOrCreateClient } from "@/lib/clients/upsert-client";
 import { catalogIdForInsert } from "@/lib/quotes/quote-line-catalog-id";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
@@ -100,9 +101,22 @@ export async function updateQuoteAction(input: {
     { applyVolumeDiscount: input.apply_volume_discount ?? true },
   );
 
+  let clientId: string | null = null;
+  try {
+    clientId = await findOrCreateClient(db, {
+      org_name: input.client_org_name,
+      address: input.client_address,
+      contact_name: input.contact_name,
+      created_by: user.id,
+    });
+  } catch (e) {
+    console.warn("updateQuoteAction: client link skipped:", e);
+  }
+
   const { error: uErr } = await db
     .from("quotes")
     .update({
+      client_id: clientId,
       client_org_name: input.client_org_name.trim() || null,
       client_address: input.client_address.trim() || null,
       contact_name: input.contact_name.trim() || null,

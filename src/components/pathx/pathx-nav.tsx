@@ -19,7 +19,12 @@ const items: { href: string; label: string; match: "exact" | "prefix" }[] = [
     label: "Antibodies",
     match: "prefix",
   },
+  { href: "/pathx/trackers", label: "Trackers", match: "prefix" },
+  { href: "/pathx/admin/staff", label: "Staff", match: "prefix" },
 ];
+
+const clientItems: { href: string; label: string; match: "exact" | "prefix" }[] =
+  [{ href: "/pathx/trackers", label: "Project Tracker", match: "prefix" }];
 
 function isActive(pathname: string, href: string, match: "exact" | "prefix") {
   if (match === "exact") {
@@ -28,8 +33,9 @@ function isActive(pathname: string, href: string, match: "exact" | "prefix") {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function PathXNav() {
+export function PathXNav({ clientMode = false }: { clientMode?: boolean }) {
   const pathname = usePathname();
+  const navItems = clientMode ? clientItems : items;
 
   return (
     <nav
@@ -37,7 +43,7 @@ export function PathXNav() {
       aria-label="PathX workspace"
     >
       <div className="mx-auto flex max-w-6xl flex-wrap gap-1 px-4 py-2 sm:px-6">
-        {items.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(pathname, item.href, item.match);
           const className = cn(
             "rounded-md px-3 py-2 text-sm font-medium transition-colors",

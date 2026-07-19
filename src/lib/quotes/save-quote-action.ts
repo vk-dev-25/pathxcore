@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { findOrCreateClient } from "@/lib/clients/upsert-client";
 import {
   computeQuoteTotals,
   isValidSegment,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/quote-pricing";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type SaveQuoteState =
@@ -72,10 +74,24 @@ export async function saveQuoteAction(input: {
     { applyVolumeDiscount: input.apply_volume_discount ?? true },
   );
 
+  let clientId: string | null = null;
+  try {
+    const admin = createServiceRoleClient();
+    clientId = await findOrCreateClient(admin, {
+      org_name: input.client_org_name,
+      address: input.client_address,
+      contact_name: input.contact_name,
+      created_by: user.id,
+    });
+  } catch (e) {
+    console.warn("saveQuoteAction: client link skipped:", e);
+  }
+
   const { data: quote, error: qErr } = await supabase
     .from("quotes")
     .insert({
       user_id: user.id,
+      client_id: clientId,
       client_org_name: input.client_org_name.trim() || null,
       client_address: input.client_address.trim() || null,
       contact_name: input.contact_name.trim() || null,
