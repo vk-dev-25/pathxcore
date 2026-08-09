@@ -6,18 +6,27 @@ import { marketingMetadata } from "@/lib/site-seo";
 import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
 
 export const metadata: Metadata = marketingMetadata({
-  title: "Contact | PathXdx",
+  title: "Discuss Your Study | PathXDx Research Pathology",
   description:
-    "Contact PathXdx for preclinical pathology and histology services. Brisbane, CA.",
+    "Talk to our team about histology, IHC, multiplex immunofluorescence, or image analysis for your research program.",
   path: "/contact",
 });
 
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Contact us</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Send a message and we will get back to you by email.
+      <h1 className="text-3xl font-semibold tracking-tight">
+        Discuss your study
+      </h1>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        Tell us what you&apos;re working on. Tissue type, targets, study stage,
+        and timeline are the most useful things to include. We&apos;ll tell you
+        what&apos;s feasible and what it costs.
+      </p>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        For multiplex or image analysis programs, sharing your study design up
+        front lets us give you a realistic scope on the first call rather than
+        the third.
       </p>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-14">

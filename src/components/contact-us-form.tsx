@@ -13,11 +13,23 @@ type ContactUsFormProps = {
   className?: string;
 };
 
+const INQUIRY_TYPES = [
+  "Digital pathology / image analysis",
+  "Multiplex immunofluorescence",
+  "Immunohistochemistry",
+  "Histology / routine processing",
+  "Pathologist evaluation",
+  "Tissue bank inquiry",
+  "International collaboration",
+  "General inquiry",
+] as const;
+
 export function ContactUsForm({
   variant = "inline",
   className,
 }: ContactUsFormProps) {
   const [email, setEmail] = useState("");
+  const [inquiryType, setInquiryType] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
@@ -32,13 +44,17 @@ export function ContactUsForm({
     setStatus("loading");
     setErrorMsg("");
 
+    const composed = inquiryType
+      ? `Inquiry type: ${inquiryType}\n\n${message.trim()}`
+      : message.trim();
+
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
-          message: message.trim(),
+          message: composed,
           website: honeypot,
         }),
       });
@@ -60,6 +76,7 @@ export function ContactUsForm({
 
       setStatus("success");
       setEmail("");
+      setInquiryType("");
       setMessage("");
     } catch {
       setStatus("error");
@@ -75,7 +92,7 @@ export function ContactUsForm({
           variant === "dialog" && "pr-8",
         )}
       >
-        Thanks — we received your message and will get back to you soon.
+        Thanks, we received your message and will get back to you soon.
       </p>
     );
   }
@@ -113,6 +130,26 @@ export function ContactUsForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="contact-inquiry">Inquiry type</Label>
+        <select
+          id="contact-inquiry"
+          name="inquiryType"
+          required
+          value={inquiryType}
+          onChange={(e) => setInquiryType(e.target.value)}
+          disabled={status === "loading"}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <option value="">Select…</option>
+          {INQUIRY_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="contact-message">Message</Label>
         <Textarea
           id="contact-message"
@@ -120,7 +157,7 @@ export function ContactUsForm({
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="How can we help?"
+          placeholder="Tissue type, targets, study stage, timeline…"
           disabled={status === "loading"}
           rows={5}
         />

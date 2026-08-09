@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +12,10 @@ import { preclinicalSteps } from "@/lib/site-content";
 import { marketingMetadata } from "@/lib/site-seo";
 
 export const metadata: Metadata = marketingMetadata({
-  title: "Preclinical services | PathXdx",
+  title:
+    "Research Pathology Services | Histology, IHC, Multiplex IF & Image Analysis | PathXDx",
   description:
-    "Preclinical pathology workflow from accessioning and processing through staining, IHC, and pathologist evaluation.",
+    "Full research pathology workflow from accessioning through quantitative image analysis. Multiplex immunofluorescence, whole-slide imaging, and in-house analysis. Research use only.",
   path: "/preclinical-services",
 });
 
@@ -21,19 +24,26 @@ export default function PreclinicalServicesPage() {
     <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
       <div className="max-w-3xl">
         <p className="text-sm font-medium uppercase tracking-widest text-primary">
-          Preclinical
+          Research pathology
         </p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-          Preclinical services
+          Research pathology services
         </h1>
         <p className="mt-4 text-muted-foreground">
-          A transparent view of the core workflow we use to move specimens from
-          receipt to stained slides and pathologist evaluation—aligned with how
-          we describe our process on pathxdx.com.
+          A transparent view of how we move specimens from receipt through to
+          quantified results. Every service below supports preclinical,
+          discovery, and translational research programs.
+        </p>
+        <p className="mt-3 text-muted-foreground">
+          Share your study design and we&apos;ll tell you what&apos;s feasible,
+          what it costs, and how long it takes before you commit.
         </p>
       </div>
 
-      <ol className="mt-12 space-y-4">
+      <h2 className="mt-14 text-xl font-semibold tracking-tight">
+        The workflow
+      </h2>
+      <ol className="mt-6 space-y-4">
         {preclinicalSteps.map((step, index) => (
           <li key={step.title}>
             <Card className="border-border/80">
@@ -52,6 +62,12 @@ export default function PreclinicalServicesPage() {
           </li>
         ))}
       </ol>
+
+      <div className="mt-12">
+        <Button asChild>
+          <Link href="/contact">Discuss your study</Link>
+        </Button>
+      </div>
     </div>
   );
 }

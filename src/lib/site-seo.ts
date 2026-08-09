@@ -10,7 +10,7 @@ export type MarketingSeoPage = {
   /** Full HTML title (include brand if you want it explicit). */
   title: string;
   description: string;
-  /** Path only, e.g. `/contact` — used for canonical and OG url. */
+  /** Path only, e.g. `/contact`, used for canonical and OG url. */
   path: string;
 };
 
@@ -43,10 +43,10 @@ export function marketingMetadata({
 }
 
 const HOME_TITLE_ABSOLUTE =
-  "PathXdx | Preclinical pathology & histology partner in Brisbane, CA";
+  "PathXDx | Research Pathology, Multiplex IF & Digital Pathology | Brisbane, CA";
 
 const HOME_DESCRIPTION =
-  "PathXdx is a Brisbane, CA preclinical pathology and histology partner for biotech, pharma, CROs, and academia—from accessioning and processing through IHC, special stains, and pathologist evaluation.";
+  "Research pathology laboratory in Brisbane, California. Histology, IHC, multiplex immunofluorescence, whole-slide imaging, and quantitative image analysis for preclinical, discovery, and translational programs. Research use only.";
 
 export const homePageMetadata: Metadata = {
   title: { absolute: HOME_TITLE_ABSOLUTE },

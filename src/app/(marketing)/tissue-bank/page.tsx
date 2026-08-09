@@ -37,9 +37,9 @@ import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   return marketingMetadata({
-    title: "Tissue Blocks | PathXdx",
+    title: "Research Tissue Bank | Consented Specimens for Preclinical Research | PathXDx",
     description:
-      "Browse PathXdx tissue block inventory—filters, metrics, and export.",
+      "Research-consented human and animal specimens for preclinical and translational programs. Searchable by tissue type and specimen characteristics.",
     path: "/tissue-bank",
   });
 }
@@ -98,7 +98,7 @@ export default async function TissueBankPage({
           </h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Public catalog of available blocks. Data is loaded securely on the
-            server — no database credentials are exposed in the browser.
+            server. No database credentials are exposed in the browser.
           </p>
         </div>
 
@@ -259,7 +259,7 @@ export default async function TissueBankPage({
             <div>
               <CardTitle className="text-lg">Inventory</CardTitle>
               <CardDescription>
-                {list.total.toLocaleString()} blocks — click a row for full
+                {list.total.toLocaleString()} blocks. Click a row for full
                 diagnosis
               </CardDescription>
             </div>

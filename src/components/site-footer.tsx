@@ -4,6 +4,10 @@ import { Mail, MapPin } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import {
+  footerTagline,
+  researchUseOnlyFooter,
+} from "@/lib/site-content";
+import {
   SITE_EMAIL_PRIMARY,
   siteAddressLine,
 } from "@/lib/site-identity";
@@ -35,9 +39,7 @@ export function SiteFooter() {
               />
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Preclinical pathology and histology services—accessioning through
-              specialized staining, evaluation, and consultation. Brisbane, CA
-              laboratory partner for biotech, pharma, and discovery teams.
+              {footerTagline}
             </p>
             <nav aria-label="Services" className="flex flex-wrap gap-x-4 gap-y-2">
               {serviceLinks.map((item) => (
@@ -79,12 +81,15 @@ export function SiteFooter() {
               href="/contact"
               className="inline-flex text-sm font-semibold text-primary transition-colors hover:text-primary/80"
             >
-              Book a visit or message us →
+              Discuss your study →
             </Link>
           </div>
         </div>
         <Separator className="my-10 bg-white/[0.08]" />
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="mx-auto max-w-4xl text-center text-xs leading-relaxed text-muted-foreground">
+          {researchUseOnlyFooter}
+        </p>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} PathXdx. All rights reserved.
         </p>
       </div>
