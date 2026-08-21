@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { roundMoney } from "@/lib/quote-pricing";
+import {
+  isValidSegment,
+  roundMoney,
+  volumeDiscountPercent,
+  type Segment,
+} from "@/lib/quote-pricing";
+import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
 export type CreateInvoiceFromQuoteResult =
@@ -79,7 +85,7 @@ export async function createInvoiceFromQuoteAction(
     const { data: quote, error: qErr } = await supabase
       .from("quotes")
       .select(
-        "id, client_org_name, client_address, contact_name, project_title, notes",
+        "id, client_org_name, client_address, contact_name, project_title, notes, segment, sample_volume, rush_priority, rush_2day, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount",
       )
       .eq("id", quoteId)
       .maybeSingle();
@@ -99,12 +105,14 @@ export async function createInvoiceFromQuoteAction(
       return { ok: false, error: "Quote has no line items." };
     }
 
-    const subtotal = roundMoney(
-      quoteLines.reduce(
-        (sum, line) => sum + roundMoney(Number(line.quantity) * Number(line.unit_price)),
-        0,
-      ),
-    );
+    const segment: Segment = isValidSegment(String(quote.segment ?? ""))
+      ? (quote.segment as Segment)
+      : "small_biopharma";
+    const sampleVolume = Math.max(0, Math.floor(Number(quote.sample_volume) || 0));
+    const volumeDiscountAmount = Number(quote.volume_discount_amount) || 0;
+    const pricingSettings = await loadPricingSettings();
+    const defaultVolPct = volumeDiscountPercent(sampleVolume, pricingSettings);
+    const applyVolumeDiscount = !(defaultVolPct > 0 && volumeDiscountAmount === 0);
 
     let createdId: string | null = null;
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -122,8 +130,18 @@ export async function createInvoiceFromQuoteAction(
           invoice_reference: invoiceReference,
           status: "created" as const,
           due_date: defaultDueDateIso(),
-          subtotal_amount: subtotal,
-          total_amount: subtotal,
+          segment,
+          sample_volume: sampleVolume,
+          rush_priority: Boolean(quote.rush_priority),
+          rush_2day: Boolean(quote.rush_2day),
+          apply_volume_discount: applyVolumeDiscount,
+          subtotal_amount: Number(quote.subtotal_amount) || 0,
+          segment_adjustment_amount: Number(quote.segment_adjustment_amount) || 0,
+          after_segment_amount: Number(quote.after_segment_amount) || 0,
+          volume_discount_amount: volumeDiscountAmount,
+          after_volume_amount: Number(quote.after_volume_amount) || 0,
+          rush_uplift_amount: Number(quote.rush_uplift_amount) || 0,
+          total_amount: Number(quote.total_amount) || 0,
           last_updated_by: user.id,
           last_updated_by_email: user.email ?? null,
         })

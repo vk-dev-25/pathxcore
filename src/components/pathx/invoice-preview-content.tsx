@@ -178,6 +178,42 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground print:text-neutral-700">
+            Subtotal
+          </span>
+          <span className="print:text-black">{money(data.totals.subtotal_amount)}</span>
+        </div>
+        {Math.abs(data.totals.segment_adjustment_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Price adjustment
+            </span>
+            <span className="print:text-black">
+              {money(data.totals.segment_adjustment_amount)}
+            </span>
+          </div>
+        ) : null}
+        {Math.abs(data.totals.volume_discount_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Volume discount ({data.totals.volume_discount_percent}%)
+            </span>
+            <span className="print:text-black">
+              −{money(data.totals.volume_discount_amount)}
+            </span>
+          </div>
+        ) : null}
+        {Math.abs(data.totals.rush_uplift_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Rush uplift
+            </span>
+            <span className="print:text-black">
+              {money(data.totals.rush_uplift_amount)}
+            </span>
+          </div>
+        ) : null}
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground print:text-neutral-700">
             Sales tax
           </span>
           <span className="print:text-black">{money(0)}</span>
