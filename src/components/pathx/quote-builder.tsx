@@ -920,11 +920,12 @@ export function QuoteBuilderClient({
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
                           onClick={() => setApplyVolumeDiscount(false)}
+                          aria-label="Remove volume discount"
                         >
-                          Remove
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       ) : null}
                     </span>

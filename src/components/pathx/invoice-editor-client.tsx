@@ -594,37 +594,44 @@ export function InvoiceEditorClient({
                       {money(totals.subtotal_amount)}
                     </span>
                   </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Segment adjustment</span>
-                    <span className="tabular-nums">
-                      {money(totals.segment_adjustment_amount)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Volume discount</span>
-                    <span className="flex items-center gap-2">
-                      <span className="tabular-nums text-primary">
-                        −{money(totals.volume_discount_amount)}
+                  {Math.abs(totals.segment_adjustment_amount) >= 0.005 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">Segment adjustment</span>
+                      <span className="tabular-nums">
+                        {money(totals.segment_adjustment_amount)}
                       </span>
-                      {applyVolumeDiscount && totals.volume_discount_amount > 0 ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                          onClick={() => setApplyVolumeDiscount(false)}
-                        >
-                          Remove
-                        </Button>
-                      ) : null}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Rush uplift</span>
-                    <span className="tabular-nums">
-                      {money(totals.rush_uplift_amount)}
-                    </span>
-                  </div>
+                    </div>
+                  ) : null}
+                  {Math.abs(totals.volume_discount_amount) >= 0.005 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">Volume discount</span>
+                      <span className="flex items-center gap-2">
+                        <span className="tabular-nums text-primary">
+                          −{money(totals.volume_discount_amount)}
+                        </span>
+                        {applyVolumeDiscount ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => setApplyVolumeDiscount(false)}
+                            aria-label="Remove volume discount"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : null}
+                      </span>
+                    </div>
+                  ) : null}
+                  {Math.abs(totals.rush_uplift_amount) >= 0.005 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">Rush uplift</span>
+                      <span className="tabular-nums">
+                        {money(totals.rush_uplift_amount)}
+                      </span>
+                    </div>
+                  ) : null}
                   <Separator className="bg-white/[0.08]" />
                   <div className="flex justify-between gap-4 text-base">
                     <span className="font-semibold">Total (USD)</span>
