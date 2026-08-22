@@ -1,119 +1,68 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ContactUsForm } from "@/components/contact-us-form";
+import { marketingMetadata } from "@/lib/site-seo";
+import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
 
-export const metadata: Metadata = {
-  title: "Contact | PathXdx",
+export const metadata: Metadata = marketingMetadata({
+  title: "Discuss Your Study | PathXDx Research Pathology",
   description:
-    "Contact PathXdx for clinical or preclinical pathology services. South San Francisco, CA.",
-};
+    "Talk to our team about histology, IHC, multiplex immunofluorescence, or image analysis for your research program.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-      <div className="max-w-3xl">
-        <p className="text-sm font-medium uppercase tracking-widest text-primary">
-          Contact
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-          Contact us today
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          We will get back to you as soon as we can. For secure client workflows
-          and modules (LIMS, quote builder), use the client portal after signing
-          in.
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+      <h1 className="text-3xl font-semibold tracking-tight">
+        Discuss your study
+      </h1>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        Tell us what you&apos;re working on. Tissue type, targets, study stage,
+        and timeline are the most useful things to include. We&apos;ll tell you
+        what&apos;s feasible and what it costs.
+      </p>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        For multiplex or image analysis programs, sharing your study design up
+        front lets us give you a realistic scope on the first call rather than
+        the third.
+      </p>
 
-      <div className="mt-12 grid gap-8 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Reach the team</CardTitle>
-            <CardDescription>
-              Telephone, email, and laboratory location.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 text-sm">
-            <div className="flex gap-3">
-              <Phone className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">Telephone</p>
-                <a
-                  href="tel:+16507971269"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  650-797-1269
-                </a>
-              </div>
-            </div>
+      <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-14">
+        <div className="space-y-8 text-sm">
+          <section>
             <div className="flex gap-3">
               <Mail className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Email</p>
-                <div className="flex flex-col gap-1 text-muted-foreground">
-                  <a
-                    href="mailto:info@pathxdx.com"
-                    className="hover:text-foreground"
-                  >
-                    info@pathxdx.com
-                  </a>
-                  <a
-                    href="mailto:nick@pathxdx.com"
-                    className="hover:text-foreground"
-                  >
-                    nick@pathxdx.com
-                  </a>
-                </div>
+                <h2 className="font-semibold text-foreground">Email</h2>
+                <a
+                  href={`mailto:${SITE_EMAIL_PRIMARY}`}
+                  className="mt-1 block text-muted-foreground hover:text-foreground"
+                >
+                  {SITE_EMAIL_PRIMARY}
+                </a>
               </div>
             </div>
-            <div className="flex gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">
-                  Getting to our laboratory
-                </p>
-                <p className="text-muted-foreground">
-                  South San Francisco, CA 94080
-                </p>
-              </div>
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Hours</p>
-              <p className="text-muted-foreground">
-                Monday–Friday: 7am–7pm · Saturday: 9am–5pm. You may also reach
-                us outside these hours—we monitor messages regularly.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          </section>
 
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle>Client portal</CardTitle>
-            <CardDescription>
-              Signed-in access to PathX modules (LIMS, quote builder, and more).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              For project intake tied to your account, sign in to the PathX
-              workspace. New users receive access from your PathXdx
-              administrator.
-            </p>
-            <Button asChild>
-              <Link href="/pathx/sign-in">Sign in</Link>
-            </Button>
-          </CardContent>
-        </Card>
+          <section>
+            <div className="flex gap-3">
+              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <h2 className="font-semibold text-foreground">Opening Hours</h2>
+                <p className="mt-1 whitespace-pre-line text-muted-foreground">
+                  {`Mon - Fri: 7am - 7pm
+Saturday: 9am - 5pm`}
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="lg:pt-1">
+          <ContactUsForm variant="inline" />
+        </div>
       </div>
     </div>
   );

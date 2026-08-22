@@ -6,16 +6,14 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, Loader2, Plus, Search, Trash2 } from "lucide-react";
 
 import {
+  deleteCatalogServiceAction,
   insertCatalogServiceAction,
-  updateCatalogPricesAction,
+  updateCatalogRowsAction,
   updatePricingSettingsAction,
 } from "@/lib/quotes/pricing-admin-actions";
 import { slugifyCatalogSlug } from "@/lib/quotes/catalog-slug";
 import {
-  SEGMENT_OPTIONS,
   type PricingSettingsSnapshot,
-  type Segment,
-  type VolumeTier,
 } from "@/lib/quote-pricing";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,12 +28,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 import type { CatalogServiceRow } from "@/components/pathx/quote-builder";
-
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl transition-[box-shadow,border-color] duration-300 hover:shadow-[0_0_40px_-24px_hsl(var(--primary)/0.25)]";
+import {
+  pathxCardClassHover as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
 
 export function AdminPricingClient({
   initialCatalog,
@@ -55,9 +51,16 @@ export function AdminPricingClient({
     }
     return m;
   });
-  const [tiers, setTiers] = useState<VolumeTier[]>(() =>
-    [...initialSettings.volume_tiers].sort((a, b) => a.min - b.min),
+  const [names, setNames] = useState<Record<string, string>>(() =>
+    Object.fromEntries(initialCatalog.map((c) => [c.id, c.name])),
   );
+  const [slugs, setSlugs] = useState<Record<string, string>>(() =>
+    Object.fromEntries(initialCatalog.map((c) => [c.id, c.slug])),
+  );
+  const [descriptions, setDescriptions] = useState<Record<string, string>>(() =>
+    Object.fromEntries(initialCatalog.map((c) => [c.id, c.description ?? ""])),
+  );
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -67,6 +70,7 @@ export function AdminPricingClient({
   const [err, setErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [addPending, startAddTransition] = useTransition();
+  const [deletePending, startDeleteTransition] = useTransition();
   const [addServiceOpen, setAddServiceOpen] = useState(false);
 
   const nextSortOrder = useMemo(
@@ -89,37 +93,28 @@ export function AdminPricingClient({
       }
       return next;
     });
+    setNames((prev) => {
+      const next = { ...prev };
+      for (const c of initialCatalog) {
+        if (next[c.id] === undefined) next[c.id] = c.name;
+      }
+      return next;
+    });
+    setSlugs((prev) => {
+      const next = { ...prev };
+      for (const c of initialCatalog) {
+        if (next[c.id] === undefined) next[c.id] = c.slug;
+      }
+      return next;
+    });
+    setDescriptions((prev) => {
+      const next = { ...prev };
+      for (const c of initialCatalog) {
+        if (next[c.id] === undefined) next[c.id] = c.description ?? "";
+      }
+      return next;
+    });
   }, [initialCatalog]);
-
-  function setSegMult(seg: Segment, v: string) {
-    const n = parseFloat(v);
-    setSettings((s) => ({
-      ...s,
-      segment_multipliers: {
-        ...s.segment_multipliers,
-        [seg]: Number.isFinite(n) ? n : s.segment_multipliers[seg] ?? 1,
-      },
-    }));
-  }
-
-  function addTier() {
-    const last = tiers[tiers.length - 1];
-    const start = last ? last.max + 1 : 1;
-    setTiers((t) => [
-      ...t,
-      { min: start, max: start + 100, discountPercent: 0 },
-    ]);
-  }
-
-  function updateTier(i: number, patch: Partial<VolumeTier>) {
-    setTiers((t) =>
-      t.map((row, j) => (j === i ? { ...row, ...patch } : row)),
-    );
-  }
-
-  function removeTier(i: number) {
-    setTiers((t) => t.filter((_, j) => j !== i));
-  }
 
   function onNewNameChange(v: string) {
     setNewName(v);
@@ -163,32 +158,51 @@ export function AdminPricingClient({
     setMsg(null);
     setErr(null);
     startTransition(async () => {
-      const priceRows = initialCatalog.map((c) => ({
+      const catalogRows = initialCatalog.map((c) => ({
         id: c.id,
+        name: names[c.id] ?? c.name,
+        slug: slugs[c.id] ?? c.slug,
+        description: descriptions[c.id] ?? "",
         default_unit_price: parseFloat(prices[c.id] ?? "") || 0,
       }));
-      const bad = priceRows.some((r) => r.default_unit_price < 0);
+      const bad = catalogRows.some((r) => r.default_unit_price < 0);
       if (bad) {
         setErr("All catalog prices must be zero or positive.");
         return;
       }
 
-      const catRes = await updateCatalogPricesAction(priceRows);
+      const catRes = await updateCatalogRowsAction(catalogRows);
       if (!catRes.ok) {
         setErr(catRes.error);
         return;
       }
 
-      const snap: PricingSettingsSnapshot = {
-        ...settings,
-        volume_tiers: tiers,
-      };
-      const setRes = await updatePricingSettingsAction(snap);
+      const setRes = await updatePricingSettingsAction(settings);
       if (!setRes.ok) {
         setErr(setRes.error);
         return;
       }
       setMsg("All changes saved.");
+    });
+  }
+
+  function deleteService(id: string, displayName: string) {
+    setMsg(null);
+    setErr(null);
+    const ok = window.confirm(
+      `Delete “${displayName}”? Saved quote lines keep their text but will no longer link to this catalog row.`,
+    );
+    if (!ok) return;
+    setDeletingId(id);
+    startDeleteTransition(async () => {
+      const res = await deleteCatalogServiceAction({ id });
+      setDeletingId(null);
+      if (!res.ok) {
+        setErr(res.error);
+        return;
+      }
+      setMsg("Service removed.");
+      router.refresh();
     });
   }
 
@@ -208,13 +222,12 @@ export function AdminPricingClient({
               Quote price config
             </h1>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Edit catalog services, base unit prices, volume tiers, rush rates, and
-              segment multipliers. Changes apply to new quotes and saved quote
-              totals.
+              Edit catalog services, base unit prices, and rush rates. Changes
+              apply to new quotes and saved quote totals.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button asChild variant="outline" size="sm" className="border-white/[0.14] bg-white/[0.04] font-medium">
+            <Button asChild variant="outline" size="sm" className="font-medium">
               <Link href="/pathx/quotebuilder">
                 <Plus className="mr-1.5 h-4 w-4" aria-hidden />
                 New quote
@@ -374,9 +387,11 @@ export function AdminPricingClient({
 
             <Card className={cardClass}>
               <CardHeader>
-                <CardTitle className="text-lg">Base service prices</CardTitle>
+                <CardTitle className="text-lg">Base services</CardTitle>
                 <CardDescription>
-                  Editable — affects all new quotes and default line prices.
+                  Edit display name, slug, description, and default unit price. Save changes
+                  applies updates. Delete removes the catalog row (existing quote lines keep
+                  their labels).
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -390,154 +405,99 @@ export function AdminPricingClient({
                     {initialCatalog.map((c) => (
                       <div
                         key={c.id}
-                        className="flex flex-col gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                        className="space-y-3 rounded-lg border border-border bg-muted/20 px-3 py-3 dark:border-white/[0.08] dark:bg-white/[0.02]"
                       >
-                        <div className="min-w-0">
-                          <p className="font-medium text-foreground">{c.name}</p>
-                          {c.description ? (
-                            <p className="text-xs text-muted-foreground">
-                              {c.description}
-                            </p>
-                          ) : null}
-                          {c.active === false ? (
-                            <p className="text-xs text-amber-600/90">Inactive</p>
-                          ) : null}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label htmlFor={`name-${c.id}`} className="text-xs">
+                              Display name
+                            </Label>
+                            <Input
+                              id={`name-${c.id}`}
+                              value={names[c.id] ?? ""}
+                              onChange={(e) =>
+                                setNames((p) => ({ ...p, [c.id]: e.target.value }))
+                              }
+                              className={cn("h-9", fieldClass)}
+                              autoComplete="off"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label htmlFor={`slug-${c.id}`} className="text-xs">
+                              Slug (unique)
+                            </Label>
+                            <Input
+                              id={`slug-${c.id}`}
+                              value={slugs[c.id] ?? ""}
+                              onChange={(e) =>
+                                setSlugs((p) => ({ ...p, [c.id]: e.target.value }))
+                              }
+                              className={cn("h-9 font-mono text-xs", fieldClass)}
+                              autoComplete="off"
+                              spellCheck={false}
+                            />
+                          </div>
                         </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <Label className="sr-only" htmlFor={`price-${c.id}`}>
-                            Price
+                        <div className="space-y-1.5">
+                          <Label htmlFor={`desc-${c.id}`} className="text-xs">
+                            Description
                           </Label>
                           <Input
-                            id={`price-${c.id}`}
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            value={prices[c.id] ?? ""}
+                            id={`desc-${c.id}`}
+                            value={descriptions[c.id] ?? ""}
                             onChange={(e) =>
-                              setPrices((p) => ({ ...p, [c.id]: e.target.value }))
+                              setDescriptions((p) => ({ ...p, [c.id]: e.target.value }))
                             }
-                            className={cn("h-9 w-36", fieldClass)}
+                            className={cn("h-9", fieldClass)}
+                            placeholder="Optional"
+                            autoComplete="off"
                           />
-                          <span className="text-sm text-muted-foreground">USD</span>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                          {c.active === false ? (
+                            <p className="text-xs text-amber-600 dark:text-amber-500">Inactive</p>
+                          ) : null}
+                          <div className="flex flex-wrap items-end gap-2 sm:ml-auto">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs" htmlFor={`price-${c.id}`}>
+                                Default price
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  id={`price-${c.id}`}
+                                  type="number"
+                                  min={0}
+                                  step={0.01}
+                                  value={prices[c.id] ?? ""}
+                                  onChange={(e) =>
+                                    setPrices((p) => ({ ...p, [c.id]: e.target.value }))
+                                  }
+                                  className={cn("h-9 w-36", fieldClass)}
+                                />
+                                <span className="pb-2 text-sm text-muted-foreground">USD</span>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="border-destructive/35 text-destructive hover:bg-destructive/10"
+                              disabled={deletePending}
+                              aria-label={`Delete ${c.name}`}
+                              onClick={() => deleteService(c.id, names[c.id] ?? c.name)}
+                            >
+                              {deletingId === c.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                              ) : (
+                                <Trash2 className="h-4 w-4" aria-hidden />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </>
                 )}
-              </CardContent>
-            </Card>
-
-            <Card className={cardClass}>
-              <CardHeader>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Volume discount tiers</CardTitle>
-                    <CardDescription>
-                      Sample / block count ranges and percent off (after segment
-                      adjustment).
-                    </CardDescription>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-white/[0.14] bg-white/[0.04]"
-                    onClick={addTier}
-                  >
-                    <Plus className="mr-1.5 h-4 w-4" />
-                    Add tier
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {tiers.map((t, i) => (
-                  <div
-                    key={i}
-                    className="flex flex-wrap items-end gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] p-3"
-                  >
-                    <div className="space-y-1">
-                      <Label className="text-xs">Min</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={t.min}
-                        onChange={(e) =>
-                          updateTier(i, {
-                            min: parseInt(e.target.value, 10) || 0,
-                          })
-                        }
-                        className={cn("h-9 w-24", fieldClass)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Max</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={t.max}
-                        onChange={(e) =>
-                          updateTier(i, {
-                            max: parseInt(e.target.value, 10) || 0,
-                          })
-                        }
-                        className={cn("h-9 w-24", fieldClass)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Discount %</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={0.5}
-                        value={t.discountPercent}
-                        onChange={(e) =>
-                          updateTier(i, {
-                            discountPercent: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        className={cn("h-9 w-24", fieldClass)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      aria-label="Remove tier"
-                      onClick={() => removeTier(i)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className={cardClass}>
-              <CardHeader>
-                <CardTitle className="text-lg">Segment multipliers</CardTitle>
-                <CardDescription>
-                  Applied to services subtotal before volume discount.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-2">
-                {SEGMENT_OPTIONS.map((o) => (
-                  <div key={o.value} className="space-y-2">
-                    <Label htmlFor={`seg-${o.value}`}>{o.label}</Label>
-                    <Input
-                      id={`seg-${o.value}`}
-                      type="number"
-                      min={0.01}
-                      step={0.01}
-                      value={settings.segment_multipliers[o.value] ?? ""}
-                      onChange={(e) => setSegMult(o.value, e.target.value)}
-                      className={cn(fieldClass)}
-                    />
-                  </div>
-                ))}
               </CardContent>
             </Card>
 

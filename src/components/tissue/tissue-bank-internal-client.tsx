@@ -21,10 +21,8 @@ import {
 } from "@/lib/tissue/tissue-actions";
 import { formatInventoryEventAt } from "@/lib/tissue/format";
 import type { TissueBlockStatus, TissueInventoryRow } from "@/lib/tissue/types";
+import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 import { cn } from "@/lib/utils";
-
-const fieldClass =
-  "border-border/80 bg-background/80 text-foreground shadow-none";
 
 const CATEGORIES = [
   "Malignant",

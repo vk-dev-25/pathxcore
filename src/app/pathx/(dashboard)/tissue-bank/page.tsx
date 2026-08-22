@@ -26,6 +26,7 @@ import {
   parseTissueSearchParams,
   serializeTissueQuery,
 } from "@/lib/tissue/search-params";
+import { pathxFieldClass as fieldClass } from "@/components/pathx/workspace-field-classes";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -34,9 +35,6 @@ export const metadata: Metadata = {
 };
 
 const BASE = "/pathx/tissue-bank";
-
-const fieldClass =
-  "border-border/80 bg-background/80 text-foreground shadow-none";
 
 export default async function PathXTissueBankPage({
   searchParams,

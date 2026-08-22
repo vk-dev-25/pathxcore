@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bond barcode generator venv
+/scripts/.venv-bond-barcode

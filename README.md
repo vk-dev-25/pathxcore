@@ -25,8 +25,8 @@ In the Supabase dashboard: **Authentication → URL configuration** — set **Si
 | Path | Notes |
 |------|--------|
 | `/` | Home (content aligned with pathxdx.com) |
-| `/clinical-services` | Clinical specialties |
 | `/preclinical-services` | Preclinical workflow |
+| `/areas-of-expertise` | Areas of expertise |
 | `/contact` | Contact & portal CTA |
 | `/pathx/sign-in` | Magic link sign-in (public) |
 | `/pathx` | Module hub (auth required) |

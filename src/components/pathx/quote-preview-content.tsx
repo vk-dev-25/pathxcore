@@ -1,11 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Printer } from "lucide-react";
 import Image from "next/image";
 
 import type { PricingSettingsSnapshot } from "@/lib/quote-pricing";
+import { printWithDataQuoteIsolation } from "@/lib/print-data-quote";
 import { Button } from "@/components/ui/button";
 
 export function money(n: number) {
@@ -39,19 +40,6 @@ function validUntilIso(issueIso: string, validityDays: number) {
   return d.toISOString();
 }
 
-function turnaroundLabel(rushPriority: boolean, rush2day: boolean): string {
-  if (rushPriority && rush2day) {
-    return "Priority and 1–2 business day expedited options";
-  }
-  if (rushPriority) {
-    return "Priority / rush turnaround";
-  }
-  if (rush2day) {
-    return "1–2 business day expedited";
-  }
-  return "3–5 business days (standard)";
-}
-
 function nearZero(n: number) {
   return Math.abs(n) < 0.005;
 }
@@ -63,10 +51,7 @@ export function QuotePreviewContent({
   contactName,
   projectTitle,
   quoteRef,
-  segmentLabel,
   sampleVolume,
-  rushPriority,
-  rush2day,
   notes,
   lines,
   totals,
@@ -80,10 +65,8 @@ export function QuotePreviewContent({
   contactName: string;
   projectTitle: string;
   quoteRef: string;
-  segmentLabel: string;
+  /** Total sample / block count (for client-facing preview). */
   sampleVolume: number;
-  rushPriority: boolean;
-  rush2day: boolean;
   notes: string;
   lines: QuotePreviewLine[];
   totals: {
@@ -106,106 +89,19 @@ export function QuotePreviewContent({
     validUntilIso(issueIso, pricingSettings.quote_validity_days),
   );
   const year = new Date(issueIso).getFullYear();
-  const turnaround = turnaroundLabel(rushPriority, rush2day);
   const preparedLine = [contactName, projectTitle].filter(Boolean).join(" · ");
-  const cleanupPrintRef = useRef<null | (() => void)>(null);
-
-  const resetPrintScroll = useCallback(() => {
-    window.scrollTo(0, 0);
-    const nodes = document.querySelectorAll<HTMLElement>('[data-quote-print="true"]');
-    nodes.forEach((node) => {
-      node.scrollTop = 0;
-    });
-  }, []);
-
-  const preparePrintSurface = useCallback(() => {
-    resetPrintScroll();
-
-    const quoteRoot = document.querySelector<HTMLElement>('[data-quote-print="true"]');
-    if (!quoteRoot) return () => {};
-
-    const touched = new Map<HTMLElement, string>();
-    const remember = (el: HTMLElement) => {
-      if (!touched.has(el)) touched.set(el, el.style.cssText);
-    };
-
-    const forceWhite = (el: HTMLElement) => {
-      el.style.setProperty("background", "#fff", "important");
-      el.style.setProperty("background-color", "#fff", "important");
-      el.style.setProperty("color", "#111", "important");
-    };
-
-    const rootEl = document.documentElement;
-    const bodyEl = document.body;
-    remember(rootEl);
-    remember(bodyEl);
-    forceWhite(rootEl);
-    forceWhite(bodyEl);
-    bodyEl.style.setProperty("margin", "0", "important");
-    bodyEl.style.setProperty("padding", "0", "important");
-
-    const topChildren = Array.from(bodyEl.children) as HTMLElement[];
-    topChildren.forEach((child) => {
-      remember(child);
-      if (child.contains(quoteRoot) || child === quoteRoot) {
-        child.style.setProperty("display", "block", "important");
-        child.style.setProperty("visibility", "visible", "important");
-        forceWhite(child);
-      } else {
-        child.style.setProperty("display", "none", "important");
-      }
-    });
-
-    remember(quoteRoot);
-    quoteRoot.style.setProperty("position", "static", "important");
-    quoteRoot.style.setProperty("left", "auto", "important");
-    quoteRoot.style.setProperty("top", "auto", "important");
-    quoteRoot.style.setProperty("width", "auto", "important");
-    quoteRoot.style.setProperty("max-width", "none", "important");
-    quoteRoot.style.setProperty("height", "auto", "important");
-    quoteRoot.style.setProperty("max-height", "none", "important");
-    quoteRoot.style.setProperty("overflow", "visible", "important");
-    quoteRoot.style.setProperty("border", "0", "important");
-    quoteRoot.style.setProperty("box-shadow", "none", "important");
-    forceWhite(quoteRoot);
-
-    return () => {
-      touched.forEach((cssText, el) => {
-        el.style.cssText = cssText;
-      });
-    };
-  }, [resetPrintScroll]);
-
-  useEffect(() => {
-    const onBeforePrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = preparePrintSurface();
-    };
-    const onAfterPrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-    window.addEventListener("beforeprint", onBeforePrint);
-    window.addEventListener("afterprint", onAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", onBeforePrint);
-      window.removeEventListener("afterprint", onAfterPrint);
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-  }, [preparePrintSurface]);
 
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
       <div className="flex items-end justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
         <div>
           <p className="text-2xl font-semibold tracking-tight print:text-black">
-            Pathology X Diagnostics
+            Pathology X Diagnostic Services, Inc.
           </p>
         </div>
         <Image
           src="/images/pathxlogo.jpeg"
-          alt="Pathology X Diagnostics logo"
+          alt="Pathology X Diagnostic Services, Inc. logo"
           width={258}
           height={236}
           priority
@@ -216,7 +112,7 @@ export function QuotePreviewContent({
       <div className="grid gap-6 sm:grid-cols-[1fr_320px] sm:items-start">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
-            Prepared for
+            Prepared For
           </p>
           <p className="mt-2 text-base font-semibold leading-snug print:text-black">
             {clientOrg || "—"}
@@ -234,29 +130,33 @@ export function QuotePreviewContent({
         </div>
         <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
-            Quote reference
+            Quote Reference
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {quoteRef || "—"}
           </dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Date issued
+            Date Issued
           </dt>
           <dd className="print:text-black">{issuedLabel}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Valid until
+            Valid Until
           </dt>
           <dd className="print:text-black">{validLabel}</dd>
+          <dt className="text-muted-foreground print:text-neutral-600">
+            Total Samples / Blocks
+          </dt>
+          <dd className="font-medium tabular-nums print:text-black">
+            {Math.max(0, Math.floor(sampleVolume))}
+          </dd>
         </dl>
       </div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground print:text-neutral-800">
-        <span className="font-medium text-foreground print:text-black">
-          Segment:
-        </span>{" "}
-        {segmentLabel} · Volume: {sampleVolume} samples/blocks · Turnaround:{" "}
-        {turnaround}
-      </p>
+      {notes.trim() ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground print:text-black">
+          {notes.trim()}
+        </p>
+      ) : null}
 
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
@@ -290,11 +190,6 @@ export function QuotePreviewContent({
                   >
                     <td className="px-3 py-2.5 align-top font-medium print:text-black">
                       {l.label}
-                      {l.is_price_overridden ? (
-                        <span className="ml-1 text-xs font-normal text-muted-foreground print:text-neutral-600">
-                          (override)
-                        </span>
-                      ) : null}
                     </td>
                     <td className="px-3 py-2.5 align-top text-muted-foreground print:text-neutral-700">
                       {money(l.unit_price)} / unit
@@ -313,17 +208,6 @@ export function QuotePreviewContent({
         </div>
       </div>
 
-      {notes.trim() ? (
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
-            Notes
-          </p>
-          <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground print:text-neutral-800">
-            {notes}
-          </p>
-        </div>
-      ) : null}
-
       {totals ? (
         <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
           <div className="flex justify-between gap-4">
@@ -335,7 +219,7 @@ export function QuotePreviewContent({
           {!nearZero(totals.segment_adjustment_amount) ? (
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground print:text-neutral-700">
-                Segment adjustment
+                Price adjustment
               </span>
               <span className="print:text-black">
                 {money(totals.segment_adjustment_amount)}
@@ -374,7 +258,7 @@ export function QuotePreviewContent({
       <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
         Prices are valid for {pricingSettings.quote_validity_days} days from the
         date of issue. Final pricing may vary based on sample quality and
-        complexity. Pathology X Diagnostics reserves the right to adjust pricing upon project
+        complexity. Pathology X Diagnostic Services, Inc. reserves the right to adjust pricing upon project
         review.
       </p>
 
@@ -386,7 +270,7 @@ export function QuotePreviewContent({
       ) : null}
 
       <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
-        {quoteRef || "—"} · Pathology X Diagnostics · {year}
+        {quoteRef || "—"} · Pathology X Diagnostic Services, Inc. · {year}
       </p>
 
       <div className="flex flex-col gap-2 print:hidden">
@@ -395,11 +279,13 @@ export function QuotePreviewContent({
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => {
-            cleanupPrintRef.current?.();
-            cleanupPrintRef.current = preparePrintSurface();
-            window.requestAnimationFrame(() => window.print());
-          }}
+          onClick={() =>
+            printWithDataQuoteIsolation({
+              pdfTitle: quoteRef.trim()
+                ? `Quote-${quoteRef.trim()}`
+                : "Quote-preview",
+            })
+          }
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF

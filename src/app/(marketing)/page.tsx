@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
   Clock,
   Layers,
+  MapPin,
   Microscope,
+  Scan,
   ShieldCheck,
   Sparkles,
   Users,
@@ -21,71 +24,101 @@ import {
   ServicesSlideshow,
   type ServiceSlide,
 } from "@/components/services-slideshow";
-import { commonServicesBlurb } from "@/lib/site-content";
+import {
+  commonServicesBlurb,
+  homepageCapabilities,
+} from "@/lib/site-content";
+import { homePageMetadata } from "@/lib/site-seo";
+
+export const metadata: Metadata = homePageMetadata;
 
 const pillars = [
   {
-    title: "Partner in diagnostic pathology",
-    body: "Technologists and pathologists aligned to your protocol, turnaround, and quality bar.",
-    icon: ShieldCheck,
+    title: "Imaging and analysis under one roof",
+    body: "We own our scanning and run image analysis in-house. That means no pass-through vendors, no queue behind someone else's work, and a single point of accountability from block to quantified result.",
+    icon: Scan,
   },
   {
-    title: "Expertise across the workflow",
-    body: "From accessioning and processing to IHC, special stains, and signed-out evaluation.",
+    title: "Multiplex without building it yourself",
+    body: "Multiplex immunofluorescence takes real optimization to get right. We've done that work, so you don't need to stand up the capability internally for a single study.",
     icon: Layers,
   },
   {
-    title: "Built for clinical & preclinical",
-    body: "Hospitals and clinics alongside biotech, CRO, and academic discovery programs.",
-    icon: Sparkles,
+    title: "A technologist who knows your protocol",
+    body: "You get named technologists assigned to your program rather than whoever is free. They learn your tissue, your protocol, and your acceptance criteria.",
+    icon: Users,
+  },
+  {
+    title: "Straight answers on scope",
+    body: "If a study design won't produce the data you need, we say so before you commit, not after.",
+    icon: ShieldCheck,
   },
 ];
 
 const highlights = [
-  { label: "Coverage", value: "24/7 reach", icon: Clock },
-  { label: "Location", value: "South San Francisco", icon: Microscope },
-  { label: "Model", value: "Dedicated technologist", icon: Users },
+  { label: "Scope", value: "Research use only", icon: ShieldCheck },
+  {
+    label: "Capabilities",
+    value: "Histology · IHC · Multiplex IF · Digital pathology",
+    icon: Microscope,
+  },
+  {
+    label: "Imaging",
+    value: "Whole-slide scanning & analysis, in-house",
+    icon: Scan,
+  },
+  { label: "Location", value: "Brisbane, California", icon: MapPin },
+  {
+    label: "Model",
+    value: "Dedicated technologist per program",
+    icon: Users,
+  },
+  {
+    label: "Reach",
+    value: "Mon–Fri 7am–7pm · Sat 9am–5pm · 24/7 contact",
+    icon: Clock,
+  },
 ];
 
 const serviceSlides: ServiceSlide[] = [
   {
-    title: "Clinical diagnostic pathology",
+    title: "Digital pathology & image analysis",
     description:
-      "Specialty-focused support for hospitals, clinics, and physicians—cardiology, dermatology, neurology, and more—aligned to the diagnoses you deliver for patients.",
-    href: "/contact",
-    cta: "Contact us",
+      "Whole-slide scanning and quantitative image analysis in-house: brightfield and fluorescence, digital slide management, and quantitative readouts for marker positivity, co-expression, and spatial relationships.",
+    href: "/preclinical-services",
+    cta: "See capabilities",
     imageSrc: "/images/hero-lab-team.png",
     imageAlt:
       "PathXdx technologists collaborating at laboratory instrumentation",
     objectPosition: "object-[center_32%]",
   },
   {
-    title: "Preclinical & discovery programs",
+    title: "Multiplex immunofluorescence",
     description:
-      "End-to-end specimen handling from accessioning through sectioning, H&E, special stains, IHC, and pathologist reading for biotech, CRO, and academic teams.",
+      "3–4 plex panels developed and optimized for your targets and tissue: panel design, staining, imaging, and quantitative analysis as one workflow.",
     href: "/preclinical-services",
-    cta: "See preclinical workflow",
+    cta: "See capabilities",
     imageSrc: "/images/hero-scientist.png",
     imageAlt:
       "Laboratory professional in protective equipment beside instrumentation",
     objectPosition: "object-[center_22%]",
   },
   {
-    title: "IHC, special stains & evaluation",
+    title: "IHC, histology & pathologist evaluation",
     description:
-      "Routine and complex panels, method development, and consultation—with qualified pathologist sign-out and digital-ready material when you need it.",
+      "Single-plex IHC, H&E and special stains, and qualified pathologist assessment of research specimens, reported as research findings.",
     href: "/contact",
-    cta: "Discuss your panel",
+    cta: "Discuss your study",
     imageSrc: "/images/hero-lab-team.png",
     imageAlt: "Pathology laboratory team at the bench",
     objectPosition: "object-[center_55%]",
   },
   {
-    title: "Partnership from PO to delivery",
+    title: "Partnership from study design to delivery",
     description:
-      "A dedicated technologist helps design your study, explains each step, and prepares a clear proposal—then executes on your timeline with transparent invoicing.",
+      "A dedicated technologist helps design your study, explains each step, and prepares a clear proposal, then executes on your timeline with transparent invoicing.",
     href: "/contact",
-    cta: "Book your visit",
+    cta: "Discuss your study",
     imageSrc: "/images/hero-scientist.png",
     imageAlt: "Scientist reviewing work in the laboratory",
     objectPosition: "object-[center_40%]",
@@ -95,7 +128,6 @@ const serviceSlides: ServiceSlide[] = [
 export default function HomePage() {
   return (
     <>
-      {/* Hero — full-bleed lab imagery + gradient readability (pathxdx / Acepix-style impact) */}
       <section className="relative min-h-[min(92vh,920px)] overflow-hidden border-b border-white/[0.06]">
         <Image
           src="/images/hero-lab-team.png"
@@ -117,34 +149,42 @@ export default function HomePage() {
 
         <div className="relative mx-auto flex min-h-[min(92vh,920px)] max-w-6xl flex-col justify-center px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-            Pathology · Diagnostics · Partnership
+            Research Pathology · Preclinical & Translational
           </p>
           <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:max-w-2xl sm:text-5xl lg:text-[3.25rem]">
-            Shorten the path from specimen to{" "}
-            <span className="font-semibold text-primary">confident answers</span>
+            More than histology.{" "}
+            <span className="font-semibold text-primary">
+              Quantitative answers from tissue
+            </span>
             .
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            PathXdx supports hospitals, clinics, biotech, and academia—from
-            accessioning and processing through staining, IHC, and pathologist
-            evaluation—with a team that shows up on your timeline.
+            PathXDx is a Brisbane, California research pathology laboratory
+            supporting biotech, pharma, CRO, and academic programs, from
+            routine histology and IHC through multiplex immunofluorescence,
+            whole-slide imaging, and quantitative image analysis.
+          </p>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Owned scanning and in-house image analysis mean your slides
+            don&apos;t leave our lab, and your data doesn&apos;t wait on a third
+            party.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Button asChild size="lg" className="font-semibold">
               <Link href="/contact">
-                Book your visit
+                Discuss your study
                 <ArrowRight className="ml-0.5" />
               </Link>
             </Button>
             <Button asChild size="lg" className="font-semibold">
               <Link href="/preclinical-services">
-                Preclinical workflow
+                See capabilities
                 <ArrowRight className="ml-0.5" />
               </Link>
             </Button>
           </div>
 
-          <dl className="mt-14 grid max-w-lg gap-4 sm:grid-cols-3 sm:gap-6">
+          <dl className="mt-14 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
             {highlights.map((item) => {
               const Icon = item.icon;
               return (
@@ -166,17 +206,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Acepix-style value pillars */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-lab-purple">
-            Why teams choose PathXdx
+            Why research teams work with us
           </p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-            High-touch lab partnership, modern throughput
+            High-touch partnership, owned imaging capability
           </h2>
         </div>
-        <ul className="mt-12 grid gap-5 md:grid-cols-3">
+        <ul className="mt-12 grid gap-5 sm:grid-cols-2">
           {pillars.map((pillar) => {
             const PillarIcon = pillar.icon;
             return (
@@ -198,7 +237,6 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* Split section — second brand image + narrative */}
       <section className="border-y border-white/[0.06] bg-lab-indigo/35">
         <div className="mx-auto grid max-w-6xl gap-0 lg:grid-cols-2 lg:items-stretch">
           <div className="flex flex-col justify-center px-4 py-14 sm:px-6 sm:py-20 lg:pr-10 lg:pl-8">
@@ -210,8 +248,8 @@ export default function HomePage() {
             </h2>
             <p className="mt-5 max-w-prose text-muted-foreground">
               The same care that goes into your slides shows up in how we
-              communicate—clear milestones, realistic timelines, and a single
-              thread from experiment design through delivery.
+              communicate: clear milestones, realistic timelines, and a single
+              thread from study design through quantified delivery.
             </p>
             <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
               <li className="flex gap-2">
@@ -220,16 +258,16 @@ export default function HomePage() {
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-lab-purple" />
-                IHC, special stains, and digital-ready material on request
+                Multiplex IF, IHC, whole-slide imaging, and in-house analysis
               </li>
               <li className="flex gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                Transparent proposals—PO and timeline, then execution
+                Transparent proposals: PO and timeline, then execution
               </li>
             </ul>
             <div className="mt-10">
               <Button asChild>
-                <Link href="/contact">Talk with our team</Link>
+                <Link href="/contact">Discuss your study</Link>
               </Button>
             </div>
           </div>
@@ -249,27 +287,46 @@ export default function HomePage() {
               className="pointer-events-none absolute inset-0 shadow-[inset_0_0_0_1px_hsl(var(--lab-purple)/0.2)]"
               aria-hidden
             />
-            <div
-              className="pointer-events-none absolute bottom-6 left-6 right-6 rounded-lg border border-primary/25 bg-background/70 px-4 py-3 text-xs text-muted-foreground backdrop-blur-md sm:text-sm lg:left-auto lg:max-w-sm"
-            >
-              <span className="font-semibold text-foreground">
-                Brand-aligned imagery
-              </span>{" "}
-              reinforces trust—your partners should look like the lab you expect.
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured services — full-width image slides (Acepix-style carousel) */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="mb-10 max-w-2xl">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Services aligned to pathxdx.com
+            Capabilities
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Clinical diagnostics and preclinical programs—with shared
-            operational excellence—shown as rotating featured services below.
+            Differentiated services first, digital pathology and multiplex,
+            then the full research pathology workflow.
+          </p>
+        </div>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {homepageCapabilities.map((cap) => (
+            <li key={cap.title}>
+              <Card className="h-full border-white/[0.08] bg-card/60 shadow-none">
+                <CardHeader>
+                  <CardTitle className="text-lg">{cap.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {cap.body}
+                  </p>
+                </CardContent>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+        <div className="mb-10 max-w-2xl">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Featured services
+          </h2>
+          <p className="mt-2 text-muted-foreground">
+            Preclinical and translational programs, with shared operational
+            excellence.
           </p>
         </div>
         <ServicesSlideshow slides={serviceSlides} />
@@ -298,20 +355,21 @@ export default function HomePage() {
             </p>
           </div>
           <div className="space-y-3">
+            <Sparkles className="h-8 w-8 text-lab-purple" />
             <h3 className="text-lg font-semibold">Our mission</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Our ultimate mission is serving patients. By understanding your
+              Our mission is advancing discovery. By understanding your study
               needs we can provide the best solution so you may maximize your
-              potential in the pursuit of your mission.
+              potential in the pursuit of your research goals.
             </p>
           </div>
           <div className="space-y-3">
             <h3 className="text-lg font-semibold">How we can help you</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
               When you reach out, we assign a technologist to help design your
-              experiment, explain the steps, and prepare a proposal. With a PO
-              and timeline, we complete the work and invoice your accounts
-              payable when services are returned.
+              study, explain the steps, and prepare a proposal. With a PO and
+              timeline, we complete the work and invoice your accounts payable
+              when services are returned.
             </p>
           </div>
         </div>
@@ -328,16 +386,16 @@ export default function HomePage() {
         />
         <div className="relative mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-20">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Allow PathXdx to serve you
+            Discuss your study with PathXDx
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Please contact us so we may be of assistance. Our customer support
-            team is available to help—we aim to respond quickly when you reach
-            out.
+            Tell us what you&apos;re working on. Tissue type, targets, study
+            stage, and timeline. We&apos;ll tell you what&apos;s feasible and
+            what it costs.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="font-semibold">
-              <Link href="/contact">Contact us today</Link>
+              <Link href="/contact">Discuss your study</Link>
             </Button>
             <Button asChild size="lg" variant="purpleOutline">
               <Link href="/pathx/sign-in">Client workspace</Link>

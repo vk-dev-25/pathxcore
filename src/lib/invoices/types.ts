@@ -14,8 +14,15 @@ export type InvoiceHeaderInput = {
   contact_name: string;
   project_title: string;
   invoice_reference: string;
+  po_reference: string;
+  notes: string;
   status: InvoiceStatus;
   due_date: string;
+  segment: string;
+  sample_volume: number;
+  rush_priority: boolean;
+  rush_2day: boolean;
+  apply_volume_discount: boolean;
 };
 
 export function isInvoiceStatus(value: string): value is InvoiceStatus {

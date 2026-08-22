@@ -13,11 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { HomeThemeToggle } from "@/components/home-theme-toggle";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/", label: "Home" },
   { href: "/preclinical-services", label: "Preclinical services" },
+  { href: "/areas-of-expertise", label: "Areas of expertise" },
   { href: "/tissue-bank", label: "Tissue Blocks" },
   { href: "/contact", label: "Contact" },
 ];
@@ -59,6 +61,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {pathname === "/" ? <HomeThemeToggle /> : null}
           <Button
             asChild
             variant="workspace"

@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* Modern Lab — dark charcoal / indigo base, teal + neon purple accents */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Modern Lab — dark charcoal / indigo base, teal + neon purple accents (:root = dark default for marketing & workspace) */
 :root {
   --background: 232 38% 6%;
   --foreground: 210 40% 98%;
@@ -23,6 +25,30 @@
   --radius: 0.75rem;
   --lab-purple: 286 100% 68%;
   --lab-indigo: 239 45% 14%;
+}
+
+/* Admin workspace light theme (next-themes sets class="light" on <html>) */
+html.light {
+  --background: 210 25% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 173 58% 36%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 18% 94%;
+  --muted-foreground: 215 16% 38%;
+  --accent: 210 25% 93%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 20% 82%;
+  /* Slightly brighter than page bg so inputs read as distinct fields */
+  --input: 0 0% 100%;
+  --ring: 173 55% 40%;
+  --lab-purple: 286 50% 46%;
+  --lab-indigo: 239 40% 92%;
 }
 
 @theme inline {
@@ -85,7 +111,36 @@ body::before {
   opacity: 1;
 }
 
-/* Quote preview / print-to-PDF */
+html.light body::before {
+  background:
+    radial-gradient(
+      ellipse 120% 80% at 50% -20%,
+      hsl(var(--primary) / 0.08),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 80% 50% at 100% 50%,
+      hsl(var(--lab-purple) / 0.06),
+      transparent 50%
+    ),
+    linear-gradient(
+        to bottom,
+        hsl(var(--background)),
+        hsl(var(--background))
+      )
+      padding-box;
+}
+
+/*
+ * Quote / invoice / LIMS label print-to-PDF.
+ * [data-quote-print] lives in a Radix portal (usually a direct child of body).
+ * Do NOT use visibility:hidden on the whole tree: hidden boxes still occupy layout height.
+ *
+ * Primary: before print(), attachDataQuotePrintHost() sets html[data-print-data-quote] and
+ * marks the portal wrapper with data-print-quote-host (see print-data-quote.ts). This avoids
+ * relying on :has(), which can fail in some prod / print-to-PDF paths (tiny clipped corner).
+ * Fallback: :has() when the user prints without our hook (e.g. browser Cmd+P).
+ */
 @media print {
   @page {
     margin: 12mm;
@@ -106,24 +161,60 @@ body::before {
     print-color-adjust: exact;
   }
 
-  body > * {
+  html[data-print-data-quote] body > *:not([data-print-quote-host]) {
     display: none !important;
   }
 
-  [data-radix-portal] {
+  html[data-print-data-quote] body > [data-print-quote-host] {
     display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  [data-radix-portal] > * {
+  /*
+   * LIMS + Chrome + Zebra driver: the driver uses a full sheet (e.g. Letter); a 1in box in
+   * normal flow is centered. Fill the host and pin .lims-zebra-label-page with fixed top/right
+   * when there is only one label (sample dialog, or one slide).
+   */
+  html[data-print-data-quote]
+    body
+    > [data-print-quote-host]:has([data-lims-label-print="true"]) {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /*
+   * Root layout uses min-h-screen on body; that leaves a tall box so small label content
+   * can appear vertically centered on the sheet. Collapse body height for LIMS print only.
+   */
+  body:has([data-lims-label-print="true"]) {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  html:not([data-print-data-quote]) body > *:not(:has([data-quote-print="true"])) {
     display: none !important;
   }
 
   [data-quote-print="true"] {
     display: block !important;
-    position: static !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     transform: none !important;
     translate: none !important;
-    width: auto !important;
+    width: 100% !important;
     max-width: none !important;
     height: auto !important;
     max-height: none !important;
@@ -138,6 +229,291 @@ body::before {
     overflow: visible !important;
     page-break-before: avoid !important;
     page-break-after: avoid !important;
+  }
+
+  /*
+   * LIMS labels: keep the dialog root in normal flow. Chrome/Safari often ignore @page on
+   * out-of-flow (absolute/fixed) boxes, which then use the global @page below (12mm + letter)
+   * so Save PDF shows a huge sheet with a clipped corner — unlike localhost timing luck.
+   */
+  /*
+   * DialogContent uses fixed + translate (Tailwind). position:static + inner fixed was still
+   * offset in PDF. For exactly one .lims-zebra-label-page, pin the whole dialog to page origin.
+   */
+  [data-quote-print="true"][data-lims-label-print="true"]:not(:has(.lims-zebra-label-page ~ .lims-zebra-label-page)) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    translate: none !important;
+    filter: none !important;
+    perspective: none !important;
+    will-change: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    align-self: auto !important;
+    justify-content: flex-start !important;
+    width: 1in !important;
+    height: 1in !important;
+    max-width: 1in !important;
+    max-height: 1in !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  [data-quote-print="true"][data-lims-label-print="true"]:has(.lims-zebra-label-page ~ .lims-zebra-label-page) {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    translate: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  [data-quote-print="true"][data-lims-label-print="true"]:not(:has(.lims-zebra-label-page ~ .lims-zebra-label-page))
+    div.min-h-0,
+  [data-quote-print="true"][data-lims-label-print="true"]:not(:has(.lims-zebra-label-page ~ .lims-zebra-label-page))
+    .lims-label-preview-slot {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /*
+   * Dialog body uses flex-1 — on screen it grows and can make the label look vertically
+   * centered in the preview. Pin content to the top in print and when printing to PDF.
+   */
+  [data-lims-label-print="true"] div.min-h-0 {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    min-height: auto !important;
+    flex: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  [data-lims-label-print="true"] div.min-h-0 > .lims-label-preview-slot {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  [data-lims-label-print="true"] .lims-label-preview-slot > *:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  [data-lims-label-print="true"] .lims-label-preview-slot > .lims-zebra-label-page {
+    margin-top: 0 !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+  }
+
+  /* Never depend on Tailwind print:hidden for label dialogs (can be dropped from prod CSS). */
+  [data-lims-label-print="true"] .lims-label-dialog-chrome {
+    display: none !important;
+  }
+
+  /* Radix dialog close sits outside .lims-label-dialog-chrome */
+  [data-lims-label-print="true"] > button[type="button"] {
+    display: none !important;
+  }
+
+  /*
+   * LIMS labels — 1" × 1" (25.4mm) thermal. Set the same size in the printer driver.
+   * Thermal labels print via a dedicated iframe (see print-thermal-label.ts), not these rules.
+   */
+  @page limsZebraLabel {
+    size: 1in 1in;
+    margin: 0;
+  }
+
+  /*
+   * Multi-slide: override page-break-after:avoid on [data-quote-print]; each label = one page.
+   */
+  [data-quote-print="true"][data-lims-slide-labels="true"]:has(.lims-zebra-label-page ~ .lims-zebra-label-page) {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    page-break-after: auto !important;
+    page-break-before: auto !important;
+  }
+
+  [data-lims-slide-labels="true"] .lims-label-preview-slot .lims-zebra-label-page {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  [data-lims-slide-labels="true"] .lims-label-preview-slot .lims-zebra-label-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .lims-zebra-label-page {
+    page: limsZebraLabel !important;
+    box-sizing: border-box !important;
+    width: 1in !important;
+    height: 1in !important;
+    max-width: 1in !important;
+    max-height: 1in !important;
+    padding: 0 0.35mm 0 1.25mm !important;
+    padding-top: 0 !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    page-break-inside: avoid !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+  }
+
+  .lims-zebra-label-page .lims-label-stack-outer {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-block-start: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /*
+   * Do not rely on Tailwind print:text-[Npt] for labels — production builds can omit
+   * arbitrary print utilities, leaving text-2xl / screen margins: clipped slivers or
+   * a lone “2026” on a letter page. These rules always ship with globals.css.
+   */
+  .lims-zebra-label-page .lims-label-stack {
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-block-start: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+    width: max-content !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 0 !important;
+  }
+
+  .lims-zebra-label-page > p,
+  .lims-zebra-label-page .lims-label-stack > p,
+  .lims-zebra-label-page .lims-label-stack-outer .lims-label-stack > p,
+  .lims-zebra-label-page .lims-label-line {
+    display: block !important;
+    margin: 0 !important;
+    margin-block: 0 !important;
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+    padding: 0 !important;
+    padding-block: 0 !important;
+    max-width: 100% !important;
+    text-align: right !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .lims-zebra-label-page .lims-label-print-line-secondary {
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif !important;
+    font-size: 7.25pt !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-block-start: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
+    word-break: break-word !important;
+  }
+
+  .lims-zebra-label-page .lims-label-print-line-primary {
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.04em !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
+    word-break: normal !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-block-start: 0 !important;
+    padding: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  [data-quote-print="true"][data-lims-label-print="true"]:not(:has(.lims-zebra-label-page ~ .lims-zebra-label-page))
+    .lims-zebra-label-page {
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   [data-quote-print="true"] * {

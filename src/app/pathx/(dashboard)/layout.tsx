@@ -11,7 +11,12 @@ export default async function PathXDashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const clientMode =
+    (user?.app_metadata as { role?: string } | null)?.role === "client";
+
   return (
-    <PathXShell email={user?.email}>{children}</PathXShell>
+    <PathXShell email={user?.email} clientMode={clientMode}>
+      {children}
+    </PathXShell>
   );
 }

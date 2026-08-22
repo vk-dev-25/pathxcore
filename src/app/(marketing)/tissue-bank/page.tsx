@@ -1,3 +1,8 @@
+/**
+ * NOTE: `/tissue-bank` is temporarily redirected to https://tissuesxdx.com in
+ * `next.config.ts` so this route does not run (avoids heavy DB work). Keep this
+ * implementation; remove the redirect when bringing the catalog back on-site.
+ */
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -27,13 +32,17 @@ import {
   parseTissueSearchParams,
   serializeTissueQuery,
 } from "@/lib/tissue/search-params";
+import { marketingMetadata } from "@/lib/site-seo";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Tissue Blocks | PathXDx",
-  description:
-    "Browse PathXDx tissue block inventory — filters, metrics, and export.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return marketingMetadata({
+    title: "Research Tissue Bank | Consented Specimens for Preclinical Research | PathXDx",
+    description:
+      "Research-consented human and animal specimens for preclinical and translational programs. Searchable by tissue type and specimen characteristics.",
+    path: "/tissue-bank",
+  });
+}
 
 const fieldClass =
   "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm";
@@ -89,7 +98,7 @@ export default async function TissueBankPage({
           </h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Public catalog of available blocks. Data is loaded securely on the
-            server — no database credentials are exposed in the browser.
+            server. No database credentials are exposed in the browser.
           </p>
         </div>
 
@@ -250,7 +259,7 @@ export default async function TissueBankPage({
             <div>
               <CardTitle className="text-lg">Inventory</CardTitle>
               <CardDescription>
-                {list.total.toLocaleString()} blocks — click a row for full
+                {list.total.toLocaleString()} blocks. Click a row for full
                 diagnosis
               </CardDescription>
             </div>
