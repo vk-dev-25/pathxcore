@@ -61,6 +61,10 @@ export const homepageCapabilities: {
     body: "Whole-slide scanning and quantitative image analysis, performed in-house on our own equipment. Brightfield and fluorescence scanning, digital slide management, and quantitative readouts: cell density, marker positivity, co-expression, and spatial relationships between populations. Because analysis is digital, we can support programs anywhere, including collaborators outside the US who send images rather than tissue.",
   },
   {
+    title: "Tissue Blocks",
+    body: "Research FFPE archive by organ and diagnostic category, from normal and control through malignant, plus cell-line FFPE controls for IHC. Browse availability on the tissue blocks page, or ask for a specimen-level list. Tissue microarray construction is available.",
+  },
+  {
     title: "Multiplex Immunohistochemistry & Immunofluorescence",
     body: "Multiplex immunofluorescence panels at 3–4 plex, developed and optimized for your targets and tissue. Panel design, antibody optimization, staining, imaging, and quantitative analysis delivered as one workflow rather than handed between vendors. Useful when single-marker IHC can't answer the question: immune profiling, co-expression, and tissue microenvironment characterization.",
   },
@@ -75,10 +79,6 @@ export const homepageCapabilities: {
   {
     title: "Pathologist Evaluation",
     body: "Qualified pathologist assessment of research specimens, reported as research findings. Available as a standalone service or alongside any staining workflow.",
-  },
-  {
-    title: "Tissue Bank",
-    body: "Research-consented human and animal specimens for preclinical and translational programs, searchable by tissue type and specimen characteristics. Tissue microarray construction available.",
   },
 ];
 

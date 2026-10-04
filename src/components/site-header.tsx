@@ -17,11 +17,11 @@ import { HomeThemeToggle } from "@/components/home-theme-toggle";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { href: "/", label: "Home" },
-  { href: "/preclinical-services", label: "Preclinical services" },
-  { href: "/areas-of-expertise", label: "Areas of expertise" },
-  { href: "/tissue-bank", label: "Tissue Blocks" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home", featured: false },
+  { href: "/preclinical-services", label: "Preclinical services", featured: false },
+  { href: "/tissue-bank", label: "Tissue Blocks", featured: true },
+  { href: "/areas-of-expertise", label: "Areas of expertise", featured: false },
+  { href: "/contact", label: "Contact", featured: false },
 ];
 
 export function SiteHeader() {
@@ -51,6 +51,8 @@ export function SiteHeader() {
               href={item.href}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground",
+                item.featured &&
+                  "text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.55)]",
                 pathname === item.href &&
                   "bg-white/[0.08] text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]",
               )}
@@ -91,7 +93,11 @@ export function SiteHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground hover:bg-white/[0.06] hover:text-foreground",
+                      item.featured &&
+                        "text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.55)]",
+                    )}
                   >
                     {item.label}
                   </Link>

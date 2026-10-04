@@ -13,9 +13,9 @@ import {
 } from "@/lib/site-identity";
 
 const serviceLinks = [
+  { href: "/tissue-bank", label: "Tissue Blocks" },
   { href: "/preclinical-services", label: "Preclinical services" },
   { href: "/areas-of-expertise", label: "Areas of expertise" },
-  { href: "/tissue-bank", label: "Tissue bank" },
   { href: "/contact", label: "Contact" },
 ] as const;
 

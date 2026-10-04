@@ -29,6 +29,11 @@ import {
   homepageCapabilities,
 } from "@/lib/site-content";
 import { homePageMetadata } from "@/lib/site-seo";
+import {
+  cellLineBlocks,
+  ffpeArchive,
+  organSystems,
+} from "@/lib/tissue/public-catalog";
 
 export const metadata: Metadata = homePageMetadata;
 
@@ -79,6 +84,17 @@ const highlights = [
     icon: Clock,
   },
 ];
+
+const featuredSystems = [
+  "skin",
+  "gastrointestinal",
+  "mammary",
+  "respiratory",
+  "reproductive",
+  "urinary",
+  "hepatic",
+  "head-neck",
+] as const;
 
 const serviceSlides: ServiceSlide[] = [
   {
@@ -176,6 +192,12 @@ export default function HomePage() {
                 <ArrowRight className="ml-0.5" />
               </Link>
             </Button>
+            <Button asChild size="lg" variant="outline" className="font-semibold">
+              <Link href="/tissue-bank">
+                Browse tissue blocks
+                <ArrowRight className="ml-0.5" />
+              </Link>
+            </Button>
             <Button asChild size="lg" className="font-semibold">
               <Link href="/preclinical-services">
                 See capabilities
@@ -203,6 +225,77 @@ export default function HomePage() {
               );
             })}
           </dl>
+        </div>
+      </section>
+
+      <section className="border-b border-white/[0.06] bg-card/40">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
+                Tissue blocks
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                FFPE tissue for the study, not only the stain
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Research FFPE blocks across {ffpeArchive.tissueTypes} organs,
+                from normal and control through malignant, plus{" "}
+                {cellLineBlocks.length} cell-line FFPE controls for IHC.
+                Availability is listed as case ranges. Ask us when you need a
+                specimen-level list.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-3">
+              <Button asChild className="font-semibold">
+                <Link href="/tissue-bank">
+                  Browse the archive
+                  <ArrowRight className="ml-0.5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="font-semibold">
+                <Link href="/tissue-bank#cell-lines">Cell-line IHC controls</Link>
+              </Button>
+            </div>
+          </div>
+
+          <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: "Cases", value: `${ffpeArchive.totalBlocksDisplay} FFPE` },
+              { label: "Organs", value: String(ffpeArchive.tissueTypes) },
+              { label: "Format", value: "FFPE blocks" },
+              { label: "Cell lines", value: `${cellLineBlocks.length} for IHC` },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-xl border border-white/[0.08] bg-background/55 px-4 py-3"
+              >
+                <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {item.label}
+                </dt>
+                <dd className="mt-1 text-lg font-semibold tabular-nums">
+                  {item.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {featuredSystems.map((id) => {
+              const system = organSystems.find((item) => item.id === id);
+              if (!system) return null;
+              return (
+                <li key={system.id}>
+                  <Link
+                    href={`/tissue-bank?system=${system.id}#availability`}
+                    className="block rounded-xl border border-white/[0.08] bg-card px-4 py-4 text-sm font-semibold transition-colors hover:border-primary/45"
+                  >
+                    {system.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </section>
 
@@ -297,8 +390,8 @@ export default function HomePage() {
             Capabilities
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Differentiated services first, digital pathology and multiplex,
-            then the full research pathology workflow.
+            Digital pathology and the FFPE tissue archive first, then multiplex,
+            IHC, and the rest of the research pathology workflow.
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-2">
