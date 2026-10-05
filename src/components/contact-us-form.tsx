@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 type ContactUsFormProps = {
   variant?: "inline" | "dialog";
   className?: string;
+  /** Pre-selects an inquiry type, e.g. from the tissue block request list. */
+  defaultInquiryType?: (typeof INQUIRY_TYPES)[number];
+  /** Pre-fills the message body. */
+  defaultMessage?: string;
 };
 
 const INQUIRY_TYPES = [
@@ -27,10 +31,14 @@ const INQUIRY_TYPES = [
 export function ContactUsForm({
   variant = "inline",
   className,
+  defaultInquiryType,
+  defaultMessage,
 }: ContactUsFormProps) {
   const [email, setEmail] = useState("");
-  const [inquiryType, setInquiryType] = useState("");
-  const [message, setMessage] = useState("");
+  const [inquiryType, setInquiryType] = useState<string>(
+    defaultInquiryType ?? "",
+  );
+  const [message, setMessage] = useState(defaultMessage ?? "");
   const [honeypot, setHoneypot] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",

@@ -29,11 +29,7 @@ import {
   homepageCapabilities,
 } from "@/lib/site-content";
 import { homePageMetadata } from "@/lib/site-seo";
-import {
-  cellLineBlocks,
-  ffpeArchive,
-  organSystems,
-} from "@/lib/tissue/public-catalog";
+import { TISSUE_ROUTES, organSystems } from "@/lib/tissue/public-catalog";
 
 export const metadata: Metadata = homePageMetadata;
 
@@ -92,7 +88,7 @@ const featuredSystems = [
   "respiratory",
   "reproductive",
   "urinary",
-  "hepatic",
+  "hepatobiliary",
   "head-neck",
 ] as const;
 
@@ -239,55 +235,32 @@ export default function HomePage() {
                 FFPE tissue for the study, not only the stain
               </h2>
               <p className="mt-4 text-muted-foreground">
-                Research FFPE blocks across {ffpeArchive.tissueTypes} organs,
-                from normal and control through malignant, plus{" "}
-                {cellLineBlocks.length} cell-line FFPE controls for IHC.
-                Availability is listed as case ranges. Ask us when you need a
-                specimen-level list.
+                Research-use human FFPE tissue by organ system, normal and
+                control tissue, and FFPE cell pellet blocks for IHC controls.
+                Ask us when you need a specimen-level list.
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
               <Button asChild className="font-semibold">
-                <Link href="/tissue-bank">
-                  Browse the archive
+                <Link href={TISSUE_ROUTES.humanFfpe}>
+                  Human FFPE tissue
                   <ArrowRight className="ml-0.5" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="font-semibold">
-                <Link href="/tissue-bank#cell-lines">Cell-line IHC controls</Link>
+                <Link href={TISSUE_ROUTES.cellPellets}>Cell pellet blocks</Link>
               </Button>
             </div>
           </div>
 
-          <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "Cases", value: `${ffpeArchive.totalBlocksDisplay} FFPE` },
-              { label: "Organs", value: String(ffpeArchive.tissueTypes) },
-              { label: "Format", value: "FFPE blocks" },
-              { label: "Cell lines", value: `${cellLineBlocks.length} for IHC` },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-xl border border-white/[0.08] bg-background/55 px-4 py-3"
-              >
-                <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {item.label}
-                </dt>
-                <dd className="mt-1 text-lg font-semibold tabular-nums">
-                  {item.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {featuredSystems.map((id) => {
               const system = organSystems.find((item) => item.id === id);
               if (!system) return null;
               return (
                 <li key={system.id}>
                   <Link
-                    href={`/tissue-bank?system=${system.id}#availability`}
+                    href={`${TISSUE_ROUTES.humanFfpe}#${system.id}`}
                     className="block rounded-xl border border-white/[0.08] bg-card px-4 py-4 text-sm font-semibold transition-colors hover:border-primary/45"
                   >
                     {system.name}

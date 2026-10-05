@@ -1,91 +1,150 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  FlaskConical,
+  GitMerge,
+  Microscope,
+  PawPrint,
+} from "lucide-react";
 
-import { TissueBlocksCatalog } from "@/components/tissue/tissue-blocks-public";
+import { TissuePageHeader } from "@/components/tissue/tissue-page-header";
 import { Button } from "@/components/ui/button";
-import { cellLineBlocks, ffpeArchive } from "@/lib/tissue/public-catalog";
+import { TISSUE_ROUTES } from "@/lib/tissue/public-catalog";
 import { marketingMetadata } from "@/lib/site-seo";
 
 export const metadata: Metadata = marketingMetadata({
-  title: "Tissue Blocks | FFPE Archive by Organ",
+  title: "Tissue Blocks | Human FFPE Tissue & Cell Pellet Blocks",
   description:
-    "PathXDx FFPE tissue block archive by organ and diagnostic category, plus cell-line FFPE blocks. Research use only. Request specimen-level detail or a quote.",
-  path: "/tissue-bank",
+    "Research-use human FFPE tissue blocks by organ system, normal and control tissue, and FFPE cell pellet blocks for IHC controls.",
+  path: TISSUE_ROUTES.landing,
 });
 
-const highlights = [
-  { label: "Cases", value: `${ffpeArchive.totalBlocksDisplay} FFPE` },
-  { label: "Organs", value: String(ffpeArchive.tissueTypes) },
-  { label: "Format", value: "FFPE blocks" },
-  { label: "Cell lines", value: `${cellLineBlocks.length} FFPE` },
+const products = [
+  {
+    title: "Human FFPE tissue",
+    body: "Cancer and disease FFPE tissue by indication, with matched normal adjacent tissue and custom sourcing.",
+    href: TISSUE_ROUTES.humanFfpe,
+    cta: "Browse human FFPE tissue",
+    icon: Microscope,
+    tone: "from-lab-purple/25 text-lab-purple",
+  },
+  {
+    title: "Normal / control tissue",
+    body: "Normal FFPE tissue from common control organs, for assay development and run controls.",
+    href: `${TISSUE_ROUTES.humanFfpe}#normal`,
+    cta: "See normal tissue",
+    icon: GitMerge,
+    tone: "from-primary/25 text-primary",
+  },
+  {
+    title: "Cell pellet blocks",
+    body: "FFPE cell pellets from characterized cell lines, plus blocks and cell TMAs made from your own cells.",
+    href: TISSUE_ROUTES.cellPellets,
+    cta: "Browse cell pellets",
+    icon: FlaskConical,
+    tone: "from-amber-500/25 text-amber-500",
+  },
+  {
+    title: "Mouse tissue",
+    body: "FFPE blocks and custom slides from NSG-MHC I/II DKO, C57BL/6, and BALB/c, plus collection from your animals.",
+    href: TISSUE_ROUTES.mouse,
+    cta: "Browse mouse tissue",
+    icon: PawPrint,
+    tone: "from-sky-500/25 text-sky-500",
+  },
 ];
 
-export default function TissueBankPage() {
+const steps = [
+  {
+    title: "Build a request",
+    body: "Add the tissues or cell lines you need from either catalog.",
+  },
+  {
+    title: "Get a specimen list",
+    body: "We reply with matching blocks, including diagnosis, age, sex, and block size.",
+  },
+  {
+    title: "Confirm and quote",
+    body: "Pick the specimens you want and we send a quote.",
+  },
+];
+
+export default function TissueBlocksPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-      <div className="max-w-3xl">
-        <p className="text-sm font-medium uppercase tracking-widest text-primary">
-          Tissue blocks
+      <TissuePageHeader
+        crumbs={[{ label: "Home", href: "/" }, { label: "Tissue Blocks" }]}
+        eyebrow="Research use only"
+        title="Tissue blocks"
+        actions={
+          <Button asChild className="font-semibold">
+            <Link href="/contact">
+              Request a quote
+              <ArrowRight className="ml-0.5" />
+            </Link>
+          </Button>
+        }
+      >
+        <p>
+          Research-use human FFPE tissue and cell pellet blocks for IHC,
+          multiplex immunofluorescence, and assay development.
         </p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-          FFPE tissue archive
-        </h1>
-        <p className="mt-4 text-muted-foreground">
-          Research-use FFPE blocks summarized by organ and diagnostic category:
-          normal and control, benign, pre-malignant, and malignant. Ranges show
-          what is on hand. Specimen-level lists are available on request.
-        </p>
-        <p className="mt-3 text-muted-foreground">
-          Cell-line FFPE blocks sit alongside the archive as IHC controls, with
-          the tissue each line came from and how it is used in immunohistochemistry.
-        </p>
-      </div>
+      </TissuePageHeader>
 
-      <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {highlights.map((item) => (
-          <div
-            key={item.label}
-            className="rounded-xl border border-border/80 bg-card px-4 py-3"
-          >
-            <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {item.label}
-            </dt>
-            <dd className="mt-1 text-lg font-semibold tabular-nums">
-              {item.value}
-            </dd>
-          </div>
+      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {products.map(({ icon: Icon, ...product }) => (
+          <li key={product.title}>
+            <Link
+              href={product.href}
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-xl"
+            >
+              <div
+                className={`pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br to-transparent blur-2xl ${product.tone}`}
+                aria-hidden
+              />
+              <span
+                className={`relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br to-transparent ${product.tone}`}
+                aria-hidden
+              >
+                <Icon className="h-6 w-6" />
+              </span>
+              <h2 className="relative mt-5 text-lg font-semibold tracking-tight">
+                {product.title}
+              </h2>
+              <p className="relative mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                {product.body}
+              </p>
+              <span className="relative mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                {product.cta}
+                <ArrowRight
+                  className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                  aria-hidden
+                />
+              </span>
+            </Link>
+          </li>
         ))}
-      </dl>
+      </ul>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Button asChild className="font-semibold">
-          <Link href="/contact">
-            Request a quote
-            <ArrowRight className="ml-0.5" />
-          </Link>
-        </Button>
-        <Button asChild variant="outline" className="font-semibold">
-          <Link href="#availability">Browse availability</Link>
-        </Button>
-      </div>
-
-      <TissueBlocksCatalog />
-
-      <section className="mt-14 rounded-xl border border-primary/25 bg-primary/10 px-5 py-6 sm:px-6">
-        <h2 className="text-lg font-semibold tracking-tight">
-          Need specimen-level detail or a quote?
+      <section className="mt-16">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          How ordering works
         </h2>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Tell us the organ or cell line, the diagnostic category, and the
-          intended research use. We will reply by email.
+        <ol className="mt-6 grid gap-4 sm:grid-cols-3">
+          {steps.map((step, i) => (
+            <li key={step.title} className="border-t-2 border-primary/70 pt-4">
+              <p className="text-sm font-semibold tabular-nums text-primary">
+                {i + 1}
+              </p>
+              <p className="mt-1 font-semibold">{step.title}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-8 text-sm text-muted-foreground">
+          All blocks are for research use only.
         </p>
-        <Button asChild className="mt-4 font-semibold">
-          <Link href="/contact">
-            Contact PathXDx
-            <ArrowRight className="ml-0.5" />
-          </Link>
-        </Button>
       </section>
     </div>
   );
