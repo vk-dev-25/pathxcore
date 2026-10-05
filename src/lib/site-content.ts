@@ -1,6 +1,3 @@
-export const commonServicesBlurb =
-  "Research pathology capabilities for preclinical, discovery, and translational programs: whole-slide imaging and quantitative image analysis, multiplex immunofluorescence, immunohistochemistry, histology (accessioning through H&E and special stains), pathologist evaluation of research specimens, tissue banking, and tissue microarray (TMA) construction.";
-
 /** Organ systems and disease areas we support for preclinical / discovery work. */
 export const expertiseAreas = [
   "Cardiology",
@@ -35,12 +32,8 @@ export const preclinicalSteps: { title: string; body: string }[] = [
     body: "H&E, special stains, single-plex IHC, or multiplex immunofluorescence, depending on your study.",
   },
   {
-    title: "Whole-slide imaging",
-    body: "Brightfield and fluorescence scanning on our own equipment. Digital slides available for review and archived for your program.",
-  },
-  {
-    title: "Quantitative image analysis",
-    body: "Cell detection, classification, marker quantification, co-expression analysis, and spatial metrics. Delivered as data tables alongside annotated images.",
+    title: "Whole-slide scanning",
+    body: "Brightfield and fluorescence scanning on our own equipment. Whole-slide images are delivered to you and archived for your program.",
   },
   {
     title: "Pathologist evaluation",
@@ -52,38 +45,72 @@ export const preclinicalSteps: { title: string; body: string }[] = [
   },
 ];
 
-export const homepageCapabilities: {
+/** Service capabilities, shown on the Services page and summarized on Home. */
+export const serviceCapabilities: {
+  id: string;
   title: string;
-  body: string;
+  summary: string;
+  details: string[];
 }[] = [
   {
-    title: "Digital Pathology & Image Analysis",
-    body: "Whole-slide scanning and quantitative image analysis, performed in-house on our own equipment. Brightfield and fluorescence scanning, digital slide management, and quantitative readouts: cell density, marker positivity, co-expression, and spatial relationships between populations. Because analysis is digital, we can support programs anywhere, including collaborators outside the US who send images rather than tissue.",
+    id: "multiplex",
+    title: "Multiplex immunofluorescence",
+    summary:
+      "3–4 plex panels developed and optimized for your targets and tissue, delivered as one workflow rather than handed between vendors.",
+    details: [
+      "Panel design and antibody optimization",
+      "Staining and whole-slide fluorescence imaging",
+      "Panels for immune and tumor microenvironment markers",
+      "Several markers on one section when single-marker IHC isn't enough",
+    ],
   },
   {
-    title: "Tissue Blocks",
-    body: "Research FFPE archive by organ and diagnostic category, from normal and control through malignant, plus cell-line FFPE controls for IHC. Browse availability on the tissue blocks page, or ask for a specimen-level list. Tissue microarray construction is available.",
-  },
-  {
-    title: "Multiplex Immunohistochemistry & Immunofluorescence",
-    body: "Multiplex immunofluorescence panels at 3–4 plex, developed and optimized for your targets and tissue. Panel design, antibody optimization, staining, imaging, and quantitative analysis delivered as one workflow rather than handed between vendors. Useful when single-marker IHC can't answer the question: immune profiling, co-expression, and tissue microenvironment characterization.",
-  },
-  {
+    id: "ihc",
     title: "Immunohistochemistry",
-    body: "Single-plex chromogenic IHC across organ systems: routine panels, complex panels, and method development for new targets. Antibody optimization and protocol development for targets without an established protocol.",
+    summary: "Single-plex chromogenic IHC across organ systems.",
+    details: [
+      "Routine and complex panels",
+      "Method development for new targets",
+      "Antibody optimization and protocol development",
+    ],
   },
   {
+    id: "histology",
     title: "Histology",
-    body: "Accessioning, grossing and trimming, tissue processing, embedding, and sectioning. Standard sections at 4–5 µm on positively charged slides; custom thickness on request. H&E and an extensive special stain menu, with custom stain development available.",
+    summary:
+      "Accessioning through sectioning and staining, for FFPE and frozen workflows.",
+    details: [
+      "Grossing, trimming, processing, and embedding",
+      "4–5 µm sections on charged slides; custom thickness, serial, and step sections",
+      "H&E and special stains, with custom stain development",
+      "Tissue microarray construction",
+    ],
   },
   {
-    title: "Pathologist Evaluation",
-    body: "Qualified pathologist assessment of research specimens, reported as research findings. Available as a standalone service or alongside any staining workflow.",
+    id: "pathologist-evaluation",
+    title: "Pathologist evaluation",
+    summary:
+      "Qualified pathologist assessment of research specimens, reported as research findings.",
+    details: [
+      "Standalone, or alongside any staining workflow",
+      "Research-use findings, not diagnostic interpretation",
+    ],
+  },
+  {
+    id: "slide-scanning",
+    title: "Whole-slide scanning",
+    summary:
+      "Brightfield and fluorescence scanning on our own equipment, with whole-slide images (WSI) delivered to you for review, sharing, and your own analysis.",
+    details: [
+      "Brightfield and fluorescence whole-slide scanning",
+      "Whole-slide image files delivered to you",
+      "Digital slide archiving for your program",
+    ],
   },
 ];
 
 export const researchUseOnlyFooter =
-  "Research use only. PathXDx provides histology, immunohistochemistry, multiplex immunofluorescence, and digital pathology services for preclinical, discovery, and translational research programs. We do not perform clinical diagnostic testing, do not provide diagnostic interpretation of patient specimens, and do not hold CLIA certification or CAP accreditation. All services and data are for research purposes and are not intended for diagnosis, treatment, or prevention of disease.";
+  "Research use only. PathXDx provides histology, immunohistochemistry, multiplex immunofluorescence, and whole-slide scanning services for preclinical, discovery, and translational research programs. We do not perform clinical diagnostic testing, do not provide diagnostic interpretation of patient specimens, and do not hold CLIA certification or CAP accreditation. All services and data are for research purposes and are not intended for diagnosis, treatment, or prevention of disease.";
 
 export const footerTagline =
-  "Research pathology for preclinical, discovery, and translational programs: histology, IHC, multiplex immunofluorescence, whole-slide imaging, and quantitative image analysis. Brisbane, California.";
+  "Research pathology for preclinical, discovery, and translational programs: histology, IHC, multiplex immunofluorescence, and whole-slide scanning. Brisbane, California.";

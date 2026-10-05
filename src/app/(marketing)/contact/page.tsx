@@ -8,7 +8,7 @@ import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
 export const metadata: Metadata = marketingMetadata({
   title: "Discuss Your Study | PathXDx Research Pathology",
   description:
-    "Talk to our team about histology, IHC, multiplex immunofluorescence, or image analysis for your research program.",
+    "Talk to our team about histology, IHC, multiplex immunofluorescence, or whole-slide scanning for your research program.",
   path: "/contact",
 });
 
@@ -24,7 +24,7 @@ export default function ContactPage() {
         what&apos;s feasible and what it costs.
       </p>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        For multiplex or image analysis programs, sharing your study design up
+        For multiplex programs, sharing your study design up
         front lets us give you a realistic scope on the first call rather than
         the third.
       </p>

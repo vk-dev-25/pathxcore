@@ -18,7 +18,7 @@ type ContactUsFormProps = {
 };
 
 const INQUIRY_TYPES = [
-  "Digital pathology / image analysis",
+  "Whole-slide scanning",
   "Multiplex immunofluorescence",
   "Immunohistochemistry",
   "Histology / routine processing",

@@ -95,7 +95,7 @@ const COLLECTION_STEPS = [
 ];
 
 const OTHER_STRAIN_TEMPLATE = [
-  "Mouse FFPE request: other strain (research use only)",
+  "Mouse FFPE enquiry: other strain (research use only)",
   "",
   "Strain or line:",
   "Sex and age:",
@@ -259,7 +259,7 @@ export function MouseCatalog() {
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               Availability varies by strain and sex. Tell us the organs you need
-              in your request.
+              in your enquiry.
             </p>
             <ul className="mt-4 flex flex-wrap gap-2">
               {mouseOrganPanel.map((organ) => (

@@ -1,472 +1,271 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Clock,
-  Layers,
-  MapPin,
-  Microscope,
-  Scan,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ServicesSlideshow,
-  type ServiceSlide,
-} from "@/components/services-slideshow";
-import {
-  commonServicesBlurb,
-  homepageCapabilities,
-} from "@/lib/site-content";
+import { cn } from "@/lib/utils";
 import { homePageMetadata } from "@/lib/site-seo";
-import { TISSUE_ROUTES, organSystems } from "@/lib/tissue/public-catalog";
+import { TISSUE_ROUTES } from "@/lib/tissue/public-catalog";
 
 export const metadata: Metadata = homePageMetadata;
 
-const pillars = [
+const heroClaims = [
+  "Research pathology partner for biotech, pharma, and CROs",
+  "Histology, IHC, and multiplex IF, with whole-slide scans delivered",
+  "Human, cell pellet, and mouse FFPE blocks",
+];
+
+const news = [
   {
-    title: "Imaging and analysis under one roof",
-    body: "We own our scanning and run image analysis in-house. That means no pass-through vendors, no queue behind someone else's work, and a single point of accountability from block to quantified result.",
-    icon: Scan,
+    title: "Mouse FFPE tissue blocks",
+    body: "NSG-MHC I/II DKO, C57BL/6, and BALB/c tissue, plus collection from your own animals.",
+    href: TISSUE_ROUTES.mouse,
+    image: "/images/he/liver.jpg",
   },
   {
-    title: "Multiplex without building it yourself",
-    body: "Multiplex immunofluorescence takes real optimization to get right. We've done that work, so you don't need to stand up the capability internally for a single study.",
-    icon: Layers,
+    title: "Blocks from your cells",
+    body: "Send transfected, knockout, or knockdown cells. We return FFPE blocks or a low-density cell TMA.",
+    href: `${TISSUE_ROUTES.cellPellets}#your-cells`,
+    image: "/images/ihc/ihc-her2.jpg",
   },
   {
-    title: "A technologist who knows your protocol",
-    body: "You get named technologists assigned to your program rather than whoever is free. They learn your tissue, your protocol, and your acceptance criteria.",
-    icon: Users,
-  },
-  {
-    title: "Straight answers on scope",
-    body: "If a study design won't produce the data you need, we say so before you commit, not after.",
-    icon: ShieldCheck,
+    title: "Human FFPE by indication",
+    body: "Cancer and disease tissue with matched normal adjacent, sourced through partner biobanks.",
+    href: `${TISSUE_ROUTES.humanFfpe}#indications`,
+    image: "/images/he/breast.jpg",
   },
 ];
 
-const highlights = [
-  { label: "Scope", value: "Research use only", icon: ShieldCheck },
+type Tile = {
+  title: string;
+  body: string;
+  href: string;
+  image: string;
+  position?: string;
+};
+
+const products: Tile[] = [
   {
-    label: "Capabilities",
-    value: "Histology · IHC · Multiplex IF · Digital pathology",
-    icon: Microscope,
+    title: "Human FFPE tissue",
+    body: "Normal, cancer, and disease tissue by indication",
+    href: TISSUE_ROUTES.humanFfpe,
+    image: "/images/he/colon.jpg",
   },
   {
-    label: "Imaging",
-    value: "Whole-slide scanning & analysis, in-house",
-    icon: Scan,
-  },
-  { label: "Location", value: "Brisbane, California", icon: MapPin },
-  {
-    label: "Model",
-    value: "Dedicated technologist per program",
-    icon: Users,
+    title: "Cell pellet blocks",
+    body: "Characterized cell lines for IHC run controls",
+    href: TISSUE_ROUTES.cellPellets,
+    image: "/images/ihc/ihc-er.jpg",
   },
   {
-    label: "Reach",
-    value: "Mon–Fri 7am–7pm · Sat 9am–5pm · 24/7 contact",
-    icon: Clock,
+    title: "Mouse tissue",
+    body: "Immunodeficient and immunocompetent strains",
+    href: TISSUE_ROUTES.mouse,
+    image: "/images/he/lung.jpg",
   },
 ];
 
-const featuredSystems = [
-  "skin",
-  "gastrointestinal",
-  "mammary",
-  "respiratory",
-  "reproductive",
-  "urinary",
-  "hepatobiliary",
-  "head-neck",
-] as const;
-
-const serviceSlides: ServiceSlide[] = [
+const services: Tile[] = [
   {
-    title: "Digital pathology & image analysis",
-    description:
-      "Whole-slide scanning and quantitative image analysis in-house: brightfield and fluorescence, digital slide management, and quantitative readouts for marker positivity, co-expression, and spatial relationships.",
-    href: "/preclinical-services",
-    cta: "See capabilities",
-    imageSrc: "/images/hero-lab-team.png",
-    imageAlt:
-      "PathXdx technologists collaborating at laboratory instrumentation",
-    objectPosition: "object-[center_32%]",
+    title: "Histology & pathologist evaluation",
+    body: "From accessioning to H&E, special stains, and research reads",
+    href: "/preclinical-services#histology",
+    image: "/images/hero-lab-team.png",
+    position: "object-[center_40%]",
   },
   {
-    title: "Multiplex immunofluorescence",
-    description:
-      "3–4 plex panels developed and optimized for your targets and tissue: panel design, staining, imaging, and quantitative analysis as one workflow.",
-    href: "/preclinical-services",
-    cta: "See capabilities",
-    imageSrc: "/images/hero-scientist.png",
-    imageAlt:
-      "Laboratory professional in protective equipment beside instrumentation",
-    objectPosition: "object-[center_22%]",
+    title: "IHC & multiplex IF",
+    body: "Panels developed and optimized for your targets and tissue",
+    href: "/preclinical-services#multiplex",
+    image: "/images/ihc/ihc-cd20.jpg",
   },
   {
-    title: "IHC, histology & pathologist evaluation",
-    description:
-      "Single-plex IHC, H&E and special stains, and qualified pathologist assessment of research specimens, reported as research findings.",
-    href: "/contact",
-    cta: "Discuss your study",
-    imageSrc: "/images/hero-lab-team.png",
-    imageAlt: "Pathology laboratory team at the bench",
-    objectPosition: "object-[center_55%]",
-  },
-  {
-    title: "Partnership from study design to delivery",
-    description:
-      "A dedicated technologist helps design your study, explains each step, and prepares a clear proposal, then executes on your timeline with transparent invoicing.",
-    href: "/contact",
-    cta: "Discuss your study",
-    imageSrc: "/images/hero-scientist.png",
-    imageAlt: "Scientist reviewing work in the laboratory",
-    objectPosition: "object-[center_40%]",
+    title: "Whole-slide scanning",
+    body: "Brightfield and fluorescence scans, delivered as WSI files",
+    href: "/preclinical-services#slide-scanning",
+    image: "/images/hero-scientist.png",
+    position: "object-[center_20%]",
   },
 ];
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-2xl font-semibold uppercase tracking-wide sm:text-3xl">
+      {children}
+    </h2>
+  );
+}
+
+function ImageTile({ tile }: { tile: Tile }) {
+  return (
+    <Link
+      href={tile.href}
+      className="group relative flex aspect-[16/11] flex-col items-center justify-center overflow-hidden rounded-xl px-6 text-center text-white shadow-sm"
+    >
+      <Image
+        src={tile.image}
+        alt=""
+        fill
+        sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+        className={cn(
+          "object-cover transition-transform duration-500 group-hover:scale-105",
+          tile.position,
+        )}
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65 transition-colors group-hover:from-black/45"
+        aria-hidden
+      />
+      <div className="relative">
+        <h3 className="text-xl font-semibold leading-snug drop-shadow sm:text-2xl">
+          {tile.title}
+        </h3>
+        <p className="mx-auto mt-2 max-w-xs text-sm text-white/85">
+          {tile.body}
+        </p>
+        <span className="mt-5 inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-wider text-primary-foreground shadow transition-transform group-hover:translate-y-[-1px]">
+          Learn more
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 export default function HomePage() {
   return (
     <>
-      <section className="relative min-h-[min(92vh,920px)] overflow-hidden border-b border-white/[0.06]">
-        <Image
-          src="/images/hero-lab-team.png"
-          alt="PathXdx technologists in lab coats and gloves collaborating at laboratory instrumentation"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-[center_28%]"
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-background via-background/92 to-background/25 sm:via-background/88 sm:to-transparent"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40 sm:to-transparent"
-          aria-hidden
-        />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent sm:h-40" />
-
-        <div className="relative mx-auto flex min-h-[min(92vh,920px)] max-w-6xl flex-col justify-center px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
-            Research Pathology · Preclinical & Translational
-          </p>
-          <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:max-w-2xl sm:text-5xl lg:text-[3.25rem]">
-            More than histology.{" "}
-            <span className="font-semibold text-primary">
-              Quantitative answers from tissue
-            </span>
-            .
-          </h1>
-          <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            PathXDx is a Brisbane, California research pathology laboratory
-            supporting biotech, pharma, CRO, and academic programs, from
-            routine histology and IHC through multiplex immunofluorescence,
-            whole-slide imaging, and quantitative image analysis.
-          </p>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Owned scanning and in-house image analysis mean your slides
-            don&apos;t leave our lab, and your data doesn&apos;t wait on a third
-            party.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="font-semibold">
-              <Link href="/contact">
-                Discuss your study
-                <ArrowRight className="ml-0.5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="font-semibold">
-              <Link href="/tissue-bank">
-                Browse tissue blocks
-                <ArrowRight className="ml-0.5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" className="font-semibold">
-              <Link href="/preclinical-services">
-                See capabilities
-                <ArrowRight className="ml-0.5" />
-              </Link>
-            </Button>
-          </div>
-
-          <dl className="mt-14 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
-            {highlights.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-white/[0.08] bg-background/55 px-4 py-3 backdrop-blur-md"
+      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+        <div className="relative overflow-hidden rounded-2xl">
+          <Image
+            src="/images/hero-lab-team.png"
+            alt="PathXdx technologists collaborating at laboratory instrumentation"
+            fill
+            priority
+            sizes="(min-width: 1152px) 1152px, 100vw"
+            className="object-cover object-[center_30%]"
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent"
+            aria-hidden
+          />
+          <div className="relative flex min-h-[420px] items-center p-5 sm:min-h-[460px] sm:p-10">
+            <div className="max-w-xl rounded-xl bg-black/55 px-6 py-7 text-white backdrop-blur-sm sm:px-8">
+              <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+                Research pathology, from tissue to slide
+              </h1>
+              <ul className="mt-5 space-y-2">
+                {heroClaims.map((claim) => (
+                  <li key={claim} className="flex gap-2 text-sm sm:text-base">
+                    <Check
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    {claim}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Button asChild className="font-semibold">
+                  <Link href="/contact">
+                    Discuss your study
+                    <ArrowRight className="ml-0.5" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-white/40 bg-white/10 font-semibold text-white hover:bg-white/20 hover:text-white"
                 >
-                  <dt className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    <Icon className="h-3.5 w-3.5 text-lab-purple" />
-                    {item.label}
-                  </dt>
-                  <dd className="mt-1 text-sm font-medium text-foreground">
-                    {item.value}
-                  </dd>
-                </div>
-              );
-            })}
-          </dl>
+                  <Link href={TISSUE_ROUTES.landing}>Tissue blocks</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="border-b border-white/[0.06] bg-card/40">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-                Tissue blocks
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-                FFPE tissue for the study, not only the stain
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Research-use human FFPE tissue by organ system, normal and
-                control tissue, and FFPE cell pellet blocks for IHC controls.
-                Ask us when you need a specimen-level list.
-              </p>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-3">
-              <Button asChild className="font-semibold">
-                <Link href={TISSUE_ROUTES.humanFfpe}>
-                  Human FFPE tissue
-                  <ArrowRight className="ml-0.5" />
+      <section className="mt-12 border-y border-border/70 bg-muted/40">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+          <SectionTitle>What&apos;s new</SectionTitle>
+          <ul className="mt-7 grid gap-4 md:grid-cols-3">
+            {news.map((item) => (
+              <li key={item.title}>
+                <Link
+                  href={item.href}
+                  className="group flex h-full gap-4 rounded-xl border border-border/80 bg-card p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <span className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg ring-1 ring-black/10">
+                    <Image
+                      src={item.image}
+                      alt=""
+                      fill
+                      sizes="160px"
+                      className="object-cover"
+                    />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold leading-snug text-primary">
+                      {item.title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {item.body}
+                    </p>
+                  </div>
                 </Link>
-              </Button>
-              <Button asChild variant="outline" className="font-semibold">
-                <Link href={TISSUE_ROUTES.cellPellets}>Cell pellet blocks</Link>
-              </Button>
-            </div>
-          </div>
-
-          <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {featuredSystems.map((id) => {
-              const system = organSystems.find((item) => item.id === id);
-              if (!system) return null;
-              return (
-                <li key={system.id}>
-                  <Link
-                    href={`${TISSUE_ROUTES.humanFfpe}#${system.id}`}
-                    className="block rounded-xl border border-white/[0.08] bg-card px-4 py-4 text-sm font-semibold transition-colors hover:border-primary/45"
-                  >
-                    {system.name}
-                  </Link>
-                </li>
-              );
-            })}
+              </li>
+            ))}
           </ul>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-lab-purple">
-            Why research teams work with us
-          </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-            High-touch partnership, owned imaging capability
-          </h2>
-        </div>
-        <ul className="mt-12 grid gap-5 sm:grid-cols-2">
-          {pillars.map((pillar) => {
-            const PillarIcon = pillar.icon;
-            return (
-              <li key={pillar.title}>
-                <Card className="h-full border-white/[0.08] bg-card/60 shadow-none backdrop-blur-sm transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_-16px_hsl(var(--primary)/0.35)]">
-                  <CardHeader>
-                    <PillarIcon className="h-9 w-9 text-primary" />
-                    <CardTitle className="text-lg">{pillar.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {pillar.body}
-                    </p>
-                  </CardContent>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="border-y border-white/[0.06] bg-lab-indigo/35">
-        <div className="mx-auto grid max-w-6xl gap-0 lg:grid-cols-2 lg:items-stretch">
-          <div className="flex flex-col justify-center px-4 py-14 sm:px-6 sm:py-20 lg:pr-10 lg:pl-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-              In the lab
-            </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Precision pathology starts with people who sweat the details
-            </h2>
-            <p className="mt-5 max-w-prose text-muted-foreground">
-              The same care that goes into your slides shows up in how we
-              communicate: clear milestones, realistic timelines, and a single
-              thread from study design through quantified delivery.
-            </p>
-            <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                QA-minded handling from accessioning through cover-slipping
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-lab-purple" />
-                Multiplex IF, IHC, whole-slide imaging, and in-house analysis
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                Transparent proposals: PO and timeline, then execution
-              </li>
-            </ul>
-            <div className="mt-10">
-              <Button asChild>
-                <Link href="/contact">Discuss your study</Link>
-              </Button>
-            </div>
-          </div>
-          <div className="relative min-h-[320px] lg:min-h-[520px]">
-            <Image
-              src="/images/hero-scientist.png"
-              alt="PathXdx laboratory professional in a white coat and safety glasses adjusting protective eyewear beside instrumentation"
-              fill
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover object-[center_15%] lg:object-[center_20%]"
-            />
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-lab-indigo/50 to-transparent lg:from-background/80"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute inset-0 shadow-[inset_0_0_0_1px_hsl(var(--lab-purple)/0.2)]"
-              aria-hidden
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mb-10 max-w-2xl">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Capabilities
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            Digital pathology and the FFPE tissue archive first, then multiplex,
-            IHC, and the rest of the research pathology workflow.
-          </p>
-        </div>
-        <ul className="grid gap-4 md:grid-cols-2">
-          {homepageCapabilities.map((cap) => (
-            <li key={cap.title}>
-              <Card className="h-full border-white/[0.08] bg-card/60 shadow-none">
-                <CardHeader>
-                  <CardTitle className="text-lg">{cap.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {cap.body}
-                  </p>
-                </CardContent>
-              </Card>
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <SectionTitle>Featured products</SectionTitle>
+        <ul className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((tile) => (
+            <li key={tile.title}>
+              <ImageTile tile={tile} />
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
-        <div className="mb-10 max-w-2xl">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Featured services
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            Preclinical and translational programs, with shared operational
-            excellence.
-          </p>
-        </div>
-        <ServicesSlideshow slides={serviceSlides} />
-      </section>
-
-      <section className="border-y border-white/[0.06] bg-card/30">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Common services
-          </h2>
-          <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-            {commonServicesBlurb}
-          </p>
+      <section className="border-t border-border/70 bg-muted/40">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <SectionTitle>Featured services</SectionTitle>
+          <ul className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((tile) => (
+              <li key={tile.title}>
+                <ImageTile tile={tile} />
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-        <div className="grid gap-10 lg:grid-cols-3">
-          <div className="space-y-3">
-            <Users className="h-8 w-8 text-primary" />
-            <h3 className="text-lg font-semibold">Our goal</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Our goal is to work with you so you meet your goals. We take the
-              extra step to make sure you&apos;re happy with the speed and
-              quality of the service we provide.
+      <section className="bg-primary text-primary-foreground">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-5 px-4 py-10 sm:flex-row sm:items-center sm:px-6">
+          <div>
+            <h2 className="text-xl font-semibold sm:text-2xl">
+              Discuss your study with PathXDx
+            </h2>
+            <p className="mt-1 text-sm text-primary-foreground/85">
+              Tell us the tissue, targets, and timeline. We&apos;ll tell you
+              what&apos;s feasible and what it costs.
             </p>
           </div>
-          <div className="space-y-3">
-            <Sparkles className="h-8 w-8 text-lab-purple" />
-            <h3 className="text-lg font-semibold">Our mission</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Our mission is advancing discovery. By understanding your study
-              needs we can provide the best solution so you may maximize your
-              potential in the pursuit of your research goals.
-            </p>
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold">How we can help you</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              When you reach out, we assign a technologist to help design your
-              study, explain the steps, and prepare a proposal. With a PO and
-              timeline, we complete the work and invoice your accounts payable
-              when services are returned.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative overflow-hidden border-t border-white/[0.08]">
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-card/40 via-background to-background"
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,hsl(var(--primary)/0.07),transparent_60%)]"
-          aria-hidden
-        />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-20">
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Discuss your study with PathXDx
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Tell us what you&apos;re working on. Tissue type, targets, study
-            stage, and timeline. We&apos;ll tell you what&apos;s feasible and
-            what it costs.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="font-semibold">
-              <Link href="/contact">Discuss your study</Link>
-            </Button>
-            <Button asChild size="lg" variant="purpleOutline">
-              <Link href="/pathx/sign-in">Client workspace</Link>
-            </Button>
-          </div>
+          <Button
+            asChild
+            variant="secondary"
+            size="lg"
+            className="shrink-0 font-semibold"
+          >
+            <Link href="/contact">
+              Contact us
+              <ArrowRight className="ml-0.5" />
+            </Link>
+          </Button>
         </div>
       </section>
     </>

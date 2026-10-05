@@ -177,7 +177,7 @@ export function CellPelletCatalog() {
 
       {lines.length === 0 ? (
         <p className="mt-4 rounded-xl border border-border/80 bg-card px-4 py-10 text-center text-sm text-muted-foreground">
-          No cell lines match. Clear a filter, or send a custom request below.
+          No cell lines match. Clear a filter, or send a custom enquiry below.
         </p>
       ) : (
         <ul className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

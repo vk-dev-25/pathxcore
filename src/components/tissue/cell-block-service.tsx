@@ -99,7 +99,7 @@ const STEPS = [
 ];
 
 const TEMPLATE = [
-  "Custom cell block request (research use only)",
+  "Custom cell block enquiry (research use only)",
   "",
   "Cells supplied by (us / me):",
   "Cell line(s):",

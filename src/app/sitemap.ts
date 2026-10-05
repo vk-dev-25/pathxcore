@@ -5,7 +5,6 @@ import { SITE_ORIGIN } from "@/lib/site-identity";
 const marketingPaths = [
   "/",
   "/preclinical-services",
-  "/areas-of-expertise",
   "/tissue-bank",
   "/tissue-bank/human-ffpe",
   "/tissue-bank/cell-pellets",

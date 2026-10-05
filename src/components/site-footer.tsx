@@ -14,8 +14,7 @@ import {
 
 const serviceLinks = [
   { href: "/tissue-bank", label: "Tissue Blocks" },
-  { href: "/preclinical-services", label: "Preclinical services" },
-  { href: "/areas-of-expertise", label: "Areas of expertise" },
+  { href: "/preclinical-services", label: "Services" },
   { href: "/contact", label: "Contact" },
 ] as const;
 

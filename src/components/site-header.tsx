@@ -22,9 +22,8 @@ const TISSUE_HREF = "/tissue-bank";
 
 const nav = [
   { href: "/", label: "Home", featured: false },
-  { href: "/preclinical-services", label: "Preclinical services", featured: false },
+  { href: "/preclinical-services", label: "Services", featured: false },
   { href: TISSUE_HREF, label: "Tissue Blocks", featured: true },
-  { href: "/areas-of-expertise", label: "Areas of expertise", featured: false },
   { href: "/contact", label: "Contact", featured: false },
 ];
 

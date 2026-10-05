@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { GitMerge, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { Check, GitMerge, Plus, Search, X } from "lucide-react";
 
 import {
   AddToRequestButton,
@@ -12,6 +13,7 @@ import {
 } from "@/components/tissue/block-request";
 import {
   TissueThumb,
+  imageFitClass,
   normalHeSrc,
   systemHeSrc,
 } from "@/components/tissue/tissue-images";
@@ -23,11 +25,39 @@ import {
   normalControlTissues,
   organSystems,
   systemForTissue,
+  type OrganSystem,
 } from "@/lib/tissue/public-catalog";
 
-const systemById = new Map(organSystems.map((system) => [system.id, system]));
-
 type Request = ReturnType<typeof useBlockRequest>;
+type Kind = "cancer" | "disease";
+
+const FORMATS = ["FFPE block", "Unstained slides", "H&E slides"] as const;
+type Format = (typeof FORMATS)[number];
+
+/** Organ systems that have indications, in catalog order. */
+const SYSTEMS = indicationGroups
+  .map((group) => {
+    const system = organSystems.find((s) => s.id === group.systemId);
+    return system
+      ? { system, cancer: group.cancer, disease: group.disease }
+      : null;
+  })
+  .filter(
+    (
+      entry,
+    ): entry is { system: OrganSystem; cancer: string[]; disease: string[] } =>
+      entry !== null,
+  );
+
+const DEFAULT_SYSTEM =
+  SYSTEMS.find((s) => s.system.id === "gastrointestinal")?.system.id ??
+  SYSTEMS[0]?.system.id;
+
+function configuredName(name: string, format: Format, matched: boolean) {
+  return [name, format, matched ? "with matched normal adjacent" : null]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 function SectionHeading({
   eyebrow,
@@ -56,81 +86,256 @@ function SectionHeading({
   );
 }
 
-function IndicationRow({
+function KindBadge({ kind }: { kind: Kind }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+        kind === "cancer"
+          ? "bg-rose-500/15 text-rose-500"
+          : "bg-sky-500/15 text-sky-500",
+      )}
+    >
+      <span
+        className={cn(
+          "h-1.5 w-1.5 rounded-full",
+          kind === "cancer" ? "bg-rose-500" : "bg-sky-500",
+        )}
+        aria-hidden
+      />
+      {kind === "cancer" ? "Cancer" : "Disease"}
+    </span>
+  );
+}
+
+/**
+ * Product-style card for one indication: pick a format (and matched normal
+ * adjacent for cancers), then add that configuration to the enquiry.
+ */
+function IndicationCard({
   name,
   kind,
+  systemName,
   request,
 }: {
   name: string;
-  kind: "cancer" | "disease";
+  kind: Kind;
+  /** Shown in search results, where cards from several systems mix. */
+  systemName?: string;
   request: Request;
 }) {
-  const entry: RequestItem = { kind, name };
-  const matched: RequestItem = { kind: "matched", name };
+  const [format, setFormat] = useState<Format>("FFPE block");
+  const [matched, setMatched] = useState(false);
+  const entry: RequestItem = {
+    kind,
+    name: configuredName(name, format, kind === "cancer" && matched),
+  };
   const added = request.has(entry);
-  const hasMatched = request.has(matched);
-
-  function toggleEntry() {
-    // Removing a cancer item also drops its matched normal adjacent.
-    if (added && hasMatched) request.toggle(matched);
-    request.toggle(entry);
-  }
+  const inRequest = request.items.filter(
+    (item) =>
+      item.kind === kind &&
+      (item.name === name || item.name.startsWith(`${name} · `)),
+  ).length;
 
   return (
     <li
       className={cn(
-        "-mx-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/60",
-        added && "bg-primary/10 hover:bg-primary/15",
+        "flex flex-col rounded-xl border bg-card p-4 transition-all hover:shadow-md",
+        inRequest > 0 ? "border-primary/60" : "border-border/80",
       )}
     >
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <span className={cn(added && "font-medium text-primary")}>{name}</span>
-        <AddToRequestButton
-          compact
-          added={added}
-          name={name}
-          onClick={toggleEntry}
-        />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {systemName ? (
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {systemName}
+            </p>
+          ) : null}
+          <h4 className="font-semibold leading-snug">{name}</h4>
+          {inRequest > 0 ? (
+            <p className="mt-0.5 text-xs font-medium text-primary">
+              {inRequest} in your enquiry
+            </p>
+          ) : null}
+        </div>
+        <KindBadge kind={kind} />
       </div>
-      {kind === "cancer" && added ? (
-        <label className="mt-1 flex cursor-pointer items-center gap-2 text-xs text-lab-purple">
+
+      <div
+        className="mt-3 flex flex-wrap gap-1.5"
+        role="group"
+        aria-label={`Format for ${name}`}
+      >
+        {FORMATS.map((f) => (
+          <button
+            key={f}
+            type="button"
+            aria-pressed={format === f}
+            onClick={() => setFormat(f)}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-xs transition-colors",
+              format === f
+                ? "border-primary bg-primary/10 font-medium text-foreground"
+                : "border-border/80 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {kind === "cancer" ? (
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-lab-purple">
           <input
             type="checkbox"
-            checked={hasMatched}
-            onChange={() => request.toggle(matched)}
+            checked={matched}
+            onChange={(event) => setMatched(event.target.checked)}
             className="h-3.5 w-3.5 accent-[hsl(var(--lab-purple))]"
           />
-          Add matched normal adjacent
+          With matched normal adjacent
         </label>
       ) : null}
+
+      <button
+        type="button"
+        onClick={() => request.toggle(entry)}
+        className={cn(
+          "mt-4 inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+          added
+            ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+            : "border-primary/50 text-primary hover:bg-primary/10",
+        )}
+      >
+        {added ? (
+          <>
+            <Check className="h-4 w-4" aria-hidden />
+            Added · remove
+          </>
+        ) : (
+          <>
+            <Plus className="h-4 w-4" aria-hidden />
+            Add to enquiry
+          </>
+        )}
+      </button>
     </li>
+  );
+}
+
+function SystemTile({
+  system,
+  count,
+  active,
+  onSelect,
+}: {
+  system: OrganSystem;
+  count: number;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const he = systemHeSrc(system.id);
+  return (
+    <button
+      type="button"
+      id={system.id}
+      aria-pressed={active}
+      onClick={onSelect}
+      className={cn(
+        "group relative flex aspect-[4/3] w-full scroll-mt-28 flex-col justify-end overflow-hidden rounded-xl p-3 text-left text-white ring-offset-2 ring-offset-background transition-all",
+        active
+          ? "ring-2 ring-primary"
+          : "hover:-translate-y-0.5 hover:shadow-lg",
+      )}
+    >
+      {he ? (
+        <Image
+          src={he}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 270px, (min-width: 640px) 33vw, 50vw"
+          className={cn(
+            "object-cover transition-transform duration-500 group-hover:scale-110",
+            imageFitClass(he),
+          )}
+        />
+      ) : null}
+      <span
+        className={cn(
+          "absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent transition-colors",
+          active && "from-primary/90 via-primary/30",
+        )}
+        aria-hidden
+      />
+      {active ? (
+        <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+          <Check className="h-3.5 w-3.5" aria-hidden />
+        </span>
+      ) : null}
+      <span className="relative text-base font-semibold leading-tight drop-shadow sm:text-lg">
+        {system.name}
+      </span>
+      <span className="relative text-xs text-white/80">
+        {count} {count === 1 ? "indication" : "indications"}
+      </span>
+    </button>
   );
 }
 
 export function HumanFfpeCatalog() {
   const request = useBlockRequest();
   const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | undefined>(
+    DEFAULT_SYSTEM,
+  );
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  const groups = useMemo(() => {
+  // Header menu links arrive as #<system id>: open that system's panel.
+  useEffect(() => {
+    function fromHash() {
+      const id = window.location.hash.slice(1);
+      if (SYSTEMS.some((s) => s.system.id === id)) {
+        setSelectedId(id);
+        setQuery("");
+      }
+    }
+    fromHash();
+    window.addEventListener("hashchange", fromHash);
+    return () => window.removeEventListener("hashchange", fromHash);
+  }, []);
+
+  const selected = SYSTEMS.find((s) => s.system.id === selectedId);
+
+  const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const match = (text: string) => text.toLowerCase().includes(q);
-    return indicationGroups
-      .map((group) => {
-        const system = systemById.get(group.systemId);
-        if (!system) return null;
-        const systemMatches = q !== "" && match(system.name);
-        const keep = (name: string) => !q || systemMatches || match(name);
-        return {
-          system,
-          cancer: group.cancer.filter(keep),
-          disease: group.disease.filter(keep),
-        };
-      })
-      .filter(
-        (group): group is NonNullable<typeof group> =>
-          group !== null && group.cancer.length + group.disease.length > 0,
-      );
+    if (!q) return [];
+    return SYSTEMS.flatMap(({ system, cancer, disease }) => {
+      const systemMatches = system.name.toLowerCase().includes(q);
+      const keep = (name: string) =>
+        systemMatches || name.toLowerCase().includes(q);
+      return [
+        ...cancer
+          .filter(keep)
+          .map((name) => ({ name, kind: "cancer" as const, system })),
+        ...disease
+          .filter(keep)
+          .map((name) => ({ name, kind: "disease" as const, system })),
+      ];
+    });
   }, [query]);
+
+  function selectSystem(id: string) {
+    setSelectedId(id);
+    setQuery("");
+    window.history.replaceState(null, "", `#${id}`);
+    requestAnimationFrame(() =>
+      panelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      }),
+    );
+  }
+
+  const searching = query.trim() !== "";
 
   return (
     <>
@@ -189,15 +394,15 @@ export function HumanFfpeCatalog() {
       </section>
 
       <section id="indications" className="mt-20 scroll-mt-28">
-        <SectionHeading
-          eyebrow="By indication"
-          title="Cancer and disease tissue"
-          tone="purple"
-        >
-          FFPE tissue by indication, grouped by organ system.
-        </SectionHeading>
-
-        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <SectionHeading
+            eyebrow="By indication"
+            title="Cancer and disease tissue"
+            tone="purple"
+          >
+            Pick an organ system, then configure each indication: format and,
+            for cancers, matched normal adjacent tissue.
+          </SectionHeading>
           <div className="relative lg:w-80">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -206,117 +411,126 @@ export function HumanFfpeCatalog() {
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search indication or organ"
-              aria-label="Search indication or organ"
-              className="pl-9"
+              placeholder="Search all indications"
+              aria-label="Search all indications"
+              className="pl-9 pr-9"
             />
-          </div>
-          <div className="flex items-start gap-3 rounded-xl border border-lab-purple/30 bg-lab-purple/10 px-4 py-3 text-sm lg:max-w-xl">
-            <GitMerge
-              className="mt-0.5 h-4 w-4 shrink-0 text-lab-purple"
-              aria-hidden
-            />
-            <p>
-              <span className="font-semibold">
-                Matched normal adjacent available
-              </span>{" "}
-              <span className="text-muted-foreground">
-                for cancer indications. Add an indication, then tick the option
-                under it.
-              </span>
-            </p>
+            {searching ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" aria-hidden />
+                <span className="sr-only">Clear search</span>
+              </button>
+            ) : null}
           </div>
         </div>
 
-        {groups.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-border/80 bg-card px-4 py-10 text-center text-sm text-muted-foreground">
-            No indication matches that search. Send a custom request below and
-            we&apos;ll source it.
-          </p>
-        ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {groups.map(({ system, cancer, disease }) => {
-              const visual = systemVisual(system.id);
-              const he = systemHeSrc(system.id);
-              return (
-                <section
-                  key={system.id}
-                  id={system.id}
-                  aria-labelledby={`${system.id}-heading`}
-                  className={cn(
-                    "scroll-mt-28 overflow-hidden rounded-xl border border-border/80 bg-card transition-all hover:shadow-lg",
-                    visual.hover,
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex items-center gap-3 border-b border-border/70 bg-gradient-to-r to-transparent px-5 py-3.5",
-                      visual.wash,
-                    )}
-                  >
-                    {he ? (
-                      <TissueThumb
-                        src={he}
-                        alt={`H&E of ${system.name.toLowerCase()} tissue`}
-                        size={48}
-                      />
-                    ) : null}
-                    <h3
-                      id={`${system.id}-heading`}
-                      className="text-lg font-semibold tracking-tight"
-                    >
-                      {system.name}
-                    </h3>
-                  </div>
-                  <div className="grid gap-x-6 px-5 py-4 sm:grid-cols-2">
-                    {cancer.length > 0 ? (
-                      <div>
-                        <p className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-rose-500">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-rose-500"
-                            aria-hidden
+        <ul className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {SYSTEMS.map(({ system, cancer, disease }) => (
+            <li key={system.id}>
+              <SystemTile
+                system={system}
+                count={cancer.length + disease.length}
+                active={!searching && system.id === selectedId}
+                onSelect={() => selectSystem(system.id)}
+              />
+            </li>
+          ))}
+        </ul>
+
+        <div
+          ref={panelRef}
+          className="mt-6 scroll-mt-28 overflow-hidden rounded-2xl border border-border/80 bg-muted/30"
+          aria-live="polite"
+        >
+          {searching ? (
+            <div className="p-5 sm:p-6">
+              <h3 className="text-lg font-semibold tracking-tight">
+                {results.length} {results.length === 1 ? "match" : "matches"}{" "}
+                for &ldquo;{query.trim()}&rdquo;
+              </h3>
+              {results.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Not listed? Send a custom enquiry below and we&apos;ll source
+                  it through our partner biobanks.
+                </p>
+              ) : (
+                <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {results.map((r) => (
+                    <IndicationCard
+                      key={`${r.system.id}:${r.name}`}
+                      name={r.name}
+                      kind={r.kind}
+                      systemName={r.system.name}
+                      request={request}
+                    />
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : selected ? (
+            <>
+              <div
+                className={cn(
+                  "flex flex-wrap items-center gap-4 border-b border-border/70 bg-gradient-to-r to-transparent px-5 py-5 sm:px-6",
+                  systemVisual(selected.system.id).wash,
+                )}
+              >
+                {systemHeSrc(selected.system.id) ? (
+                  <TissueThumb
+                    src={systemHeSrc(selected.system.id) as string}
+                    alt={`H&E of ${selected.system.name.toLowerCase()} tissue`}
+                    size={64}
+                  />
+                ) : null}
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-2xl font-semibold tracking-tight">
+                    {selected.system.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selected.system.description}
+                  </p>
+                </div>
+                <p className="flex items-center gap-2 rounded-full border border-lab-purple/30 bg-lab-purple/10 px-3 py-1 text-xs font-medium">
+                  <GitMerge
+                    className="h-3.5 w-3.5 text-lab-purple"
+                    aria-hidden
+                  />
+                  Matched normal adjacent for cancers
+                </p>
+              </div>
+              <div className="space-y-6 p-5 sm:p-6">
+                {(
+                  [
+                    ["cancer", selected.cancer],
+                    ["disease", selected.disease],
+                  ] as const
+                ).map(([kind, names]) =>
+                  names.length > 0 ? (
+                    <div key={kind}>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {kind === "cancer" ? "Cancer" : "Disease and other"}
+                      </h4>
+                      <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {names.map((name) => (
+                          <IndicationCard
+                            key={name}
+                            name={name}
+                            kind={kind}
+                            request={request}
                           />
-                          Cancer
-                        </p>
-                        <ul className="mt-2">
-                          {cancer.map((name) => (
-                            <IndicationRow
-                              key={name}
-                              name={name}
-                              kind="cancer"
-                              request={request}
-                            />
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                    {disease.length > 0 ? (
-                      <div className="mt-4 sm:mt-0">
-                        <p className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-sky-500">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-sky-500"
-                            aria-hidden
-                          />
-                          Disease and other
-                        </p>
-                        <ul className="mt-2">
-                          {disease.map((name) => (
-                            <IndicationRow
-                              key={name}
-                              name={name}
-                              kind="disease"
-                              request={request}
-                            />
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            </>
+          ) : null}
+        </div>
       </section>
 
       <div className="mt-16">

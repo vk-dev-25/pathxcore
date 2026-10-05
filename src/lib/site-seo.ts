@@ -43,10 +43,10 @@ export function marketingMetadata({
 }
 
 const HOME_TITLE_ABSOLUTE =
-  "PathXDx | Research Pathology, Multiplex IF & Digital Pathology | Brisbane, CA";
+  "PathXDx | Research Pathology, IHC & Multiplex IF | Brisbane, CA";
 
 const HOME_DESCRIPTION =
-  "Research pathology laboratory in Brisbane, California. Histology, IHC, multiplex immunofluorescence, whole-slide imaging, and quantitative image analysis for preclinical, discovery, and translational programs. Research use only.";
+  "Research pathology laboratory in Brisbane, California. Histology, IHC, multiplex immunofluorescence, and whole-slide scanning for preclinical, discovery, and translational programs. Research use only.";
 
 export const homePageMetadata: Metadata = {
   title: { absolute: HOME_TITLE_ABSOLUTE },

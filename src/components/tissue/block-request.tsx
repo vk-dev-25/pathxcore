@@ -108,7 +108,7 @@ export function AddToRequestButton({
       onClick={onClick}
       aria-pressed={added}
       aria-label={
-        added ? `Remove ${name} from request` : `Add ${name} to request`
+        added ? `Remove ${name} from enquiry` : `Add ${name} to enquiry`
       }
       className={cn(
         "inline-flex shrink-0 items-center gap-1 rounded-md border text-xs font-medium transition-colors",
@@ -129,7 +129,7 @@ export function AddToRequestButton({
 }
 
 function buildMessage(items: RequestItem[]): string {
-  const lines = ["Tissue block request (research use only)", ""];
+  const lines = ["Tissue block enquiry (research use only)", ""];
   for (const kind of [
     "normal",
     "cancer",
@@ -170,7 +170,7 @@ export function BlockRequestBar({
             <p className="text-sm">
               <span className="font-semibold tabular-nums">{items.length}</span>{" "}
               <span className="text-muted-foreground">
-                {items.length === 1 ? "item" : "items"} in your request
+                {items.length === 1 ? "item" : "items"} in your enquiry
               </span>
             </p>
             <Button
@@ -178,7 +178,7 @@ export function BlockRequestBar({
               className="font-semibold"
               onClick={() => setOpen(true)}
             >
-              Review request
+              Review enquiry
               <ArrowRight aria-hidden />
             </Button>
           </div>
@@ -188,11 +188,11 @@ export function BlockRequestBar({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Your block request</DialogTitle>
+            <DialogTitle>Your enquiry</DialogTitle>
           </DialogHeader>
           {items.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Your request is empty. Add tissues or cell lines to get started.
+              Your enquiry is empty. Add tissues or cell lines to get started.
             </p>
           ) : (
             <>
@@ -238,7 +238,7 @@ export function BlockRequestBar({
 }
 
 const CUSTOM_TEMPLATE = [
-  "Custom FFPE request (research use only)",
+  "Custom FFPE enquiry (research use only)",
   "",
   "Tissue / indication:",
   "Diagnosis details (subtype, stage, grade):",
@@ -314,16 +314,55 @@ export function CustomRequestCard({
         className="relative mt-5 font-semibold"
         onClick={() => setOpen(true)}
       >
-        Make a custom request
+        Make a custom enquiry
         <ArrowRight aria-hidden />
       </Button>
       <RequestFormDialog
         open={open}
         onOpenChange={setOpen}
-        title="Custom request"
+        title="Custom enquiry"
         intro="Fill in what you can. We'll check our archive and partner biobanks and reply by email."
         template={CUSTOM_TEMPLATE}
       />
     </section>
+  );
+}
+
+/** Button that opens the contact form pre-filled with a request template. */
+export function RequestDialogButton({
+  label,
+  title,
+  intro,
+  template,
+  variant = "default",
+  className,
+}: {
+  label: string;
+  title: string;
+  intro: string;
+  template: string;
+  variant?: "default" | "outline";
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button
+        type="button"
+        variant={variant}
+        className={cn("font-semibold", className)}
+        onClick={() => setOpen(true)}
+      >
+        {label}
+        <ArrowRight aria-hidden />
+      </Button>
+      <RequestFormDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={title}
+        intro={intro}
+        template={template}
+      />
+    </>
   );
 }

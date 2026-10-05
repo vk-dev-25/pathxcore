@@ -61,6 +61,11 @@ const IMAGE_FIT: Record<string, string> = {
   "/images/he/tonsil.jpg": "object-top",
 };
 
+/** Crop class for an image, for components that render their own <Image>. */
+export function imageFitClass(src: string): string {
+  return IMAGE_FIT[src] ?? "";
+}
+
 export function normalHeSrc(label: string): string | undefined {
   const key = NORMAL_HE[label];
   return key ? heImage(key) : undefined;

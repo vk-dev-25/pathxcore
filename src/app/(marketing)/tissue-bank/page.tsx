@@ -57,8 +57,8 @@ const products = [
 
 const steps = [
   {
-    title: "Build a request",
-    body: "Add the tissues or cell lines you need from either catalog.",
+    title: "Build an enquiry",
+    body: "Add the human tissue, cell pellets, or mouse tissue you need from any catalog.",
   },
   {
     title: "Get a specimen list",

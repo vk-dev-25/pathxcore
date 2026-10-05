@@ -22,12 +22,18 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/clinical-services",
-        destination: "/areas-of-expertise",
+        destination: "/preclinical-services",
         permanent: true,
       },
       {
         source: "/therapeutic-areas",
-        destination: "/areas-of-expertise",
+        destination: "/preclinical-services",
+        permanent: true,
+      },
+      // Areas of expertise was merged into the Services page.
+      {
+        source: "/areas-of-expertise",
+        destination: "/preclinical-services#expertise",
         permanent: true,
       },
     ];
