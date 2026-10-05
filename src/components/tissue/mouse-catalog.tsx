@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   ArrowRight,
   Check,
@@ -23,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  mouseGallery,
   mouseOrganPanel,
   onRequestMouseStrains,
   stockedMouseStrains,
@@ -294,6 +296,34 @@ export function MouseCatalog() {
             </ul>
           </div>
         </div>
+      </section>
+
+      <section id="from-our-lab" className="mt-20 scroll-mt-28">
+        <SectionHeading eyebrow="From our lab" title="Mouse stains we run">
+          Special stains and IHC on mouse FFPE tissue, from normal and disease
+          models.
+        </SectionHeading>
+        <ul className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {mouseGallery.map((item) => (
+            <li key={item.src}>
+              <figure className="group overflow-hidden rounded-2xl border border-border/80 bg-card transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                  <Image
+                    src={item.src}
+                    alt={`${item.stain} on mouse ${item.tissue.toLowerCase()}`}
+                    fill
+                    sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <figcaption className="px-4 py-3">
+                  <p className="font-semibold tracking-tight">{item.stain}</p>
+                  <p className="text-sm text-muted-foreground">{item.tissue}</p>
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mt-20">

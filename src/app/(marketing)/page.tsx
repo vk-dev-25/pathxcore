@@ -21,19 +21,19 @@ const news = [
     title: "Mouse FFPE tissue blocks",
     body: "NSG-MHC I/II DKO, C57BL/6, and BALB/c tissue, plus collection from your own animals.",
     href: TISSUE_ROUTES.mouse,
-    image: "/images/he/liver.jpg",
+    image: "/images/lab/trichrome-lung-mouse.jpg",
   },
   {
     title: "Blocks from your cells",
     body: "Send transfected, knockout, or knockdown cells. We return FFPE blocks or a low-density cell TMA.",
     href: `${TISSUE_ROUTES.cellPellets}#your-cells`,
-    image: "/images/ihc/ihc-her2.jpg",
+    image: "/images/lab/ihc-her2-breast-tma.jpg",
   },
   {
     title: "Human FFPE by indication",
     body: "Cancer and disease tissue with matched normal adjacent, sourced through partner biobanks.",
     href: `${TISSUE_ROUTES.humanFfpe}#indications`,
-    image: "/images/he/breast.jpg",
+    image: "/images/lab/dual-ihc-pdl1-cd3-liver-human.jpg",
   },
 ];
 
@@ -43,6 +43,8 @@ type Tile = {
   href: string;
   image: string;
   position?: string;
+  /** Optional grid of micrographs shown instead of `image`, like WSI tiles. */
+  mosaic?: string[];
 };
 
 const products: Tile[] = [
@@ -50,19 +52,19 @@ const products: Tile[] = [
     title: "Human FFPE tissue",
     body: "Normal, cancer, and disease tissue by indication",
     href: TISSUE_ROUTES.humanFfpe,
-    image: "/images/he/colon.jpg",
+    image: "/images/lab/dual-ihc-cd103-ecad-colon-cancer-2.jpg",
   },
   {
     title: "Cell pellet blocks",
     body: "Characterized cell lines for IHC run controls",
     href: TISSUE_ROUTES.cellPellets,
-    image: "/images/ihc/ihc-er.jpg",
+    image: "/images/lab/ihc-her2-breast-cancer.jpg",
   },
   {
     title: "Mouse tissue",
     body: "Immunodeficient and immunocompetent strains",
     href: TISSUE_ROUTES.mouse,
-    image: "/images/he/lung.jpg",
+    image: "/images/lab/trichrome-lung-mouse.jpg",
   },
 ];
 
@@ -71,21 +73,27 @@ const services: Tile[] = [
     title: "Histology & pathologist evaluation",
     body: "From accessioning to H&E, special stains, and research reads",
     href: "/preclinical-services#histology",
-    image: "/images/hero-lab-team.png",
-    position: "object-[center_40%]",
+    image: "/images/lab/trichrome-kidney-human.jpg",
   },
   {
     title: "IHC & multiplex IF",
     body: "Panels developed and optimized for your targets and tissue",
     href: "/preclinical-services#multiplex",
-    image: "/images/ihc/ihc-cd20.jpg",
+    image: "/images/lab/if-triple-breast-tumor.jpg",
   },
   {
     title: "Whole-slide scanning",
     body: "Brightfield and fluorescence scans, delivered as WSI files",
     href: "/preclinical-services#slide-scanning",
-    image: "/images/hero-scientist.png",
-    position: "object-[center_20%]",
+    image: "/images/lab/dual-ihc-cd103-ecad-colon-cancer.jpg",
+    mosaic: [
+      "/images/lab/dual-ihc-cd103-ecad-colon-cancer.jpg",
+      "/images/lab/trichrome-kidney-human.jpg",
+      "/images/lab/ihc-her2-breast-cancer.jpg",
+      "/images/lab/if-triple-breast-tumor.jpg",
+      "/images/lab/ihc-b220.jpg",
+      "/images/lab/trichrome-lung-mouse.jpg",
+    ],
   },
 ];
 
@@ -103,16 +111,29 @@ function ImageTile({ tile }: { tile: Tile }) {
       href={tile.href}
       className="group relative flex aspect-[16/11] flex-col items-center justify-center overflow-hidden rounded-xl px-6 text-center text-white shadow-sm"
     >
-      <Image
-        src={tile.image}
-        alt=""
-        fill
-        sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
-        className={cn(
-          "object-cover transition-transform duration-500 group-hover:scale-105",
-          tile.position,
-        )}
-      />
+      {tile.mosaic ? (
+        <div
+          className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-0.5 bg-black transition-transform duration-500 group-hover:scale-105"
+          aria-hidden
+        >
+          {tile.mosaic.map((src) => (
+            <span key={src} className="relative block overflow-hidden">
+              <Image src={src} alt="" fill sizes="130px" className="object-cover" />
+            </span>
+          ))}
+        </div>
+      ) : (
+        <Image
+          src={tile.image}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 380px, (min-width: 640px) 50vw, 100vw"
+          className={cn(
+            "object-cover transition-transform duration-500 group-hover:scale-105",
+            tile.position,
+          )}
+        />
+      )}
       <div
         className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65 transition-colors group-hover:from-black/45"
         aria-hidden

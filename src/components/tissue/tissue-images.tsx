@@ -4,25 +4,28 @@ import { cn } from "@/lib/utils";
 import type { CellLineBlock } from "@/lib/tissue/public-catalog";
 import { heImage, ihcImage } from "@/lib/tissue/image-credits";
 
-/** H&E snapshots for the Human FFPE hero mosaic. */
-export const FFPE_HERO_IMAGES = [
-  "breast",
-  "colon",
-  "lung",
-  "liver",
-  "prostate",
-  "thyroid",
-].map(heImage);
+/** PathXDx lab images (from the company deck) in public/images/lab. */
+const lab = (file: string) => `/images/lab/${file}`;
 
-/** IHC snapshots for the Cell pellet hero mosaic. */
+/** Own human stains for the Human FFPE hero mosaic. */
+export const FFPE_HERO_IMAGES = [
+  "dual-ihc-cd103-ecad-colon-cancer.jpg",
+  "trichrome-kidney-human.jpg",
+  "ihc-her2-breast-cancer.jpg",
+  "dual-ihc-pdl1-cd3-liver-human.jpg",
+  "ihc-cd163-human.jpg",
+  "dual-ihc-cd103-ecad-colon-cancer-2.jpg",
+].map(lab);
+
+/** Own IHC and immunofluorescence for the Cell pellet hero mosaic. */
 export const CELL_HERO_IMAGES = [
-  "er",
-  "her2",
-  "cd20",
-  "ttf1",
-  "p63",
-  "cd31",
-].map(ihcImage);
+  "if-triple-breast-tumor.jpg",
+  "ihc-her2-breast-cancer-2.jpg",
+  "if-cd31.jpg",
+  "ihc-her2-breast-cancer.jpg",
+  "if-her2.jpg",
+  "ihc-pan-cytokeratin.jpg",
+].map(lab);
 
 /** Normal / control tissue label → H&E thumbnail key. */
 const NORMAL_HE: Record<string, string> = {
