@@ -1,46 +1,41 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin } from "lucide-react";
+import { Clock, Mail, MapPin } from "lucide-react";
 
+import { BrandLockup } from "@/components/brand-lockup";
+import { HeaderTissueBackdrop } from "@/components/header-tissue-backdrop";
 import { Separator } from "@/components/ui/separator";
-import {
-  footerTagline,
-  researchUseOnlyFooter,
-} from "@/lib/site-content";
+import { footerTagline, researchUseOnlyFooter } from "@/lib/site-content";
 import {
   SITE_EMAIL_PRIMARY,
+  SITE_HOURS,
   siteAddressLine,
 } from "@/lib/site-identity";
 
 const serviceLinks = [
   { href: "/tissue-bank", label: "Tissue Blocks" },
   { href: "/preclinical-services", label: "Services" },
+  { href: "/about", label: "About" },
+  { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ] as const;
 
 export function SiteFooter() {
   return (
-    <footer className="relative border-t border-white/[0.08] bg-card/40">
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-lab-purple/40 to-transparent"
-        aria-hidden
-      />
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <footer className="theme-dark relative bg-[#0c1424] text-foreground">
+      <HeaderTissueBackdrop edge="top" subtle />
+      <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <Image
-                src="/images/pathxlogo.jpeg"
-                alt="PathXdx"
-                width={258}
-                height={236}
-                className="h-16 w-auto opacity-95 sm:h-[4.5rem]"
-              />
+              <BrandLockup size="lg" framed={false} />
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {footerTagline}
             </p>
-            <nav aria-label="Services" className="flex flex-wrap gap-x-4 gap-y-2">
+            <nav
+              aria-label="Services"
+              className="flex flex-wrap gap-x-4 gap-y-2"
+            >
               {serviceLinks.map((item) => (
                 <Link
                   key={item.href}
@@ -71,11 +66,24 @@ export function SiteFooter() {
             </ul>
           </div>
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-foreground">Hours</p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Reach us any time. Office hours: Monday–Friday 7am–7pm, Saturday
-              9am–5pm.
+            <p className="text-sm font-semibold text-foreground">
+              Office hours{" "}
+              <span className="font-normal text-muted-foreground">(PT)</span>
             </p>
+            <dl className="max-w-60 space-y-2 text-sm">
+              {SITE_HOURS.map(({ days, time }) => (
+                <div key={days} className="flex items-center gap-2">
+                  <Clock
+                    className="h-4 w-4 shrink-0 text-primary"
+                    aria-hidden
+                  />
+                  <dt className="text-muted-foreground">{days}</dt>
+                  <dd className="ml-auto tabular-nums text-foreground">
+                    {time}
+                  </dd>
+                </div>
+              ))}
+            </dl>
             <Link
               href="/contact"
               className="inline-flex text-sm font-semibold text-primary transition-colors hover:text-primary/80"

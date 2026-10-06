@@ -51,6 +51,52 @@ html.light {
   --lab-indigo: 239 40% 92%;
 }
 
+/* Dark palette scoped to one element (the header band), whatever the site theme */
+.theme-dark {
+  --background: 232 38% 6%;
+  --foreground: 210 40% 98%;
+  --card: 232 35% 9%;
+  --card-foreground: 210 40% 98%;
+  --primary: 173 72% 42%;
+  --primary-foreground: 232 38% 6%;
+  --secondary: 232 28% 14%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 232 22% 16%;
+  --muted-foreground: 215 18% 68%;
+  --accent: 232 28% 14%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 232 22% 18%;
+  --input: 232 22% 16%;
+  --ring: 173 72% 48%;
+  --lab-purple: 286 100% 68%;
+  --lab-indigo: 239 45% 14%;
+}
+
+/* Restore the light palette inside a .theme-dark element (e.g. the header menu) */
+html.light .theme-dark .theme-reset {
+  --background: 210 25% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 173 58% 36%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 18% 94%;
+  --muted-foreground: 215 16% 38%;
+  --accent: 210 25% 93%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 20% 82%;
+  --input: 0 0% 100%;
+  --ring: 173 55% 40%;
+  --lab-purple: 286 50% 46%;
+  --lab-indigo: 239 40% 92%;
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

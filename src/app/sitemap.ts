@@ -9,6 +9,8 @@ const marketingPaths = [
   "/tissue-bank/human-ffpe",
   "/tissue-bank/cell-pellets",
   "/tissue-bank/mouse",
+  "/about",
+  "/faq",
   "/contact",
   "/privacy",
 ] as const;

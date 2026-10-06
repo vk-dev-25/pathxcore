@@ -18,6 +18,12 @@ export const SITE_ADDRESS = {
   addressCountry: "US",
 } as const;
 
+/** Office hours, Pacific Time. Shared by the footer and Contact page. */
+export const SITE_HOURS = [
+  { days: "Monday–Friday", time: "7am–7pm" },
+  { days: "Saturday", time: "9am–5pm" },
+] as const;
+
 export function siteAddressShort(): string {
   const { addressLocality, addressRegion } = SITE_ADDRESS;
   return `${addressLocality}, ${addressRegion}`;

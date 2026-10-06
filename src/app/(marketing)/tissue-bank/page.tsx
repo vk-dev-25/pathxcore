@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  ChevronDown,
   FlaskConical,
   GitMerge,
   Microscope,
@@ -53,38 +52,6 @@ const products = [
     cta: "Browse mouse tissue",
     icon: PawPrint,
     tone: "from-sky-500/25 text-sky-700 dark:text-sky-400",
-  },
-];
-
-/** Tissue FAQ: only facts PathXDx has confirmed. */
-const faqs: { q: string; a: string }[] = [
-  {
-    q: "Can I order directly on the website?",
-    a: "Not quite. Add what you need to an enquiry and send it. We reply with a specimen-level list and a quote, and work through the details with you before anything is shipped.",
-  },
-  {
-    q: "What information comes with each block?",
-    a: "Diagnosis, age, sex, and block size. Treatment history and other clinical metadata are provided when available.",
-  },
-  {
-    q: "Can I see the tissue before I choose?",
-    a: "Yes. On request, we scan candidate blocks and share whole-slide H&E images with the pathologist's annotations.",
-  },
-  {
-    q: "Is the human tissue ethically sourced?",
-    a: "Yes. Human tissue is collected under IRB-approved protocols, with donor consent for research, and is de-identified.",
-  },
-  {
-    q: "Can I get slides instead of blocks?",
-    a: "Yes. Tissue is available as FFPE blocks, unstained slides, or H&E slides. Matched normal adjacent tissue is available for cancer indications.",
-  },
-  {
-    q: "What if the tissue I need isn't listed?",
-    a: "Send a custom enquiry. We source tissue beyond our catalog through partner biobanks, including specific subtypes, stages, and cases with treatment history.",
-  },
-  {
-    q: "Can you make blocks from my own cells or animals?",
-    a: "Yes. We make FFPE blocks and low-density cell TMAs from your transfected, knockout, or knockdown cells, and collect and block tissue from animals you provide.",
   },
 ];
 
@@ -180,27 +147,16 @@ export default function TissueBlocksPage() {
         </p>
       </section>
 
-      <section id="faq" className="mt-16 scroll-mt-28">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Common questions
-        </h2>
-        <div className="mt-6 divide-y divide-border/70 rounded-2xl border border-border/80 bg-card">
-          {faqs.map((faq) => (
-            <details key={faq.q} className="group px-5 py-4">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
-                {faq.q}
-                <ChevronDown
-                  className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-                  aria-hidden
-                />
-              </summary>
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                {faq.a}
-              </p>
-            </details>
-          ))}
-        </div>
-      </section>
+      <p className="mt-10 text-sm text-muted-foreground">
+        Questions about ordering, H&amp;E images, or sourcing?{" "}
+        <Link
+          href="/faq"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
+          See common questions
+        </Link>
+        .
+      </p>
     </div>
   );
 }

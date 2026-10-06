@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu } from "lucide-react";
@@ -14,6 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { BrandLockup } from "@/components/brand-lockup";
+import { HeaderTissueBackdrop } from "@/components/header-tissue-backdrop";
 import { HomeThemeToggle } from "@/components/home-theme-toggle";
 import { TissueBrowseMenu } from "@/components/tissue/tissue-browse-menu";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ const nav = [
   { href: "/", label: "Home", featured: false },
   { href: "/preclinical-services", label: "Services", featured: false },
   { href: TISSUE_HREF, label: "Tissue Blocks", featured: true },
+  { href: "/about", label: "About", featured: false },
+  { href: "/faq", label: "FAQ", featured: false },
   { href: "/contact", label: "Contact", featured: false },
 ];
 
@@ -57,20 +60,14 @@ export function SiteHeader() {
   }, [tissueOpen]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-background/75 backdrop-blur-xl">
-      <div className="mx-auto flex min-h-16 items-center justify-between gap-4 px-4 py-2 sm:px-6">
+    <header className="theme-dark sticky top-0 z-40 bg-gradient-to-r from-[#0b1220] via-[#0d2230] to-[#1c1233] text-foreground shadow-lg shadow-black/10">
+      <HeaderTissueBackdrop />
+      <div className="relative mx-auto flex min-h-16 items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         >
-          <Image
-            src="/images/pathxlogo.jpeg"
-            alt="PathXdx"
-            width={258}
-            height={236}
-            className="h-14 w-auto sm:h-16"
-            priority
-          />
+          <BrandLockup framed={false} priority />
         </Link>
 
         <nav className="hidden items-center gap-0.5 md:flex">
@@ -128,7 +125,7 @@ export function SiteHeader() {
                 {tissueOpen ? (
                   <div
                     id="tissue-menu"
-                    className="absolute inset-x-0 top-full cursor-default border-b border-border/80 bg-background/95 text-base font-normal text-foreground shadow-lg backdrop-blur-xl"
+                    className="theme-reset absolute inset-x-0 top-full cursor-default border-b border-border/80 bg-background/95 text-base font-normal text-foreground shadow-lg backdrop-blur-xl"
                   >
                     <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
                       <TissueBrowseMenu

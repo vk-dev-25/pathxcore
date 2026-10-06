@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Clock, FlaskConical, Mail, Microscope, Users } from "lucide-react";
+import { Clock, Mail } from "lucide-react";
 
 import { ContactUsForm } from "@/components/contact-us-form";
 import { marketingMetadata } from "@/lib/site-seo";
-import { SITE_EMAIL_PRIMARY } from "@/lib/site-identity";
+import { SITE_EMAIL_PRIMARY, SITE_HOURS } from "@/lib/site-identity";
 
 export const metadata: Metadata = marketingMetadata({
   title: "Discuss Your Study | PathXDx Research Pathology",
@@ -11,21 +11,6 @@ export const metadata: Metadata = marketingMetadata({
     "Talk to our team about histology, IHC, multiplex immunofluorescence, or whole-slide scanning for your research program.",
   path: "/contact",
 });
-
-const ABOUT = [
-  {
-    icon: Microscope,
-    text: "Histology, IHC, multiplex IF, and whole-slide scanning in our own lab",
-  },
-  {
-    icon: Users,
-    text: "A dedicated technologist for every program",
-  },
-  {
-    icon: FlaskConical,
-    text: "Human, cell pellet, and mouse FFPE blocks from our archive and partner biobanks",
-  },
-];
 
 export default function ContactPage() {
   return (
@@ -39,38 +24,9 @@ export default function ContactPage() {
         what&apos;s feasible and what it costs.
       </p>
       <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-        For multiplex programs, sharing your study design up
-        front lets us give you a realistic scope on the first call rather than
-        the third.
+        For multiplex programs, sharing your study design up front lets us give
+        you a realistic scope on the first call rather than the third.
       </p>
-
-      <section
-        id="about"
-        aria-labelledby="about-heading"
-        className="mt-10 scroll-mt-28 rounded-2xl border border-border/80 bg-card p-6"
-      >
-        <h2 id="about-heading" className="text-lg font-semibold tracking-tight">
-          About PathXDx
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          PathXDx is a research pathology laboratory in Brisbane, California,
-          supporting biotech, pharma, CRO, and academic programs. Research use
-          only.
-        </p>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-3">
-          {ABOUT.map(({ icon: Icon, text }) => (
-            <li key={text} className="flex gap-3 text-sm">
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary"
-                aria-hidden
-              >
-                <Icon className="h-[18px] w-[18px]" />
-              </span>
-              <span className="pt-1">{text}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-8 text-sm">
@@ -93,11 +49,20 @@ export default function ContactPage() {
             <div className="flex gap-3">
               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
-                <h2 className="font-semibold text-foreground">Opening Hours</h2>
-                <p className="mt-1 whitespace-pre-line text-muted-foreground">
-                  {`Mon - Fri: 7am - 7pm
-Saturday: 9am - 5pm`}
-                </p>
+                <h2 className="font-semibold text-foreground">
+                  Office hours{" "}
+                  <span className="font-normal text-muted-foreground">
+                    (Pacific Time)
+                  </span>
+                </h2>
+                <dl className="mt-1 space-y-0.5 text-muted-foreground">
+                  {SITE_HOURS.map(({ days, time }) => (
+                    <div key={days} className="flex gap-2">
+                      <dt>{days}:</dt>
+                      <dd className="tabular-nums">{time}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             </div>
           </section>
