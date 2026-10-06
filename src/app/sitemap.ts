@@ -10,6 +10,7 @@ const marketingPaths = [
   "/tissue-bank/cell-pellets",
   "/tissue-bank/mouse",
   "/contact",
+  "/privacy",
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {

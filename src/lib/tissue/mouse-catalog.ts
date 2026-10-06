@@ -123,33 +123,33 @@ export const mouseOrganPanel = [
 /** Mouse stains from the PathXDx lab, shown on the Mouse tissue page. */
 export const mouseGallery: { src: string; stain: string; tissue: string }[] = [
   {
-    src: "/images/lab/trichrome-lung-mouse.jpg",
+    src: "/images/lab/special-stain-lung-mouse.jpg",
     stain: "Trichrome",
     tissue: "Normal lung, 5-week-old mouse",
   },
   {
-    src: "/images/lab/trichrome-lung-fibrotic-mouse.jpg",
+    src: "/images/lab/special-stain-lung-fibrotic-mouse.jpg",
     stain: "Trichrome",
     tissue: "Bleomycin-induced fibrotic lung",
   },
   {
-    src: "/images/lab/ihc-cd8a-spleen-mouse.jpg",
-    stain: "CD8a IHC",
-    tissue: "Spleen, cytotoxic T cells",
+    src: "/images/lab/ihc-spleen-mouse-1.jpg",
+    stain: "IHC",
+    tissue: "Spleen",
   },
   {
-    src: "/images/lab/ihc-cd19-spleen-mouse.jpg",
-    stain: "CD19 IHC",
-    tissue: "Spleen, B cells",
+    src: "/images/lab/ihc-spleen-mouse-2.jpg",
+    stain: "IHC",
+    tissue: "Spleen, lymphoid follicles",
   },
   {
-    src: "/images/lab/ihc-epcam-duodenum-mouse.jpg",
-    stain: "EpCAM IHC",
-    tissue: "Duodenum, epithelium",
+    src: "/images/lab/ihc-duodenum-mouse.jpg",
+    stain: "IHC",
+    tissue: "Duodenum",
   },
   {
-    src: "/images/lab/ihc-b220.jpg",
-    stain: "B220 IHC",
-    tissue: "Lymphoid tissue, B cells",
+    src: "/images/lab/ihc-lymphoid-mouse.jpg",
+    stain: "IHC",
+    tissue: "Lymphoid tissue",
   },
 ];

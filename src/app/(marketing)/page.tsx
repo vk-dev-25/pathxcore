@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 
+import { LabGalleryStrip } from "@/components/lab-gallery";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { homePageMetadata } from "@/lib/site-seo";
@@ -21,19 +22,19 @@ const news = [
     title: "Mouse FFPE tissue blocks",
     body: "NSG-MHC I/II DKO, C57BL/6, and BALB/c tissue, plus collection from your own animals.",
     href: TISSUE_ROUTES.mouse,
-    image: "/images/lab/trichrome-lung-mouse.jpg",
+    image: "/images/lab/special-stain-lung-mouse.jpg",
   },
   {
     title: "Blocks from your cells",
     body: "Send transfected, knockout, or knockdown cells. We return FFPE blocks or a low-density cell TMA.",
     href: `${TISSUE_ROUTES.cellPellets}#your-cells`,
-    image: "/images/lab/ihc-her2-breast-tma.jpg",
+    image: "/images/lab/ihc-tissue-array.jpg",
   },
   {
     title: "Human FFPE by indication",
     body: "Cancer and disease tissue with matched normal adjacent, sourced through partner biobanks.",
     href: `${TISSUE_ROUTES.humanFfpe}#indications`,
-    image: "/images/lab/dual-ihc-pdl1-cd3-liver-human.jpg",
+    image: "/images/lab/dual-ihc-liver-human.jpg",
   },
 ];
 
@@ -52,19 +53,19 @@ const products: Tile[] = [
     title: "Human FFPE tissue",
     body: "Normal, cancer, and disease tissue by indication",
     href: TISSUE_ROUTES.humanFfpe,
-    image: "/images/lab/dual-ihc-cd103-ecad-colon-cancer-2.jpg",
+    image: "/images/lab/dual-ihc-colon-cancer-2.jpg",
   },
   {
     title: "Cell pellet blocks",
     body: "Characterized cell lines for IHC run controls",
     href: TISSUE_ROUTES.cellPellets,
-    image: "/images/lab/ihc-her2-breast-cancer.jpg",
+    image: "/images/lab/ihc-breast-cancer-1.jpg",
   },
   {
     title: "Mouse tissue",
     body: "Immunodeficient and immunocompetent strains",
     href: TISSUE_ROUTES.mouse,
-    image: "/images/lab/trichrome-lung-mouse.jpg",
+    image: "/images/lab/special-stain-lung-mouse.jpg",
   },
 ];
 
@@ -73,26 +74,26 @@ const services: Tile[] = [
     title: "Histology & pathologist evaluation",
     body: "From accessioning to H&E, special stains, and research reads",
     href: "/preclinical-services#histology",
-    image: "/images/lab/trichrome-kidney-human.jpg",
+    image: "/images/lab/special-stain-kidney-human.jpg",
   },
   {
     title: "IHC & multiplex IF",
     body: "Panels developed and optimized for your targets and tissue",
     href: "/preclinical-services#multiplex",
-    image: "/images/lab/if-triple-breast-tumor.jpg",
+    image: "/images/lab/mif-breast-tumor.jpg",
   },
   {
     title: "Whole-slide scanning",
     body: "Brightfield and fluorescence scans, delivered as WSI files",
     href: "/preclinical-services#slide-scanning",
-    image: "/images/lab/dual-ihc-cd103-ecad-colon-cancer.jpg",
+    image: "/images/lab/dual-ihc-colon-cancer-1.jpg",
     mosaic: [
-      "/images/lab/dual-ihc-cd103-ecad-colon-cancer.jpg",
-      "/images/lab/trichrome-kidney-human.jpg",
-      "/images/lab/ihc-her2-breast-cancer.jpg",
-      "/images/lab/if-triple-breast-tumor.jpg",
-      "/images/lab/ihc-b220.jpg",
-      "/images/lab/trichrome-lung-mouse.jpg",
+      "/images/lab/dual-ihc-colon-cancer-1.jpg",
+      "/images/lab/special-stain-kidney-human.jpg",
+      "/images/lab/ihc-breast-cancer-1.jpg",
+      "/images/lab/mif-breast-tumor.jpg",
+      "/images/lab/ihc-lymphoid-mouse.jpg",
+      "/images/lab/special-stain-lung-mouse.jpg",
     ],
   },
 ];
@@ -262,6 +263,13 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <SectionTitle>From our lab</SectionTitle>
+        <div className="mt-7">
+          <LabGalleryStrip />
         </div>
       </section>
 

@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { LabGallery } from "@/components/lab-gallery";
 import { TissuePageHeader } from "@/components/tissue/tissue-page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,11 +35,11 @@ export const metadata: Metadata = marketingMetadata({
 const CAPABILITY_STYLE: Record<string, { icon: LucideIcon; tone: string }> = {
   "slide-scanning": { icon: Scan, tone: "bg-primary/15 text-primary" },
   multiplex: { icon: Layers, tone: "bg-lab-purple/15 text-lab-purple" },
-  ihc: { icon: TestTube, tone: "bg-amber-500/15 text-amber-500" },
-  histology: { icon: Microscope, tone: "bg-pink-500/15 text-pink-500" },
+  ihc: { icon: TestTube, tone: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
+  histology: { icon: Microscope, tone: "bg-pink-500/15 text-pink-700 dark:text-pink-400" },
   "pathologist-evaluation": {
     icon: Stethoscope,
-    tone: "bg-sky-500/15 text-sky-500",
+    tone: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
   },
 };
 
@@ -179,6 +180,16 @@ export default function ServicesPage() {
             </Link>
           </li>
         </ul>
+      </section>
+
+      <section id="gallery" className="mt-20 scroll-mt-28">
+        <SectionHeading eyebrow="From our lab" title="Our work">
+          Brightfield IHC, multiplex immunofluorescence, special stains, and
+          whole-slide scans from the PathXDx lab.
+        </SectionHeading>
+        <div className="mt-7">
+          <LabGallery />
+        </div>
       </section>
 
       <section id="workflow" className="mt-20 scroll-mt-28">

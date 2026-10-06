@@ -92,8 +92,8 @@ function KindBadge({ kind }: { kind: Kind }) {
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
         kind === "cancer"
-          ? "bg-rose-500/15 text-rose-500"
-          : "bg-sky-500/15 text-sky-500",
+          ? "bg-rose-500/15 text-rose-700 dark:text-rose-400"
+          : "bg-sky-500/15 text-sky-700 dark:text-sky-400",
       )}
     >
       <span

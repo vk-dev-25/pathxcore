@@ -28,19 +28,19 @@ const CELL_TYPES: {
     title: "Transfected lines",
     body: "Overexpression of your own target or custom marker, as a positive control.",
     icon: Dna,
-    tone: "bg-emerald-500/15 text-emerald-500",
+    tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   },
   {
     title: "Knockout lines",
     body: "CRISPR or other knockouts, as a true negative control for antibody specificity.",
     icon: Scissors,
-    tone: "bg-rose-500/15 text-rose-500",
+    tone: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
   },
   {
     title: "Knockdown lines",
     body: "siRNA or shRNA knockdowns to show reduced staining against the parent line.",
     icon: TrendingDown,
-    tone: "bg-amber-500/15 text-amber-500",
+    tone: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   },
   {
     title: "Isogenic pairs",
@@ -52,7 +52,7 @@ const CELL_TYPES: {
     title: "Treated cells",
     body: "Drug-treated, stimulated, or time-course samples for pharmacodynamic IHC.",
     icon: FlaskConical,
-    tone: "bg-sky-500/15 text-sky-500",
+    tone: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
   },
   {
     title: "Primary and other cells",
@@ -245,6 +245,7 @@ export function CellBlockService() {
         open={open}
         onOpenChange={setOpen}
         title="Blocks from your cells"
+        inquiryType="Cell pellet blocks"
         intro="Fill in what you can. We'll confirm cell numbers, shipping, and timing by email."
         template={TEMPLATE}
       />

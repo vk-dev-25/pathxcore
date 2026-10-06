@@ -12,21 +12,25 @@ type ContactUsFormProps = {
   variant?: "inline" | "dialog";
   className?: string;
   /** Pre-selects an inquiry type, e.g. from the tissue block request list. */
-  defaultInquiryType?: (typeof INQUIRY_TYPES)[number];
+  defaultInquiryType?: InquiryType;
   /** Pre-fills the message body. */
   defaultMessage?: string;
 };
 
 const INQUIRY_TYPES = [
-  "Whole-slide scanning",
-  "Multiplex immunofluorescence",
-  "Immunohistochemistry",
+  "Human FFPE tissue",
+  "Cell pellet blocks",
+  "Mouse tissue",
   "Histology / routine processing",
+  "Immunohistochemistry",
+  "Multiplex immunofluorescence",
   "Pathologist evaluation",
-  "Tissue bank inquiry",
+  "Whole-slide scanning",
   "International collaboration",
   "General inquiry",
 ] as const;
+
+export type InquiryType = (typeof INQUIRY_TYPES)[number];
 
 export function ContactUsForm({
   variant = "inline",

@@ -7,6 +7,7 @@ import {
   GitMerge,
   PenLine,
   ScanEye,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,14 +54,14 @@ const WHY: {
     title: "Clinical context",
     body: "Diagnosis, age, sex, and block size with every block. Treatment history and other metadata when available.",
     icon: ClipboardList,
-    tone: "bg-amber-500/15 text-amber-500",
+    tone: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
     bar: "bg-amber-500",
   },
   {
     title: "Matched controls",
     body: "Normal control tissue and matched normal adjacent tissue for cancer indications.",
     icon: GitMerge,
-    tone: "bg-sky-500/15 text-sky-500",
+    tone: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
     bar: "bg-sky-500",
   },
 ];
@@ -101,7 +102,7 @@ function WsiPreview() {
       </div>
       <div className="relative aspect-[4/3]">
         <Image
-          src="/images/he/breast.jpg"
+          src="/images/lab/wsi-he-sections.jpg"
           alt="Example H&E image with a pathologist's annotated region outlined"
           fill
           sizes="(min-width: 1024px) 480px, 100vw"
@@ -199,6 +200,20 @@ export default function HumanFfpePage() {
             </li>
           ))}
         </ul>
+        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4">
+          <ShieldCheck
+            className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+            aria-hidden
+          />
+          <p className="text-sm">
+            <span className="font-semibold">Ethically sourced.</span>{" "}
+            <span className="text-muted-foreground">
+              All human tissue is collected under IRB-approved protocols, with
+              donor consent for research, and is de-identified before it
+              reaches you.
+            </span>
+          </p>
+        </div>
       </section>
 
       <section

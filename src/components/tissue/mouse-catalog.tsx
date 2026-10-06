@@ -67,13 +67,13 @@ const USE_CASES: {
     title: "Assay development",
     body: "Set up and validate IHC and multiplex IF panels before study samples arrive.",
     icon: Microscope,
-    tone: "bg-sky-500/15 text-sky-500",
+    tone: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
   },
   {
     title: "Study controls",
     body: "Strain-matched normal tissue for syngeneic, xenograft, and humanized models.",
     icon: FlaskConical,
-    tone: "bg-amber-500/15 text-amber-500",
+    tone: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   },
 ];
 
@@ -455,6 +455,7 @@ export function MouseCatalog() {
         open={dialog === "other"}
         onOpenChange={(open) => setDialog(open ? "other" : null)}
         title="Request another strain"
+        inquiryType="Mouse tissue"
         intro="Tell us the strain and what you need. We'll check availability through our partners and reply by email."
         template={OTHER_STRAIN_TEMPLATE}
       />
@@ -462,6 +463,7 @@ export function MouseCatalog() {
         open={dialog === "collection"}
         onOpenChange={(open) => setDialog(open ? "collection" : null)}
         title="Custom collection from your animals"
+        inquiryType="Mouse tissue"
         intro="Fill in what you can. We'll confirm logistics, timing, and pricing by email."
         template={COLLECTION_TEMPLATE}
       />

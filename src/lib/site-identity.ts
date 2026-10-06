@@ -4,9 +4,10 @@ export const SITE_ORIGIN = "https://pathxdx.com";
 
 export const SITE_NAME = "PathXdx";
 
-export const DEFAULT_OG_IMAGE_PATH = "/images/pathxdx-logo.svg";
+/** 1200x630 PNG; social platforms don't render SVG link previews. */
+export const DEFAULT_OG_IMAGE_PATH = "/images/og-default.png";
 
-export const ORGANIZATION_LOGO_URL = `${SITE_ORIGIN}${DEFAULT_OG_IMAGE_PATH}`;
+export const ORGANIZATION_LOGO_URL = `${SITE_ORIGIN}/images/pathxdx-logo.svg`;
 
 export const SITE_EMAIL_PRIMARY = "info@pathxdx.com";
 

@@ -90,6 +90,10 @@ export function SiteFooter() {
         </p>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} PathXdx. All rights reserved.
+          {" · "}
+          <Link href="/privacy" className="hover:text-foreground">
+            Privacy policy
+          </Link>
         </p>
       </div>
     </footer>

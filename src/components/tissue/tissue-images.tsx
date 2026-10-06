@@ -9,22 +9,22 @@ const lab = (file: string) => `/images/lab/${file}`;
 
 /** Own human stains for the Human FFPE hero mosaic. */
 export const FFPE_HERO_IMAGES = [
-  "dual-ihc-cd103-ecad-colon-cancer.jpg",
-  "trichrome-kidney-human.jpg",
-  "ihc-her2-breast-cancer.jpg",
-  "dual-ihc-pdl1-cd3-liver-human.jpg",
-  "ihc-cd163-human.jpg",
-  "dual-ihc-cd103-ecad-colon-cancer-2.jpg",
+  "dual-ihc-colon-cancer-1.jpg",
+  "special-stain-kidney-human.jpg",
+  "ihc-breast-cancer-1.jpg",
+  "dual-ihc-liver-human.jpg",
+  "ihc-human-tissue.jpg",
+  "dual-ihc-colon-cancer-2.jpg",
 ].map(lab);
 
 /** Own IHC and immunofluorescence for the Cell pellet hero mosaic. */
 export const CELL_HERO_IMAGES = [
-  "if-triple-breast-tumor.jpg",
-  "ihc-her2-breast-cancer-2.jpg",
-  "if-cd31.jpg",
-  "ihc-her2-breast-cancer.jpg",
-  "if-her2.jpg",
-  "ihc-pan-cytokeratin.jpg",
+  "cell-pellet-ihc-1.jpg",
+  "mif-breast-tumor.jpg",
+  "cell-pellet-ihc-2.jpg",
+  "ihc-breast-cancer-2.jpg",
+  "if-tumor-1.jpg",
+  "ihc-tumor-membrane.jpg",
 ].map(lab);
 
 /** Normal / control tissue label → H&E thumbnail key. */

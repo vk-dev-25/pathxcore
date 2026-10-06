@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, Mail } from "lucide-react";
+import { Clock, FlaskConical, Mail, Microscope, Users } from "lucide-react";
 
 import { ContactUsForm } from "@/components/contact-us-form";
 import { marketingMetadata } from "@/lib/site-seo";
@@ -11,6 +11,21 @@ export const metadata: Metadata = marketingMetadata({
     "Talk to our team about histology, IHC, multiplex immunofluorescence, or whole-slide scanning for your research program.",
   path: "/contact",
 });
+
+const ABOUT = [
+  {
+    icon: Microscope,
+    text: "Histology, IHC, multiplex IF, and whole-slide scanning in our own lab",
+  },
+  {
+    icon: Users,
+    text: "A dedicated technologist for every program",
+  },
+  {
+    icon: FlaskConical,
+    text: "Human, cell pellet, and mouse FFPE blocks from our archive and partner biobanks",
+  },
+];
 
 export default function ContactPage() {
   return (
@@ -28,6 +43,34 @@ export default function ContactPage() {
         front lets us give you a realistic scope on the first call rather than
         the third.
       </p>
+
+      <section
+        id="about"
+        aria-labelledby="about-heading"
+        className="mt-10 scroll-mt-28 rounded-2xl border border-border/80 bg-card p-6"
+      >
+        <h2 id="about-heading" className="text-lg font-semibold tracking-tight">
+          About PathXDx
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          PathXDx is a research pathology laboratory in Brisbane, California,
+          supporting biotech, pharma, CRO, and academic programs. Research use
+          only.
+        </p>
+        <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+          {ABOUT.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex gap-3 text-sm">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary"
+                aria-hidden
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
+              <span className="pt-1">{text}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2 lg:gap-14">
         <div className="space-y-8 text-sm">

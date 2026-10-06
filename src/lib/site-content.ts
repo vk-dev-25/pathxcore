@@ -110,7 +110,7 @@ export const serviceCapabilities: {
 ];
 
 export const researchUseOnlyFooter =
-  "Research use only. PathXDx provides histology, immunohistochemistry, multiplex immunofluorescence, and whole-slide scanning services for preclinical, discovery, and translational research programs. We do not perform clinical diagnostic testing, do not provide diagnostic interpretation of patient specimens, and do not hold CLIA certification or CAP accreditation. All services and data are for research purposes and are not intended for diagnosis, treatment, or prevention of disease.";
+  "Research use only. PathXDx provides histology, immunohistochemistry, multiplex immunofluorescence, and whole-slide scanning services for preclinical, discovery, and translational research programs. We do not perform clinical diagnostic testing, do not provide diagnostic interpretation of patient specimens, and do not hold CLIA certification or CAP accreditation. All services and data are for research purposes and are not intended for diagnosis, treatment, or prevention of disease. Human tissue is collected under IRB-approved protocols, with donor consent for research, and is de-identified.";
 
 export const footerTagline =
   "Research pathology for preclinical, discovery, and translational programs: histology, IHC, multiplex immunofluorescence, and whole-slide scanning. Brisbane, California.";

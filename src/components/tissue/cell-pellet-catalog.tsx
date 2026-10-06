@@ -23,9 +23,9 @@ const MARKER_STATUS_LABEL: Record<MarkerStatus, string> = {
 };
 
 const MARKER_STATUS_CLASS: Record<MarkerStatus, string> = {
-  pos: "border-emerald-500/40 bg-emerald-500/15 text-emerald-500",
-  neg: "border-rose-500/40 bg-rose-500/10 text-rose-500",
-  low: "border-dashed border-amber-500/50 bg-amber-500/10 text-amber-500",
+  pos: "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  neg: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  low: "border-dashed border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400",
 };
 
 const TISSUES = [...new Set(cellLineBlocks.map((l) => l.tissue))].sort((a, b) =>
@@ -168,11 +168,11 @@ export function CellPelletCatalog() {
 
       <p className="mt-6 text-sm text-muted-foreground">
         Marker tags:{" "}
-        <span className="font-medium text-emerald-500">+ positive</span>
+        <span className="font-medium text-emerald-700 dark:text-emerald-400">+ positive</span>
         {" · "}
-        <span className="font-medium text-rose-500">− negative</span>
+        <span className="font-medium text-rose-700 dark:text-rose-400">− negative</span>
         {" · "}
-        <span className="font-medium text-amber-500">low</span>
+        <span className="font-medium text-amber-700 dark:text-amber-400">low</span>
       </p>
 
       {lines.length === 0 ? (

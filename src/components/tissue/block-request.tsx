@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Sparkles, X } from "lucide-react";
 
-import { ContactUsForm } from "@/components/contact-us-form";
+import {
+  ContactUsForm,
+  type InquiryType,
+} from "@/components/contact-us-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -128,6 +131,17 @@ export function AddToRequestButton({
   );
 }
 
+/** Inquiry type for a mixed enquiry list: the tissue type it is mostly about. */
+function inquiryTypeFor(items: RequestItem[]): InquiryType {
+  if (items.length > 0 && items.every((i) => i.kind === "cell")) {
+    return "Cell pellet blocks";
+  }
+  if (items.length > 0 && items.every((i) => i.kind === "mouse")) {
+    return "Mouse tissue";
+  }
+  return "Human FFPE tissue";
+}
+
 function buildMessage(items: RequestItem[]): string {
   const lines = ["Tissue block enquiry (research use only)", ""];
   for (const kind of [
@@ -226,7 +240,7 @@ export function BlockRequestBar({
               <ContactUsForm
                 key={items.map((i) => `${i.kind}:${i.name}`).join("|")}
                 variant="dialog"
-                defaultInquiryType="Tissue bank inquiry"
+                defaultInquiryType={inquiryTypeFor(items)}
                 defaultMessage={buildMessage(items)}
               />
             </>
@@ -255,12 +269,14 @@ export function RequestFormDialog({
   title,
   intro,
   template,
+  inquiryType = "Human FFPE tissue",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   intro: string;
   template: string;
+  inquiryType?: InquiryType;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -271,7 +287,7 @@ export function RequestFormDialog({
         <p className="text-sm text-muted-foreground">{intro}</p>
         <ContactUsForm
           variant="dialog"
-          defaultInquiryType="Tissue bank inquiry"
+          defaultInquiryType={inquiryType}
           defaultMessage={template}
         />
       </DialogContent>
