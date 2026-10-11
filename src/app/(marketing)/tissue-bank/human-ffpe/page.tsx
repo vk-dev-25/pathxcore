@@ -25,7 +25,7 @@ import { marketingMetadata } from "@/lib/site-seo";
 export const metadata: Metadata = marketingMetadata({
   title: "Human FFPE Tissue Blocks | Cancer, Disease & Normal Tissue",
   description:
-    "Research-use human FFPE tissue blocks by indication, pathologist reviewed, with annotated whole-slide H&E images available on request. Matched normal adjacent and custom sourcing.",
+    "Research-use human FFPE tissue blocks by indication, pathologist reviewed, with annotated whole-slide H&E images available on request. Normal control tissue and custom sourcing.",
   path: TISSUE_ROUTES.humanFfpe,
 });
 
@@ -58,8 +58,8 @@ const WHY: {
     bar: "bg-amber-500",
   },
   {
-    title: "Matched controls",
-    body: "Normal control tissue and matched normal adjacent tissue for cancer indications.",
+    title: "Normal controls",
+    body: "Normal control tissue from a range of organs to run alongside your disease samples.",
     icon: GitMerge,
     tone: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
     bar: "bg-sky-500",
@@ -78,7 +78,6 @@ const HE_TEMPLATE = [
   "Indication / tissue:",
   "Diagnosis details (subtype, stage, grade):",
   "Number of candidate blocks to review:",
-  "Matched normal adjacent needed (yes / no):",
   "Timeline:",
 ].join("\n");
 
@@ -160,9 +159,9 @@ export default function HumanFfpePage() {
         }
       >
         <p>
-          Research-use human FFPE tissue blocks, pathologist reviewed: normal control tissue, and cancer and disease tissue by
-          indication. Tell us what you need and we&apos;ll work through the
-          options with you.
+          Research-use human FFPE tissue blocks, pathologist reviewed: normal
+          control tissue, and cancer and disease tissue by indication. Tell us
+          what you need and we&apos;ll work through the options with you.
         </p>
       </TissuePageHeader>
 
@@ -209,8 +208,8 @@ export default function HumanFfpePage() {
             <span className="font-semibold">Ethically sourced.</span>{" "}
             <span className="text-muted-foreground">
               All human tissue is collected under IRB-approved protocols, with
-              donor consent for research, and is de-identified before it
-              reaches you.
+              donor consent for research, and is de-identified before it reaches
+              you.
             </span>
           </p>
         </div>
@@ -238,8 +237,8 @@ export default function HumanFfpePage() {
             </h2>
             <p className="mt-3 text-muted-foreground">
               On request, we scan candidate blocks and share whole-slide H&amp;E
-              images with the pathologist&apos;s annotations, so you can confirm the tissue
-              fits your study first.
+              images with the pathologist&apos;s annotations, so you can confirm
+              the tissue fits your study first.
             </p>
             <ol className="mt-6 space-y-3">
               {HE_STEPS.map((step, i) => (

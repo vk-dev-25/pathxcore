@@ -257,6 +257,96 @@ export const ihcImages: ImageCredit[] = [
     source:
       "https://commons.wikimedia.org/wiki/File:Positive_immunohistochemistry_of_KI-67_in_invasive_breast_cancer.jpg",
   },
+  {
+    src: "/images/cells/block-1.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Metastatic_ovarian_adenocarcinoma-_Pleural_fluid_cell_block_Case_168_(5494503444).jpg",
+  },
+  {
+    src: "/images/cells/block-2.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Metastatic_ovarian_adenocarcnioma-_Pleural_fluid_cell_block_CA125_Case_168_(5493910931).jpg",
+  },
+  {
+    src: "/images/cells/block-3.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Pleural_fluid_cell_block-_Metastatic_ovarian_serous_adenocarcinoma_Case_211_(7165923668).jpg",
+  },
+  {
+    src: "/images/cells/block-4.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Pleural_fluid_cell_block-_Metastatic_ovarian_serous_adenocarcinoma_Case_211_(7165923372).jpg",
+  },
+  {
+    src: "/images/cells/block-5.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Micropapillary_adenocarcinoma_-_Cell_block_of_pleural_fluid_Case_240_(7603530296).jpg",
+  },
+  {
+    src: "/images/cells/block-6.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Micropapillary_adenocarcinoma_-_Cell_block_of_pleural_fluid_Case_240_(7603529942).jpg",
+  },
+  {
+    src: "/images/cells/block-7.jpg",
+    label: "Cell block",
+    author: "Yale Rosen",
+    license: "CC BY-SA 2.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/2.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Small_cell_carcinoma-_FNA_cell_block_(5018141023).jpg",
+  },
+  {
+    src: "/images/cells/block-8.jpg",
+    label: "Cell block",
+    author: "Nephron",
+    license: "CC BY-SA 3.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Lung_small_cell_carcinoma_-_cell_block_--_very_high_mag.jpg",
+  },
+  {
+    src: "/images/cells/block-9.jpg",
+    label: "Cell block",
+    author: "Librepath",
+    license: "CC BY-SA 3.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Pleomorphic_adenoma_-_cell_block_--_intermed_mag.jpg",
+  },
+  {
+    src: "/images/cells/block-10.jpg",
+    label: "Cell block",
+    author: "Librepath",
+    license: "CC BY-SA 3.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
+    source:
+      "https://commons.wikimedia.org/wiki/File:Pleomorphic_adenoma_-_cell_block_--_high_mag.jpg",
+  },
 ];
 
 const bySrc = new Map(

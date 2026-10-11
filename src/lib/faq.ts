@@ -18,7 +18,7 @@ export const tissueFaqs: { q: string; a: string }[] = [
   },
   {
     q: "Can I get slides instead of blocks?",
-    a: "Yes. Tissue is available as FFPE blocks, unstained slides, or H&E slides. Matched normal adjacent tissue is available for cancer indications.",
+    a: "Yes. Tissue is available as FFPE blocks, unstained slides, or H&E slides.",
   },
   {
     q: "What if the tissue I need isn't listed?",

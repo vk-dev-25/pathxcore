@@ -23,7 +23,7 @@ export const metadata: Metadata = marketingMetadata({
 const products = [
   {
     title: "Human FFPE tissue",
-    body: "Cancer and disease FFPE tissue by indication, with matched normal adjacent tissue and custom sourcing.",
+    body: "Cancer and disease FFPE tissue by indication, with custom sourcing through partner biobanks.",
     href: TISSUE_ROUTES.humanFfpe,
     cta: "Browse human FFPE tissue",
     icon: Microscope,
@@ -143,7 +143,9 @@ export default function TissueBlocksPage() {
           ))}
         </ol>
         <p className="mt-8 text-sm text-muted-foreground">
-          All blocks are for research use only. Human tissue is collected under IRB-approved protocols, with donor consent for research, and is de-identified.
+          All blocks are for research use only. Human tissue is collected under
+          IRB-approved protocols, with donor consent for research, and is
+          de-identified.
         </p>
       </section>
 

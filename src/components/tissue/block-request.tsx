@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, Check, Plus, Sparkles, X } from "lucide-react";
 
-import {
-  ContactUsForm,
-  type InquiryType,
-} from "@/components/contact-us-form";
+import { ContactUsForm, type InquiryType } from "@/components/contact-us-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,8 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-export type RequestKind =
-  "normal" | "cancer" | "matched" | "disease" | "cell" | "mouse";
+export type RequestKind = "normal" | "cancer" | "disease" | "cell" | "mouse";
 
 export type RequestItem = { kind: RequestKind; name: string };
 
@@ -26,7 +22,6 @@ const STORAGE_KEY = "pathx-block-request";
 const KIND_LABEL: Record<RequestKind, string> = {
   normal: "Normal / control FFPE",
   cancer: "Cancer FFPE",
-  matched: "Matched normal adjacent FFPE",
   disease: "Disease FFPE",
   cell: "Cell pellet block",
   mouse: "Mouse FFPE",
@@ -147,7 +142,6 @@ function buildMessage(items: RequestItem[]): string {
   for (const kind of [
     "normal",
     "cancer",
-    "matched",
     "disease",
     "cell",
     "mouse",
@@ -257,7 +251,6 @@ const CUSTOM_TEMPLATE = [
   "Tissue / indication:",
   "Diagnosis details (subtype, stage, grade):",
   "Number of cases and blocks per case:",
-  "Matched normal adjacent needed (yes / no):",
   "Clinical data needed (e.g. treatment history):",
   "Timeline:",
 ].join("\n");
@@ -301,7 +294,7 @@ export function RequestFormDialog({
  */
 export function CustomRequestCard({
   title = "Need something not listed?",
-  body = "We source FFPE tissue beyond this catalog through our partner biobanks, including specific subtypes, stages, matched normal adjacent tissue, and cases with treatment history.",
+  body = "We source FFPE tissue beyond this catalog through our partner biobanks, including specific subtypes, stages, and cases with treatment history.",
 }: {
   title?: string;
   body?: string;

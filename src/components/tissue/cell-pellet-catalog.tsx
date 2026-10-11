@@ -260,9 +260,10 @@ export function CellPelletCatalog() {
 
       <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
         Marker profiles reflect the published identity of each line and how it
-        is used as an IHC control. Thumbnails are illustrative IHC examples of
-        the labelled marker in tissue (Ki-67 where no marker image is
-        available), not stains of these cell blocks.
+        is used as an IHC control. Thumbnails labelled &ldquo;Cell
+        pellet&rdquo; are examples of our cell pellet IHC; &ldquo;Cell block
+        example&rdquo; thumbnails are illustrative. Not every thumbnail is a
+        stain of that specific cell line.
       </p>
 
       <div className="mt-12">

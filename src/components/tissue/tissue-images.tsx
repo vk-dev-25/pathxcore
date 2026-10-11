@@ -90,15 +90,56 @@ const MARKER_IHC: Record<string, string> = {
   Cytokeratin: "cytokeratin",
 };
 
+/** PathXDx cell pellet IHC examples in public/images/cells. */
+const pellet = (file: string) => ({
+  src: `/images/cells/${file}.jpg`,
+  label: "Cell pellet",
+});
+/** Illustrative cell block micrographs (Wikimedia Commons placeholders). */
+const block = (file: string) => ({
+  src: `/images/cells/${file}.jpg`,
+  label: "Cell block example",
+});
+
 /**
- * IHC thumbnail for a cell line: a marker the line is positive for, preferring
- * a specific marker over cytokeratin. Lines with no matching image get a
- * Ki-67 example, labelled as such.
+ * One distinct thumbnail per cell line, so no two cards repeat an image: our
+ * own cell pellet stains where we have them (the six generic ones spread over
+ * randomly chosen lines), illustrative tissue IHC elsewhere. Lines not listed
+ * here fall back to a positive-marker match below.
+ */
+const CELL_LINE_IHC: Record<string, { src: string; label: string }> = {
+  Jurkat: block("block-7"),
+  H1975: pellet("pellet-h1975"),
+  A549: pellet("pellet-a549"),
+  "OVCAR-3": pellet("pellet-ovcar3"),
+  "PC-3": block("block-9"),
+  DU145: pellet("pellet-6"),
+  HCT116: block("block-5"),
+  A498: pellet("pellet-2"),
+  HUVEC: block("block-10"),
+  "MCF-7": pellet("pellet-5"),
+  SKBR3: pellet("pellet-3"),
+  "22RV1": block("block-6"),
+  LNCAP: block("block-1"),
+  C42B: block("block-4"),
+  colo205: pellet("pellet-1"),
+  "MDA-MB-453": block("block-3"),
+  A431: pellet("pellet-4"),
+  T47D: block("block-2"),
+  "293T": block("block-8"),
+};
+
+/**
+ * IHC thumbnail for a cell line: its assigned image, else a marker the line is
+ * positive for, preferring a specific marker over cytokeratin. Lines with no
+ * matching image get a Ki-67 example, labelled as such.
  */
 export function cellLineIhc(line: CellLineBlock): {
   src: string;
   label: string;
 } {
+  const assigned = CELL_LINE_IHC[line.cellType];
+  if (assigned) return assigned;
   const positives = line.markers.filter(
     (m) => m.status === "pos" && MARKER_IHC[m.name],
   );

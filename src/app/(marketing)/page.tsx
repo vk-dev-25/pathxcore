@@ -32,7 +32,7 @@ const news = [
   },
   {
     title: "Human FFPE by indication",
-    body: "Cancer and disease tissue with matched normal adjacent, sourced through partner biobanks.",
+    body: "Cancer and disease tissue by indication, sourced through partner biobanks.",
     href: `${TISSUE_ROUTES.humanFfpe}#indications`,
     image: "/images/lab/dual-ihc-liver-human.jpg",
   },
@@ -119,7 +119,13 @@ function ImageTile({ tile }: { tile: Tile }) {
         >
           {tile.mosaic.map((src) => (
             <span key={src} className="relative block overflow-hidden">
-              <Image src={src} alt="" fill sizes="130px" className="object-cover" />
+              <Image
+                src={src}
+                alt=""
+                fill
+                sizes="130px"
+                className="object-cover"
+              />
             </span>
           ))}
         </div>

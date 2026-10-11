@@ -31,7 +31,7 @@ const PRODUCTS: {
     label: "Human FFPE tissue",
     href: TISSUE_ROUTES.humanFfpe,
     blurb:
-      "Cancer and disease FFPE tissue by indication, with matched normal adjacent and custom sourcing through partner biobanks.",
+      "Cancer and disease FFPE tissue by indication, with custom sourcing through partner biobanks.",
     // Only organ systems that have indications listed on the page.
     links: organSystems
       .filter((system) =>

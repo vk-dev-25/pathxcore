@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Check, GitMerge, Plus, Search, X } from "lucide-react";
+import { Check, Plus, Search, X } from "lucide-react";
 
 import {
   AddToRequestButton,
@@ -53,10 +53,8 @@ const DEFAULT_SYSTEM =
   SYSTEMS.find((s) => s.system.id === "gastrointestinal")?.system.id ??
   SYSTEMS[0]?.system.id;
 
-function configuredName(name: string, format: Format, matched: boolean) {
-  return [name, format, matched ? "with matched normal adjacent" : null]
-    .filter(Boolean)
-    .join(" · ");
+function configuredName(name: string, format: Format) {
+  return `${name} · ${format}`;
 }
 
 function SectionHeading({
@@ -109,8 +107,8 @@ function KindBadge({ kind }: { kind: Kind }) {
 }
 
 /**
- * Product-style card for one indication: pick a format (and matched normal
- * adjacent for cancers), then add that configuration to the enquiry.
+ * Product-style card for one indication: pick a format, then add that
+ * configuration to the enquiry.
  */
 function IndicationCard({
   name,
@@ -125,11 +123,7 @@ function IndicationCard({
   request: Request;
 }) {
   const [format, setFormat] = useState<Format>("FFPE block");
-  const [matched, setMatched] = useState(false);
-  const entry: RequestItem = {
-    kind,
-    name: configuredName(name, format, kind === "cancer" && matched),
-  };
+  const entry: RequestItem = { kind, name: configuredName(name, format) };
   const added = request.has(entry);
   const inRequest = request.items.filter(
     (item) =>
@@ -183,18 +177,6 @@ function IndicationCard({
           </button>
         ))}
       </div>
-
-      {kind === "cancer" ? (
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-lab-purple">
-          <input
-            type="checkbox"
-            checked={matched}
-            onChange={(event) => setMatched(event.target.checked)}
-            className="h-3.5 w-3.5 accent-[hsl(var(--lab-purple))]"
-          />
-          With matched normal adjacent
-        </label>
-      ) : null}
 
       <button
         type="button"
@@ -400,8 +382,7 @@ export function HumanFfpeCatalog() {
             title="Cancer and disease tissue"
             tone="purple"
           >
-            Pick an organ system, then configure each indication: format and,
-            for cancers, matched normal adjacent tissue.
+            Pick an organ system, then choose a format for each indication.
           </SectionHeading>
           <div className="relative lg:w-80">
             <Search
@@ -494,13 +475,6 @@ export function HumanFfpeCatalog() {
                     {selected.system.description}
                   </p>
                 </div>
-                <p className="flex items-center gap-2 rounded-full border border-lab-purple/30 bg-lab-purple/10 px-3 py-1 text-xs font-medium">
-                  <GitMerge
-                    className="h-3.5 w-3.5 text-lab-purple"
-                    aria-hidden
-                  />
-                  Matched normal adjacent for cancers
-                </p>
               </div>
               <div className="space-y-6 p-5 sm:p-6">
                 {(
