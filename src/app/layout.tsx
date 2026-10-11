@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { PathXThemeProvider } from "@/components/pathx/pathx-theme-provider";
-import { DEFAULT_OG_IMAGE_PATH } from "@/lib/site-identity";
 
 import "./globals.css";
 
@@ -25,7 +24,11 @@ export const metadata: Metadata = {
     "PathXdx provides preclinical pathology and histology services for biotech, pharma, and research teams, from accessioning and processing through staining, IHC, and pathologist evaluation.",
   metadataBase: new URL("https://pathxdx.com"),
   icons: {
-    icon: [{ url: DEFAULT_OG_IMAGE_PATH, type: "image/svg+xml" }],
+    icon: [
+      { url: "/images/pathxdx-icon.svg", type: "image/svg+xml" },
+      { url: "/images/pathxdx-icon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/images/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 
