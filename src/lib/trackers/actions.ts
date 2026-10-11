@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { findOrCreateClient } from "@/lib/clients/upsert-client";
+import { inviteClientUser } from "@/lib/auth/invite-client";
 import { notifyTrackerChange } from "@/lib/email/tracker-notify";
 import { getViewerContext } from "@/lib/trackers/access";
 import {
@@ -492,57 +493,4 @@ async function touchTracker(trackerId: string): Promise<void> {
     .from("trackers")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", trackerId);
-}
-
-const INVITE_CODE = "CLIENT-INVITE-AUTO";
-
-/** Pre-create a passwordless account so the client can later magic-link in. */
-async function inviteClientUser(email: string): Promise<void> {
-  try {
-    const admin = createServiceRoleClient();
-
-    // Ensure a signup allowance exists so the enforce_signup_allowance trigger
-    // permits creating the auth user (no access code needed for clients).
-    let { data: code } = await admin
-      .from("access_codes")
-      .select("id")
-      .eq("code", INVITE_CODE)
-      .maybeSingle();
-    if (!code?.id) {
-      const { data: created } = await admin
-        .from("access_codes")
-        .insert({
-          code: INVITE_CODE,
-          expires_at: "2099-01-01T00:00:00Z",
-          max_uses: 1000000,
-        })
-        .select("id")
-        .single();
-      code = created ?? null;
-    }
-    if (code?.id) {
-      await admin
-        .from("signup_allowances")
-        .delete()
-        .eq("email", email)
-        .is("consumed_at", null);
-      await admin.from("signup_allowances").insert({
-        email,
-        access_code_id: code.id,
-        expires_at: "2099-01-01T00:00:00Z",
-      });
-    }
-
-    const { error } = await admin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      app_metadata: { role: "client" },
-      user_metadata: { role: "client" },
-    });
-    if (error && !/already/i.test(error.message)) {
-      console.error("inviteClientUser createUser", error.message);
-    }
-  } catch (e) {
-    console.error("inviteClientUser failed", e);
-  }
 }

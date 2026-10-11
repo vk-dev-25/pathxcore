@@ -20,11 +20,15 @@ const items: { href: string; label: string; match: "exact" | "prefix" }[] = [
     match: "prefix",
   },
   { href: "/pathx/trackers", label: "Trackers", match: "prefix" },
+  { href: "/pathx/shared-files", label: "Shared files", match: "prefix" },
   { href: "/pathx/admin/staff", label: "Staff", match: "prefix" },
 ];
 
 const clientItems: { href: string; label: string; match: "exact" | "prefix" }[] =
-  [{ href: "/pathx/trackers", label: "Project Tracker", match: "prefix" }];
+  [
+    { href: "/pathx/trackers", label: "Project Tracker", match: "prefix" },
+    { href: "/pathx/shared-files", label: "Shared files", match: "prefix" },
+  ];
 
 function isActive(pathname: string, href: string, match: "exact" | "prefix") {
   if (match === "exact") {

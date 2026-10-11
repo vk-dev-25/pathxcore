@@ -79,7 +79,9 @@ export async function middleware(request: NextRequest) {
       if (role === "client") {
         const allowed =
           pathname === "/pathx/trackers" ||
-          pathname.startsWith("/pathx/trackers/");
+          pathname.startsWith("/pathx/trackers/") ||
+          pathname === "/pathx/shared-files" ||
+          pathname.startsWith("/pathx/shared-files/");
         if (!allowed) {
           const url = request.nextUrl.clone();
           url.pathname = "/pathx/trackers";

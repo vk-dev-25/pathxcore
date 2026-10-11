@@ -27,13 +27,30 @@ export async function getViewerContext(): Promise<ViewerContext | null> {
   let isClient = false;
   try {
     const admin = createServiceRoleClient();
-    const { data } = await admin
-      .from("tracker_access")
-      .select("id")
-      .eq("role", "client")
-      .eq("email", email)
-      .limit(1);
-    isClient = (data?.length ?? 0) > 0;
+    const [{ data: trackerRows }, { data: fileRows }] = await Promise.all([
+      admin
+        .from("tracker_access")
+        .select("id")
+        .eq("role", "client")
+        .eq("email", email)
+        .limit(1),
+      admin
+        .from("shared_file_access")
+        .select("id")
+        .eq("email", email)
+        .limit(1),
+    ]);
+    isClient = (trackerRows?.length ?? 0) > 0 || (fileRows?.length ?? 0) > 0;
+    // Prefer staff allowlist when present (staff can also be on a share ACL).
+    if (isClient) {
+      const { data: staff } = await admin
+        .from("staff_members")
+        .select("id")
+        .eq("email", email)
+        .eq("is_active", true)
+        .limit(1);
+      if ((staff?.length ?? 0) > 0) isClient = false;
+    }
   } catch (e) {
     console.warn("getViewerContext: classification failed, defaulting staff", e);
   }

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="PathXdx">
+  <defs>
+    <linearGradient id="px" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(173 72% 42%)"/>
+      <stop offset="100%" stop-color="hsl(286 100% 68%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#px)"/>
+  <text
+    x="16"
+    y="21.5"
+    text-anchor="middle"
+    fill="hsl(232 38% 6%)"
+    font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="11"
+    font-weight="700"
+    letter-spacing="-0.04em"
+  >PX</text>
+</svg>
