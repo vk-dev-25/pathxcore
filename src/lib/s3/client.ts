@@ -15,6 +15,8 @@ export function getS3Client(): S3Client {
       accessKeyId: cfg.accessKeyId,
       secretAccessKey: cfg.secretAccessKey,
     },
+    // Uses pathxdx-images.s3-accelerate.amazonaws.com when enabled on the bucket.
+    useAccelerateEndpoint: cfg.useAccelerate,
   });
   return cached;
 }

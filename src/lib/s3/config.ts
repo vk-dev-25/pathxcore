@@ -22,6 +22,8 @@ export function s3Config() {
   const partSizeBytes = Number(
     readEnv("SHARED_FILE_PART_SIZE_BYTES") || DEFAULT_PART_SIZE,
   );
+  const accelRaw = (readEnv("AWS_S3_USE_ACCELERATE") || "true").toLowerCase();
+  const useAccelerate = !["0", "false", "no", "off"].includes(accelRaw);
 
   return {
     region,
@@ -38,6 +40,7 @@ export function s3Config() {
       Number.isFinite(partSizeBytes) && partSizeBytes >= 5 * 1024 * 1024
         ? partSizeBytes
         : DEFAULT_PART_SIZE,
+    useAccelerate,
   };
 }
 
@@ -50,6 +53,7 @@ export function assertS3Configured(): {
   maxBytes: number;
   downloadTtlSeconds: number;
   partSizeBytes: number;
+  useAccelerate: boolean;
 } {
   const cfg = s3Config();
   if (!cfg.accessKeyId || !cfg.secretAccessKey) {

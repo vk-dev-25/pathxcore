@@ -1,0 +1,22 @@
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "PUT", "HEAD", "POST"],
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://pathxdx.com",
+      "https://www.pathxdx.com",
+      "https://pathxcore-jn4jw2vag-vijay-5991s-projects.vercel.app"
+    ],
+    "ExposeHeaders": [
+      "ETag",
+      "etag",
+      "x-amz-request-id",
+      "Accept-Ranges",
+      "Content-Range",
+      "Content-Length",
+      "Content-Type"
+    ],
+    "MaxAgeSeconds": 3000
+  }
+]

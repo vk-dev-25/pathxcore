@@ -17,6 +17,7 @@ import {
   presignSharedFilePartAction,
   startSharedFileUploadAction,
 } from "@/lib/shared-files/actions";
+import { downloadSharedFile } from "@/lib/shared-files/download-client";
 import { formatBytes, type SharedFileRow } from "@/lib/shared-files/types";
 import { cn } from "@/lib/utils";
 
@@ -198,13 +199,26 @@ export function SharedFilesClient({
 
   function download(fileId: string) {
     setError(null);
+    setProgress("Preparing download…");
     startTransition(async () => {
-      const res = await getSharedFileDownloadUrlAction(fileId);
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await getSharedFileDownloadUrlAction(fileId);
+        if (!res.ok) {
+          setError(res.error);
+          setProgress(null);
+          return;
+        }
+        await downloadSharedFile({
+          url: res.url,
+          filename: res.filename,
+          byteSize: res.byteSize,
+          onProgress: (p) => setProgress(`Downloading ${p.pct}%…`),
+        });
+        setProgress(null);
+      } catch (e) {
+        setProgress(null);
+        setError(e instanceof Error ? e.message : "Download failed.");
       }
-      window.location.href = res.url;
     });
   }
 

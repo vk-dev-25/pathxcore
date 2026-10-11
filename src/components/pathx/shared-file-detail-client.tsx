@@ -16,6 +16,7 @@ import {
   removeSharedFileAccessAction,
   updateSharedFileExpiryAction,
 } from "@/lib/shared-files/actions";
+import { downloadSharedFile } from "@/lib/shared-files/download-client";
 import {
   formatBytes,
   type SharedFileAccessRow,
@@ -42,6 +43,7 @@ export function SharedFileDetailClient({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(initialWarning);
+  const [progress, setProgress] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [expiryLocal, setExpiryLocal] = useState(
     file.expires_at
@@ -51,13 +53,26 @@ export function SharedFileDetailClient({
 
   function download() {
     setError(null);
+    setProgress("Preparing download…");
     startTransition(async () => {
-      const res = await getSharedFileDownloadUrlAction(file.id);
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await getSharedFileDownloadUrlAction(file.id);
+        if (!res.ok) {
+          setError(res.error);
+          setProgress(null);
+          return;
+        }
+        await downloadSharedFile({
+          url: res.url,
+          filename: res.filename,
+          byteSize: res.byteSize,
+          onProgress: (p) => setProgress(`Downloading ${p.pct}%…`),
+        });
+        setProgress(null);
+      } catch (e) {
+        setProgress(null);
+        setError(e instanceof Error ? e.message : "Download failed.");
       }
-      window.location.href = res.url;
     });
   }
 
@@ -136,6 +151,11 @@ export function SharedFileDetailClient({
       {error ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
+        </div>
+      ) : null}
+      {progress ? (
+        <div className="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground">
+          {progress}
         </div>
       ) : null}
 
