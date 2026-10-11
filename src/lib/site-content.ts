@@ -17,7 +17,7 @@ export const expertiseAreas = [
 export const preclinicalSteps: { title: string; body: string }[] = [
   {
     title: "Accessioning & intake",
-    body: "Specimens logged, tracked, and QC'd on receipt. Chain of custody documented throughout.",
+    body: "Specimens logged in our LIMS, labeled, and QC'd on receipt, with every step recorded from there.",
   },
   {
     title: "Grossing, trimming & processing",
