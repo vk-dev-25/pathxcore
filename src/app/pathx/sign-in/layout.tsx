@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AdminThemeToggle } from "@/components/pathx/admin-theme-toggle";
+
 export default function PathXSignInLayout({
   children,
 }: {
@@ -12,12 +14,15 @@ export default function PathXSignInLayout({
           <Link href="/" className="text-sm font-semibold tracking-tight">
             ← PathXdx
           </Link>
-          <Link
-            href="/contact"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Contact
-          </Link>
+          <div className="flex items-center gap-2">
+            <AdminThemeToggle />
+            <Link
+              href="/contact"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Contact
+            </Link>
+          </div>
         </div>
       </header>
       <div className="flex flex-1 items-center justify-center px-4 py-12">

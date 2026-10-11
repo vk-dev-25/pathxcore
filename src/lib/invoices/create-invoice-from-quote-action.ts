@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { roundMoney } from "@/lib/quote-pricing";
+import {
+  isValidSegment,
+  roundMoney,
+  volumeDiscountPercent,
+  type Segment,
+} from "@/lib/quote-pricing";
+import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
 export type CreateInvoiceFromQuoteResult =
@@ -16,25 +22,47 @@ function defaultDueDateIso(): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Calendar year in America/Los_Angeles (lab locale). */
+function currentInvoiceYearPacific(): string {
+  return (
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+    })
+      .formatToParts(new Date())
+      .find((p) => p.type === "year")?.value ?? String(new Date().getUTCFullYear())
+  );
+}
+
+const INVOICE_REF_SEQ_MIN = 2023;
+
+function invoiceRefSuffixPadded(seq: number): string {
+  return String(seq).padStart(5, "0");
+}
+
+/** e.g. PTDX-2026-02023, PTDX-2026-02024, … (year + 5-digit sequence from 2023). */
 async function allocateInvoiceReference(supabase: SupabaseClient): Promise<string> {
-  const prefix = "PTDX-INVC-";
-  const { data } = await supabase
+  const year = currentInvoiceYearPacific();
+  const prefix = `PTDX-${year}-`;
+
+  const { data: rows } = await supabase
     .from("invoices")
     .select("invoice_reference")
-    .like("invoice_reference", `${prefix}%`)
-    .order("invoice_reference", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .like("invoice_reference", `${prefix}%`);
 
-  let next = 1;
-  if (data?.invoice_reference?.startsWith(prefix)) {
-    const tail = data.invoice_reference.slice(prefix.length);
+  let maxSeq = INVOICE_REF_SEQ_MIN - 1;
+  for (const row of rows ?? []) {
+    const ref = row.invoice_reference;
+    if (typeof ref !== "string" || !ref.startsWith(prefix)) continue;
+    const tail = ref.slice(prefix.length).trim();
     const n = parseInt(tail, 10);
-    if (!Number.isNaN(n)) next = n + 1;
+    if (!Number.isNaN(n)) maxSeq = Math.max(maxSeq, n);
   }
 
+  const next = maxSeq >= INVOICE_REF_SEQ_MIN ? maxSeq + 1 : INVOICE_REF_SEQ_MIN;
+
   for (let bump = 0; bump < 100_000; bump++) {
-    const ref = `${prefix}${String(next + bump).padStart(6, "0")}`;
+    const ref = `${prefix}${invoiceRefSuffixPadded(next + bump)}`;
     const { count } = await supabase
       .from("invoices")
       .select("id", { count: "exact", head: true })
@@ -57,7 +85,7 @@ export async function createInvoiceFromQuoteAction(
     const { data: quote, error: qErr } = await supabase
       .from("quotes")
       .select(
-        "id, client_org_name, client_address, contact_name, project_title",
+        "id, client_org_name, client_address, contact_name, project_title, notes, segment, sample_volume, rush_priority, rush_2day, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount",
       )
       .eq("id", quoteId)
       .maybeSingle();
@@ -77,12 +105,14 @@ export async function createInvoiceFromQuoteAction(
       return { ok: false, error: "Quote has no line items." };
     }
 
-    const subtotal = roundMoney(
-      quoteLines.reduce(
-        (sum, line) => sum + roundMoney(Number(line.quantity) * Number(line.unit_price)),
-        0,
-      ),
-    );
+    const segment: Segment = isValidSegment(String(quote.segment ?? ""))
+      ? (quote.segment as Segment)
+      : "small_biopharma";
+    const sampleVolume = Math.max(0, Math.floor(Number(quote.sample_volume) || 0));
+    const volumeDiscountAmount = Number(quote.volume_discount_amount) || 0;
+    const pricingSettings = await loadPricingSettings();
+    const defaultVolPct = volumeDiscountPercent(sampleVolume, pricingSettings);
+    const applyVolumeDiscount = !(defaultVolPct > 0 && volumeDiscountAmount === 0);
 
     let createdId: string | null = null;
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -96,11 +126,24 @@ export async function createInvoiceFromQuoteAction(
           client_address: quote.client_address,
           contact_name: quote.contact_name,
           project_title: quote.project_title,
+          notes: quote.notes ?? null,
           invoice_reference: invoiceReference,
           status: "created" as const,
           due_date: defaultDueDateIso(),
-          subtotal_amount: subtotal,
-          total_amount: subtotal,
+          segment,
+          sample_volume: sampleVolume,
+          rush_priority: Boolean(quote.rush_priority),
+          rush_2day: Boolean(quote.rush_2day),
+          apply_volume_discount: applyVolumeDiscount,
+          subtotal_amount: Number(quote.subtotal_amount) || 0,
+          segment_adjustment_amount: Number(quote.segment_adjustment_amount) || 0,
+          after_segment_amount: Number(quote.after_segment_amount) || 0,
+          volume_discount_amount: volumeDiscountAmount,
+          after_volume_amount: Number(quote.after_volume_amount) || 0,
+          rush_uplift_amount: Number(quote.rush_uplift_amount) || 0,
+          total_amount: Number(quote.total_amount) || 0,
+          last_updated_by: user.id,
+          last_updated_by_email: user.email ?? null,
         })
         .select("id")
         .single();

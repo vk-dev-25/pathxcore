@@ -1,16 +1,35 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Eye, Loader2, Plus, RotateCcw, Search, Settings2, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  ArrowLeft,
+  Eye,
+  Loader2,
+  Plus,
+  RotateCcw,
+  Search,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 
 import { QuotePreviewDialog } from "@/components/pathx/quote-preview-dialog";
+import {
+  pathxCardClassHover as cardClass,
+  pathxFieldClass as fieldClass,
+} from "@/components/pathx/workspace-field-classes";
+import type { QuoteDraftPayload } from "@/lib/quotes/get-quote-draft-action";
+import { formatAuditTrail } from "@/lib/format-audit-trail";
 import { saveQuoteAction } from "@/lib/quotes/save-quote-action";
+import { type QuoteStatus } from "@/lib/quotes/types";
+import { updateQuoteAction } from "@/lib/quotes/update-quote-action";
 import {
   computeQuoteTotals,
   defaultPricingSettings,
   roundMoney,
   SEGMENT_OPTIONS,
+  volumeDiscountPercent,
   type PricingSettingsSnapshot,
   type QuoteLineInput,
   type Segment,
@@ -23,7 +42,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ClientCombobox } from "@/components/ui/client-combobox";
 import { Input } from "@/components/ui/input";
+import type { ClientSuggestion } from "@/lib/clients/types";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -40,6 +61,7 @@ export type CatalogServiceRow = {
 
 type DraftLine = {
   key: string;
+  /** Empty string when not linked to catalog (custom / orphaned line). */
   catalog_service_id: string;
   label: string;
   quantity: number;
@@ -48,12 +70,7 @@ type DraftLine = {
   is_price_overridden: boolean;
 };
 
-/** Matches PathX / marketing: glass fields on charcoal. */
-const fieldClass =
-  "border-white/[0.12] bg-white/[0.04] text-foreground shadow-none backdrop-blur-sm placeholder:text-muted-foreground focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-0";
-
-const cardClass =
-  "border border-white/[0.08] bg-card/50 shadow-none backdrop-blur-xl transition-[box-shadow,border-color] duration-300 hover:shadow-[0_0_40px_-24px_hsl(var(--primary)/0.25)]";
+export type QuoteBuilderMode = "create" | "edit" | "copy";
 
 function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -69,20 +86,32 @@ function newRef() {
 export function QuoteBuilderClient({
   catalog,
   pricingSettings: pricingSettingsProp,
+  mode = "create",
+  quoteId = null,
+  initialDraft = null,
+  clients = [],
 }: {
   catalog: CatalogServiceRow[];
   pricingSettings?: PricingSettingsSnapshot;
+  mode?: QuoteBuilderMode;
+  quoteId?: string | null;
+  initialDraft?: QuoteDraftPayload | null;
+  clients?: ClientSuggestion[];
 }) {
+  const router = useRouter();
   const pricingSettings = pricingSettingsProp ?? defaultPricingSettings();
+  const hydratedRef = useRef(false);
   const [segment, setSegment] = useState<Segment>("small_biopharma");
   const [sampleVolume, setSampleVolume] = useState(12);
   const [rushPriority, setRushPriority] = useState(false);
   const [rush2day, setRush2day] = useState(false);
+  const [applyVolumeDiscount, setApplyVolumeDiscount] = useState(true);
   const [clientOrg, setClientOrg] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [contactName, setContactName] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [quoteRef, setQuoteRef] = useState(newRef);
+  const [status, setStatus] = useState<QuoteStatus>("created");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<DraftLine[]>([]);
   const [pickId, setPickId] = useState<string>("");
@@ -91,10 +120,45 @@ export function QuoteBuilderClient({
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (!initialDraft || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const d = initialDraft;
+    setSegment(d.segment);
+    setSampleVolume(d.sample_volume);
+    setRushPriority(d.rush_priority);
+    setRush2day(d.rush_2day);
+    const defaultVolPct = volumeDiscountPercent(d.sample_volume, pricingSettings);
+    setApplyVolumeDiscount(!(defaultVolPct > 0 && d.volume_discount_amount === 0));
+    setClientOrg(d.client_org_name);
+    setClientAddress(d.client_address);
+    setContactName(d.contact_name);
+    setProjectTitle(d.project_title);
+    setStatus(d.status);
+    setNotes(d.notes);
+    setLines(
+      d.lines.map((ln) => ({
+        key: crypto.randomUUID(),
+        catalog_service_id: ln.catalog_service_id ?? "",
+        label: ln.label,
+        quantity: ln.quantity,
+        unit_price: ln.unit_price,
+        default_unit_price: ln.default_unit_price_snapshot,
+        is_price_overridden: ln.is_price_overridden,
+      })),
+    );
+    if (mode === "copy") {
+      setStatus("created");
+      setQuoteRef(newRef());
+    } else {
+      setQuoteRef(d.quote_reference.trim() || newRef());
+    }
+  }, [initialDraft, mode, pricingSettings]);
+
   const lineInputs: QuoteLineInput[] = useMemo(
     () =>
       lines.map((l) => ({
-        catalog_service_id: l.catalog_service_id,
+        catalog_service_id: l.catalog_service_id.trim() ? l.catalog_service_id : null,
         label: l.label,
         quantity: l.quantity,
         unit_price: l.unit_price,
@@ -114,6 +178,7 @@ export function QuoteBuilderClient({
             rushPriority,
             rush2day,
             pricingSettings,
+            { applyVolumeDiscount },
           )
         : null,
     [
@@ -123,14 +188,21 @@ export function QuoteBuilderClient({
       sampleVolume,
       rushPriority,
       rush2day,
+      applyVolumeDiscount,
       pricingSettings,
     ],
   );
 
-  const segmentLabel =
-    SEGMENT_OPTIONS.find((o) => o.value === segment)?.label ?? segment;
   const rpPct = pricingSettings.rush_priority_percent;
   const r2Pct = pricingSettings.rush_2day_percent;
+
+  const quoteEditAuditLine = useMemo(() => {
+    if (mode !== "edit" || !initialDraft) return null;
+    return formatAuditTrail(
+      initialDraft.updated_at,
+      initialDraft.last_updated_by_email,
+    );
+  }, [mode, initialDraft]);
 
   function addService() {
     const svc = catalog.find((c) => c.id === pickId);
@@ -170,11 +242,13 @@ export function QuoteBuilderClient({
     setContactName("");
     setProjectTitle("");
     setQuoteRef(newRef());
+    setStatus("created");
     setNotes("");
     setSegment("small_biopharma");
     setSampleVolume(12);
     setRushPriority(false);
     setRush2day(false);
+    setApplyVolumeDiscount(true);
     setAddQty(1);
     setSaveMsg(null);
     setSaveErr(null);
@@ -183,30 +257,54 @@ export function QuoteBuilderClient({
   function save() {
     setSaveMsg(null);
     setSaveErr(null);
+    if (lines.some((l) => !l.label.trim())) {
+      setSaveErr("Each line needs a service name.");
+      return;
+    }
     startTransition(async () => {
-      const result = await saveQuoteAction({
+      const payload = {
         client_org_name: clientOrg,
         client_address: clientAddress,
         contact_name: contactName,
         project_title: projectTitle,
         quote_reference: quoteRef,
+        status,
         segment,
         sample_volume: sampleVolume,
         rush_priority: rushPriority,
         rush_2day: rush2day,
+        apply_volume_discount: applyVolumeDiscount,
         notes,
         lines: lineInputs,
-      });
+      };
+      const result =
+        mode === "edit" && quoteId
+          ? await updateQuoteAction({ quoteId, ...payload })
+          : await saveQuoteAction(payload);
       if (result.ok) {
-        setSaveMsg(`Quote saved. Reference stored with id ${result.quoteId.slice(0, 8)}…`);
-        setLines([]);
-        setNotes("");
-        setQuoteRef(newRef());
+        if (mode === "edit") {
+          setSaveMsg("Quote updated.");
+          router.refresh();
+        } else {
+          setSaveMsg(`Quote saved. Reference stored with id ${result.quoteId.slice(0, 8)}…`);
+          setLines([]);
+          setNotes("");
+          setQuoteRef(newRef());
+        }
       } else {
         setSaveErr(result.error);
       }
     });
   }
+
+  const heading =
+    mode === "edit"
+      ? "Edit quote"
+      : mode === "copy"
+        ? "New quote (duplicate)"
+        : "New quote";
+  const saveLabel = mode === "edit" ? "Save changes" : "Save quote";
+  const showClear = mode !== "edit";
 
   const catalogEmpty = catalog.length === 0;
 
@@ -216,20 +314,43 @@ export function QuoteBuilderClient({
         className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_90%_60%_at_50%_-10%,hsl(var(--primary)/0.12),transparent_65%)]"
         aria-hidden
       />
-      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+      <div
+        className={cn(
+          "relative mx-auto max-w-6xl px-4 sm:px-6",
+          mode === "edit" ? "pb-12 pt-6 sm:pb-16 sm:pt-8" : "py-12 sm:py-16",
+        )}
+      >
+        {mode === "edit" ? (
+          <div className="-mt-1 mb-5 sm:-mt-2 sm:mb-6">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-primary/30 bg-primary/5 font-medium text-foreground shadow-sm hover:bg-primary/10 hover:text-foreground"
+            >
+              <Link href="/pathx/quotes">
+                <ArrowLeft className="mr-2 h-4 w-4" aria-hidden />
+                Quote finder
+              </Link>
+            </Button>
+          </div>
+        ) : null}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">
             PathX module
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            New quote
+            {heading}
           </h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Configure services, segment, and volume. Override any line price when
-            needed—defaults follow quote price config; your quote is saved for the
-            team.
+            {mode === "edit"
+              ? "Update client details, services, segment, volume, and client-facing notes—then save."
+              : "Configure services, segment, and volume. Override any line price when needed—defaults follow quote price config; your quote is saved for the team."}
           </p>
+          {quoteEditAuditLine ? (
+            <p className="mt-3 text-sm text-muted-foreground">{quoteEditAuditLine}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
@@ -256,10 +377,7 @@ export function QuoteBuilderClient({
             contactName={contactName}
             projectTitle={projectTitle}
             quoteRef={quoteRef}
-            segmentLabel={segmentLabel}
             sampleVolume={sampleVolume}
-            rushPriority={rushPriority}
-            rush2day={rush2day}
             notes={notes}
             lines={lines.map((l) => ({
               label: l.label,
@@ -271,16 +389,18 @@ export function QuoteBuilderClient({
             totals={totals}
             pricingSettings={pricingSettings}
           />
-          <Button
-            type="button"
-            variant="workspace"
-            size="sm"
-            className="font-medium"
-            onClick={clearAll}
-          >
-            <RotateCcw className="mr-1.5 h-4 w-4" />
-            Clear
-          </Button>
+          {showClear ? (
+            <Button
+              type="button"
+              variant="workspace"
+              size="sm"
+              className="font-medium"
+              onClick={clearAll}
+            >
+              <RotateCcw className="mr-1.5 h-4 w-4" />
+              Clear
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="sm"
@@ -291,7 +411,7 @@ export function QuoteBuilderClient({
             {pending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
-            Save quote
+            {saveLabel}
           </Button>
         </div>
       </div>
@@ -338,11 +458,17 @@ export function QuoteBuilderClient({
                 <Label htmlFor="org" className="text-foreground">
                   Client / organization name
                 </Label>
-                <Input
+                <ClientCombobox
                   id="org"
                   value={clientOrg}
-                  onChange={(e) => setClientOrg(e.target.value)}
-                  placeholder="Organization"
+                  onChange={setClientOrg}
+                  onSelect={(c) => {
+                    setClientOrg(c.org_name);
+                    if (c.address) setClientAddress(c.address);
+                    if (c.contact_name) setContactName(c.contact_name);
+                  }}
+                  clients={clients}
+                  placeholder="Start typing to find an existing client…"
                   className={cn(fieldClass)}
                 />
               </div>
@@ -398,6 +524,36 @@ export function QuoteBuilderClient({
                   className={cn(fieldClass)}
                 />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="quote-status" className="text-foreground">
+                  Status
+                </Label>
+                <select
+                  id="quote-status"
+                  className={cn(
+                    "flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors",
+                    fieldClass,
+                  )}
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as QuoteStatus)}
+                >
+                  <option value="created" className="bg-card text-foreground">
+                    Created
+                  </option>
+                  <option value="sent" className="bg-card text-foreground">
+                    Sent
+                  </option>
+                  <option value="approved" className="bg-card text-foreground">
+                    Approved
+                  </option>
+                  <option value="cancelled" className="bg-card text-foreground">
+                    Cancelled
+                  </option>
+                  <option value="discarded" className="bg-card text-foreground">
+                    Discarded
+                  </option>
+                </select>
+              </div>
             </CardContent>
           </Card>
 
@@ -407,8 +563,8 @@ export function QuoteBuilderClient({
                 Segment & options
               </CardTitle>
               <CardDescription>
-                Segment adjusts list pricing; volume drives discount tiers; rush
-                options add uplift on the amount after discounts.
+                Segment adjusts list pricing; volume can apply discount tiers;
+                rush options add uplift on the amount after discounts.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -451,23 +607,16 @@ export function QuoteBuilderClient({
                   }
                   className={cn(fieldClass)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Discount tier is chosen from total sample / block volume (see
-                  tiers below). Percent off applies after segment adjustment.
-                </p>
               </div>
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3">
-                <p className="text-xs font-medium text-foreground">
-                  Volume discount tiers
-                </p>
-                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  {pricingSettings.volume_tiers.map((t, i) => (
-                    <li key={i}>
-                      {t.min}–{t.max} blocks: {t.discountPercent}% off
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={applyVolumeDiscount}
+                  onChange={(e) => setApplyVolumeDiscount(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/20 bg-background/80 text-primary accent-primary focus:ring-2 focus:ring-primary/40"
+                />
+                <span>Apply volume discount</span>
+              </label>
               <div className="flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center">
                 <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                   <input
@@ -505,8 +654,9 @@ export function QuoteBuilderClient({
                 Services
               </CardTitle>
               <CardDescription>
-                Add catalog lines, adjust quantity, and override unit price when
-                needed (per-quote overrides only).
+                Add catalog lines, edit the service name on each line if needed,
+                adjust quantity, and override unit price when needed (per-quote
+                overrides only).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -576,9 +726,23 @@ export function QuoteBuilderClient({
                       >
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1 space-y-2">
-                            <p className="font-semibold leading-tight text-foreground">
-                              {line.label}
-                            </p>
+                            <div className="space-y-1">
+                              <Label
+                                htmlFor={`quote-line-label-${line.key}`}
+                                className="text-xs text-foreground"
+                              >
+                                Service name
+                              </Label>
+                              <Input
+                                id={`quote-line-label-${line.key}`}
+                                value={line.label}
+                                onChange={(e) =>
+                                  updateLine(line.key, { label: e.target.value })
+                                }
+                                className={cn(fieldClass, "font-medium")}
+                                autoComplete="off"
+                              />
+                            </div>
                             <div className="flex flex-wrap gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs text-foreground">
@@ -702,28 +866,6 @@ export function QuoteBuilderClient({
               )}
             </CardContent>
           </Card>
-
-          <Card className={cardClass}>
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-lg font-semibold tracking-tight">
-                Notes
-              </CardTitle>
-              <CardDescription>
-                Special instructions or assay context.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                className={cn(
-                  fieldClass,
-                  "min-h-[100px] resize-y rounded-md border py-3",
-                )}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional notes for the lab team…"
-              />
-            </CardContent>
-          </Card>
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -770,8 +912,22 @@ export function QuoteBuilderClient({
                   <Separator className="bg-white/[0.08]" />
                   <div className="flex justify-between gap-4">
                     <span className="text-muted-foreground">Volume discount</span>
-                    <span className="tabular-nums text-primary">
-                      −{money(totals.volume_discount_amount)}
+                    <span className="flex items-center gap-2">
+                      <span className="tabular-nums text-primary">
+                        −{money(totals.volume_discount_amount)}
+                      </span>
+                      {mode === "edit" && applyVolumeDiscount && totals.volume_discount_amount > 0 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => setApplyVolumeDiscount(false)}
+                          aria-label="Remove volume discount"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : null}
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
@@ -798,6 +954,29 @@ export function QuoteBuilderClient({
           </div>
         </aside>
       </div>
+
+      <Card className={cn(cardClass, "mt-8 w-full max-w-none")}>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-lg font-semibold tracking-tight">
+            Notes
+          </CardTitle>
+          <CardDescription>
+            Shown on the quote preview and PDF for your client when this field has
+            text—appears before the services table, with no heading.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <textarea
+            className={cn(
+              fieldClass,
+              "min-h-[240px] w-full resize-y rounded-md border px-4 py-3 text-base leading-relaxed",
+            )}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Special instructions, assay context, or anything the client should see on the quote…"
+          />
+        </CardContent>
+      </Card>
       </div>
     </div>
   );

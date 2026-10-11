@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { InvoiceEditorClient } from "@/components/pathx/invoice-editor-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInvoiceDetailAction } from "@/lib/invoices/get-invoice-detail-action";
+import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -16,8 +17,9 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [invoiceRes, supabase] = await Promise.all([
+  const [invoiceRes, pricingSettings, supabase] = await Promise.all([
     getInvoiceDetailAction(id),
+    loadPricingSettings(),
     createClient(),
   ]);
 
@@ -47,5 +49,11 @@ export default async function InvoiceDetailPage({
     default_unit_price: Number(row.default_unit_price),
   }));
 
-  return <InvoiceEditorClient invoice={invoiceRes.data} catalog={catalog} />;
+  return (
+    <InvoiceEditorClient
+      invoice={invoiceRes.data}
+      catalog={catalog}
+      pricingSettings={pricingSettings}
+    />
+  );
 }

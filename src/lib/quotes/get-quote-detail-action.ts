@@ -1,10 +1,6 @@
 "use server";
 
-import {
-  isValidSegment,
-  SEGMENT_OPTIONS,
-  type PricingSettingsSnapshot,
-} from "@/lib/quote-pricing";
+import type { PricingSettingsSnapshot } from "@/lib/quote-pricing";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,10 +18,7 @@ export type QuoteForPreviewData = {
   contactName: string;
   projectTitle: string;
   quoteRef: string;
-  segmentLabel: string;
   sampleVolume: number;
-  rushPriority: boolean;
-  rush2day: boolean;
   notes: string;
   lines: QuotePreviewLinePayload[];
   totals: {
@@ -80,10 +73,6 @@ export async function getQuoteForPreviewAction(
   }
 
   const pricingSettings = await loadPricingSettings();
-  const segment = isValidSegment(q.segment) ? q.segment : "small_biopharma";
-  const segmentLabel =
-    SEGMENT_OPTIONS.find((o) => o.value === segment)?.label ?? q.segment;
-
   const afterSeg = Number(q.after_segment_amount);
   const volDisc = Number(q.volume_discount_amount);
   const volume_discount_percent =
@@ -138,10 +127,7 @@ export async function getQuoteForPreviewAction(
       contactName: q.contact_name ?? "",
       projectTitle: q.project_title ?? "",
       quoteRef: q.quote_reference ?? "",
-      segmentLabel,
-      sampleVolume: q.sample_volume,
-      rushPriority: q.rush_priority,
-      rush2day: q.rush_2day,
+      sampleVolume: Number(q.sample_volume) || 0,
       notes: q.notes ?? "",
       lines,
       totals: {

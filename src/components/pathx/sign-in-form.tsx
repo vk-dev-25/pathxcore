@@ -181,6 +181,14 @@ export function PathXSignInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="rounded-md bg-muted/60 px-3 py-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            PathX employees
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Sign in with your work email and password.
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -343,6 +351,20 @@ export function PathXSignInForm() {
               {status === "working" ? "Creating account…" : "Create account"}
             </Button>
           </form>
+        ) : null}
+
+        {mode === "signin" ? (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center">
+            <p className="text-sm font-semibold text-foreground">
+              Are you a client?
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              No password needed — we&rsquo;ll email you a secure sign-in link.
+            </p>
+            <Button asChild className="mt-3 w-full">
+              <a href="/pathx/client-sign-in">Email me a sign-in link</a>
+            </Button>
+          </div>
         ) : null}
 
         {mode === "forgot" ? (

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { findOrCreateClient } from "@/lib/clients/upsert-client";
 import {
   computeQuoteTotals,
   isValidSegment,
@@ -10,6 +11,8 @@ import {
   type Segment,
 } from "@/lib/quote-pricing";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
+import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type SaveQuoteState =
@@ -22,10 +25,12 @@ export async function saveQuoteAction(input: {
   contact_name: string;
   project_title: string;
   quote_reference: string;
+  status?: string;
   segment: string;
   sample_volume: number;
   rush_priority: boolean;
   rush_2day: boolean;
+  apply_volume_discount?: boolean;
   notes: string;
   lines: QuoteLineInput[];
 }): Promise<SaveQuoteState> {
@@ -42,6 +47,8 @@ export async function saveQuoteAction(input: {
     return { ok: false, error: "Invalid segment." };
   }
   const segment = input.segment as Segment;
+  const rawStatus = input.status ?? "";
+  const status: QuoteStatus = isQuoteStatus(rawStatus) ? rawStatus : "created";
 
   if (!input.lines.length) {
     return { ok: false, error: "Add at least one service line." };
@@ -64,17 +71,33 @@ export async function saveQuoteAction(input: {
     input.rush_priority,
     input.rush_2day,
     pricingSettings,
+    { applyVolumeDiscount: input.apply_volume_discount ?? true },
   );
+
+  let clientId: string | null = null;
+  try {
+    const admin = createServiceRoleClient();
+    clientId = await findOrCreateClient(admin, {
+      org_name: input.client_org_name,
+      address: input.client_address,
+      contact_name: input.contact_name,
+      created_by: user.id,
+    });
+  } catch (e) {
+    console.warn("saveQuoteAction: client link skipped:", e);
+  }
 
   const { data: quote, error: qErr } = await supabase
     .from("quotes")
     .insert({
       user_id: user.id,
+      client_id: clientId,
       client_org_name: input.client_org_name.trim() || null,
       client_address: input.client_address.trim() || null,
       contact_name: input.contact_name.trim() || null,
       project_title: input.project_title.trim() || null,
       quote_reference: input.quote_reference.trim() || null,
+      status,
       segment: input.segment,
       sample_volume: Math.max(0, Math.floor(input.sample_volume)),
       rush_priority: input.rush_priority,
@@ -87,6 +110,10 @@ export async function saveQuoteAction(input: {
       after_volume_amount: totals.after_volume_amount,
       rush_uplift_amount: totals.rush_uplift_amount,
       total_amount: totals.total_amount,
+      created_by: user.id,
+      created_by_email: user.email ?? null,
+      last_updated_by: user.id,
+      last_updated_by_email: user.email ?? null,
     })
     .select("id")
     .single();
@@ -104,8 +131,8 @@ export async function saveQuoteAction(input: {
 
   const lineRows = input.lines.map((l, i) => ({
     quote_id: quote.id,
-    catalog_service_id: l.catalog_service_id,
-    label: l.label,
+    catalog_service_id: l.catalog_service_id?.trim() || null,
+    label: l.label.trim(),
     quantity: l.quantity,
     unit_price: roundMoney(l.unit_price),
     default_unit_price_snapshot: roundMoney(l.default_unit_price_snapshot),

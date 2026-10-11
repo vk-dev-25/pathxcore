@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { PathXThemeProvider } from "@/components/pathx/pathx-theme-provider";
+import { DEFAULT_OG_IMAGE_PATH } from "@/lib/site-identity";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,12 +18,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "PathXdx | Clinical & preclinical pathology",
+    default: "PathXdx | Preclinical pathology & histology",
     template: "%s | PathXdx",
   },
   description:
-    "PathXdx provides clinical and preclinical pathology services—from accessioning and processing through staining, IHC, and pathologist evaluation.",
+    "PathXdx provides preclinical pathology and histology services for biotech, pharma, and research teams, from accessioning and processing through staining, IHC, and pathologist evaluation.",
   metadataBase: new URL("https://pathxdx.com"),
+  icons: {
+    icon: [{ url: DEFAULT_OG_IMAGE_PATH, type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
@@ -29,11 +35,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >
-        {children}
+        <PathXThemeProvider>{children}</PathXThemeProvider>
       </body>
     </html>
   );

@@ -163,3 +163,111 @@ export async function updateCatalogPricesAction(
   revalidatePath("/pathx/quotebuilder");
   return { ok: true };
 }
+
+export type CatalogRowUpdate = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  default_unit_price: number;
+};
+
+/** Update name, slug, description, and base price for catalog rows (admin Save). */
+export async function updateCatalogRowsAction(
+  rows: CatalogRowUpdate[],
+): Promise<PricingAdminResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  for (const r of rows) {
+    if (!r.id) return { ok: false, error: "Invalid catalog row." };
+
+    const name = r.name.trim();
+    if (!name) return { ok: false, error: "Every service must have a name." };
+
+    const slug = slugifyCatalogSlug(r.slug || name);
+    if (!slug) return { ok: false, error: "Could not build a valid slug for one of the services." };
+
+    if (!Number.isFinite(r.default_unit_price) || r.default_unit_price < 0) {
+      return { ok: false, error: "All catalog prices must be zero or positive." };
+    }
+
+    const { data: clash } = await supabase
+      .from("quote_catalog_services")
+      .select("id")
+      .eq("slug", slug)
+      .neq("id", r.id)
+      .maybeSingle();
+
+    if (clash) {
+      return {
+        ok: false,
+        error: `Slug "${slug}" is already used by another service. Use a unique slug.`,
+      };
+    }
+
+    const { error } = await supabase
+      .from("quote_catalog_services")
+      .update({
+        name,
+        slug,
+        description: r.description.trim() || null,
+        default_unit_price: r.default_unit_price,
+      })
+      .eq("id", r.id);
+
+    if (error) {
+      console.error(error);
+      if (error.code === "23505" || error.message?.includes("unique")) {
+        return {
+          ok: false,
+          error: "Duplicate slug. Each catalog service needs a unique slug.",
+        };
+      }
+      return {
+        ok: false,
+        error:
+          error.code === "42P01" || error.message?.includes("relation")
+            ? "Catalog table is missing. Run the quotes migration in Supabase."
+            : "Could not update catalog services.",
+      };
+    }
+  }
+
+  revalidatePath("/pathx/admin/pricing");
+  revalidatePath("/pathx/quotebuilder");
+  return { ok: true };
+}
+
+export async function deleteCatalogServiceAction(input: {
+  id: string;
+}): Promise<PricingAdminResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  if (!input.id) return { ok: false, error: "Nothing to delete." };
+
+  const { error } = await supabase.from("quote_catalog_services").delete().eq("id", input.id);
+
+  if (error) {
+    console.error(error);
+    if (error.code === "42501" || error.message?.includes("policy")) {
+      return {
+        ok: false,
+        error:
+          "Delete not allowed. Run migration 20260329350000_catalog_delete_policy.sql in Supabase.",
+      };
+    }
+    return { ok: false, error: "Could not delete service." };
+  }
+
+  revalidatePath("/pathx/admin/pricing");
+  revalidatePath("/pathx/quotebuilder");
+  return { ok: true };
+}

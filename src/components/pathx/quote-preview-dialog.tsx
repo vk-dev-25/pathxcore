@@ -21,10 +21,7 @@ export function QuotePreviewDialog({
   contactName,
   projectTitle,
   quoteRef,
-  segmentLabel,
   sampleVolume,
-  rushPriority,
-  rush2day,
   notes,
   lines,
   totals,
@@ -36,10 +33,7 @@ export function QuotePreviewDialog({
   contactName: string;
   projectTitle: string;
   quoteRef: string;
-  segmentLabel: string;
   sampleVolume: number;
-  rushPriority: boolean;
-  rush2day: boolean;
   notes: string;
   lines: QuotePreviewLine[];
   totals: {
@@ -68,10 +62,7 @@ export function QuotePreviewDialog({
           contactName={contactName}
           projectTitle={projectTitle}
           quoteRef={quoteRef}
-          segmentLabel={segmentLabel}
           sampleVolume={sampleVolume}
-          rushPriority={rushPriority}
-          rush2day={rush2day}
           notes={notes}
           lines={lines}
           totals={totals}

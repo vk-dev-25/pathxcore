@@ -98,12 +98,47 @@ async function fetchAccessCodeRow(
   return { row: eqRow as AccessCodeRow | null, fetchErr };
 }
 
+/**
+ * Is this email on the maintained PathX staff allowlist (active)? Only these
+ * emails may create a full-workspace (staff) account. If the table is missing
+ * (migration not yet applied) we fail open so existing setups keep working.
+ */
+export async function isEmailAllowlistedStaff(
+  service: SupabaseClient,
+  email: string,
+): Promise<{ allowed: boolean; tableMissing: boolean }> {
+  const { data, error } = await service
+    .from("staff_members")
+    .select("id")
+    .eq("email", email.trim().toLowerCase())
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (error) {
+    // 42P01 = undefined_table; treat a missing table as "not enforced yet".
+    if (error.code === "42P01" || (error.message ?? "").includes("does not exist")) {
+      return { allowed: true, tableMissing: true };
+    }
+    console.error("isEmailAllowlistedStaff:", error.message);
+    return { allowed: false, tableMissing: false };
+  }
+  return { allowed: Boolean(data), tableMissing: false };
+}
+
 /** Creates signup_allowances after validating access_codes (used before auth.users insert). */
 export async function grantSignupAllowance(
   service: SupabaseClient,
   email: string,
   accessCode: string,
 ): Promise<{ error?: string }> {
+  const allow = await isEmailAllowlistedStaff(service, email);
+  if (!allow.allowed) {
+    return {
+      error:
+        "This email is not authorized for a PathX employee account. Ask a PathX admin to add you to the staff list.",
+    };
+  }
+
   const { row, fetchErr } = await fetchAccessCodeRow(
     service,
     accessCode,

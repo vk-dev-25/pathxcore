@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
 import { Printer } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import type { InvoicePreviewData } from "@/lib/invoices/invoice-preview";
+import { printWithDataQuoteIsolation } from "@/lib/print-data-quote";
 
 export function money(n: number) {
   return new Intl.NumberFormat("en-US", {
@@ -48,93 +48,6 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
     .filter(Boolean)
     .join(" · ");
 
-  const cleanupPrintRef = useRef<null | (() => void)>(null);
-
-  const resetPrintScroll = useCallback(() => {
-    window.scrollTo(0, 0);
-    const nodes = document.querySelectorAll<HTMLElement>('[data-quote-print="true"]');
-    nodes.forEach((node) => {
-      node.scrollTop = 0;
-    });
-  }, []);
-
-  const preparePrintSurface = useCallback(() => {
-    resetPrintScroll();
-
-    const root = document.querySelector<HTMLElement>('[data-quote-print="true"]');
-    if (!root) return () => {};
-
-    const touched = new Map<HTMLElement, string>();
-    const remember = (el: HTMLElement) => {
-      if (!touched.has(el)) touched.set(el, el.style.cssText);
-    };
-
-    const forceWhite = (el: HTMLElement) => {
-      el.style.setProperty("background", "#fff", "important");
-      el.style.setProperty("background-color", "#fff", "important");
-      el.style.setProperty("color", "#111", "important");
-    };
-
-    const rootEl = document.documentElement;
-    const bodyEl = document.body;
-    remember(rootEl);
-    remember(bodyEl);
-    forceWhite(rootEl);
-    forceWhite(bodyEl);
-    bodyEl.style.setProperty("margin", "0", "important");
-    bodyEl.style.setProperty("padding", "0", "important");
-
-    const topChildren = Array.from(bodyEl.children) as HTMLElement[];
-    topChildren.forEach((child) => {
-      remember(child);
-      if (child.contains(root) || child === root) {
-        child.style.setProperty("display", "block", "important");
-        child.style.setProperty("visibility", "visible", "important");
-        forceWhite(child);
-      } else {
-        child.style.setProperty("display", "none", "important");
-      }
-    });
-
-    remember(root);
-    root.style.setProperty("position", "static", "important");
-    root.style.setProperty("left", "auto", "important");
-    root.style.setProperty("top", "auto", "important");
-    root.style.setProperty("width", "auto", "important");
-    root.style.setProperty("max-width", "none", "important");
-    root.style.setProperty("height", "auto", "important");
-    root.style.setProperty("max-height", "none", "important");
-    root.style.setProperty("overflow", "visible", "important");
-    root.style.setProperty("border", "0", "important");
-    root.style.setProperty("box-shadow", "none", "important");
-    forceWhite(root);
-
-    return () => {
-      touched.forEach((cssText, el) => {
-        el.style.cssText = cssText;
-      });
-    };
-  }, [resetPrintScroll]);
-
-  useEffect(() => {
-    const onBeforePrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = preparePrintSurface();
-    };
-    const onAfterPrint = () => {
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-    window.addEventListener("beforeprint", onBeforePrint);
-    window.addEventListener("afterprint", onAfterPrint);
-    return () => {
-      window.removeEventListener("beforeprint", onBeforePrint);
-      window.removeEventListener("afterprint", onAfterPrint);
-      cleanupPrintRef.current?.();
-      cleanupPrintRef.current = null;
-    };
-  }, [preparePrintSurface]);
-
   return (
     <div className="quote-print-body space-y-6 text-sm text-foreground print:text-black">
       <div className="border-b border-white/[0.06] pb-3 text-center print:border-neutral-300">
@@ -146,7 +59,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       <div className="flex items-start justify-between gap-4 border-b border-white/[0.06] pb-5 print:border-neutral-300">
         <div>
           <p className="text-2xl font-semibold tracking-tight print:text-black">
-            Pathology X Diagnostics
+            Pathology X Diagnostic Services, Inc.
           </p>
           <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground print:text-neutral-700">
             200 Valley Drive, Suite 29{"\n"}
@@ -157,7 +70,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
         <Image
           src="/images/pathxlogo.jpeg"
-          alt="Pathology X Diagnostics logo"
+          alt="Pathology X Diagnostic Services, Inc. logo"
           width={258}
           height={236}
           priority
@@ -168,7 +81,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       <div className="grid gap-6 sm:grid-cols-[1fr_320px] sm:items-start">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground print:text-neutral-600">
-            Bill to
+            Bill To
           </p>
           <p className="mt-2 text-base font-semibold leading-snug print:text-black">
             {data.client_org_name || "—"}
@@ -186,25 +99,35 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
         <dl className="grid gap-y-1.5 text-sm sm:grid-cols-[130px_1fr] sm:gap-x-3">
           <dt className="text-muted-foreground print:text-neutral-600">
-            Invoice reference
+            Invoice Number
           </dt>
           <dd className="font-medium tabular-nums print:text-black">
             {data.invoice_reference || "—"}
           </dd>
+          <dt className="text-muted-foreground print:text-neutral-600">PO Reference</dt>
+          <dd className="print:text-black">
+            {data.po_reference?.trim() ? data.po_reference.trim() : "—"}
+          </dd>
           <dt className="text-muted-foreground print:text-neutral-600">Status</dt>
           <dd className="capitalize print:text-black">{statusLabel(data.status)}</dd>
           <dt className="text-muted-foreground print:text-neutral-600">
-            Date issued
+            Date Issued
           </dt>
           <dd className="print:text-black">{issuedLabel}</dd>
-          <dt className="text-muted-foreground print:text-neutral-600">Due date</dt>
+          <dt className="text-muted-foreground print:text-neutral-600">Due Date</dt>
           <dd className="print:text-black">{dueLabel}</dd>
         </dl>
       </div>
 
+      {data.notes.trim() ? (
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground print:text-black">
+          <span className="font-semibold">Note:</span> {data.notes.trim()}
+        </p>
+      ) : null}
+
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground print:text-neutral-600">
-          Line items
+          Line Items
         </p>
         <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06] print:border-neutral-300">
           <table className="w-full border-collapse text-sm">
@@ -252,9 +175,67 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
         </div>
       </div>
 
-      <div className="flex justify-between gap-4 border-t border-white/[0.06] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
-        <span>Total (USD)</span>
-        <span className="tabular-nums">{money(data.total_amount)}</span>
+      <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm tabular-nums print:border-neutral-300">
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground print:text-neutral-700">
+            Subtotal
+          </span>
+          <span className="print:text-black">{money(data.totals.subtotal_amount)}</span>
+        </div>
+        {Math.abs(data.totals.segment_adjustment_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Price adjustment
+            </span>
+            <span className="print:text-black">
+              {money(data.totals.segment_adjustment_amount)}
+            </span>
+          </div>
+        ) : null}
+        {Math.abs(data.totals.volume_discount_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Volume discount ({data.totals.volume_discount_percent}%)
+            </span>
+            <span className="print:text-black">
+              −{money(data.totals.volume_discount_amount)}
+            </span>
+          </div>
+        ) : null}
+        {Math.abs(data.totals.rush_uplift_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Rush uplift
+            </span>
+            <span className="print:text-black">
+              {money(data.totals.rush_uplift_amount)}
+            </span>
+          </div>
+        ) : null}
+        <div className="flex justify-between gap-4">
+          <span className="text-muted-foreground print:text-neutral-700">
+            Sales tax
+          </span>
+          <span className="print:text-black">{money(0)}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Shipping<sup className="ml-0.5 align-super text-[10px] leading-none">
+                *
+              </sup>
+            </span>
+            <span className="print:text-black">{money(0)}</span>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground print:text-neutral-600">
+            <sup>*</sup> Shipping is free unless otherwise specified in the
+            description.
+          </p>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-white/[0.06] pt-3 text-base font-semibold print:border-neutral-300 print:text-black">
+          <span>Total (USD)</span>
+          <span>{money(data.total_amount)}</span>
+        </div>
       </div>
 
       <div className="space-y-2 border-t border-white/[0.06] pt-4 text-sm print:border-neutral-300">
@@ -272,7 +253,7 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
       </div>
 
       <p className="border-t border-white/[0.06] pt-4 text-center text-xs text-muted-foreground print:border-neutral-300 print:text-neutral-600">
-        {data.invoice_reference || "—"} · Pathology X Diagnostics · {year}
+        {data.invoice_reference || "—"} · Pathology X Diagnostic Services, Inc. · {year}
       </p>
 
       <div className="flex flex-col gap-2 print:hidden">
@@ -280,11 +261,13 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => {
-            cleanupPrintRef.current?.();
-            cleanupPrintRef.current = preparePrintSurface();
-            window.requestAnimationFrame(() => window.print());
-          }}
+          onClick={() =>
+            printWithDataQuoteIsolation({
+              pdfTitle: data.invoice_reference?.trim()
+                ? `Invoice-${data.invoice_reference.trim()}`
+                : "Invoice-preview",
+            })
+          }
         >
           <Printer className="mr-2 h-4 w-4" />
           Print / Save PDF
