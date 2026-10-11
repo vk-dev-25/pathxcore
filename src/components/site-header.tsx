@@ -140,7 +140,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {pathname === "/" ? <HomeThemeToggle /> : null}
+          <HomeThemeToggle />
           <Button
             asChild
             variant="workspace"
