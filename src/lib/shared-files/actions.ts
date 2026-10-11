@@ -458,14 +458,17 @@ export async function removeSharedFileAccessAction(input: {
 
 export async function getSharedFileDownloadUrlAction(
   fileId: string,
-): Promise<{ ok: true; url: string; filename: string } | { ok: false; error: string }> {
+): Promise<
+  | { ok: true; url: string; filename: string; byteSize: number | null }
+  | { ok: false; error: string }
+> {
   const viewer = await getViewerContext();
   if (!viewer) return { ok: false, error: "You must be signed in." };
 
   const supabase = await createClient();
   const { data: file } = await supabase
     .from("shared_files")
-    .select("id, s3_key, status, expires_at, original_filename")
+    .select("id, s3_key, status, expires_at, original_filename, byte_size")
     .eq("id", fileId)
     .maybeSingle();
   if (!file) return { ok: false, error: "File not found." };
@@ -493,10 +496,15 @@ export async function getSharedFileDownloadUrlAction(
       key: file.s3_key as string,
       filename: (file.original_filename as string) || "download",
     });
+    const byteSize =
+      typeof file.byte_size === "number" && file.byte_size > 0
+        ? file.byte_size
+        : null;
     return {
       ok: true,
       url,
       filename: (file.original_filename as string) || "download",
+      byteSize,
     };
   } catch (e) {
     console.error("getSharedFileDownloadUrlAction", e);
