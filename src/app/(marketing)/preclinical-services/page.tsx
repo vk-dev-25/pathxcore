@@ -3,11 +3,16 @@ import Link from "next/link";
 import {
   ArrowRight,
   Check,
+  CheckCircle2,
+  Circle,
+  ClipboardList,
   Layers,
+  ListChecks,
   Microscope,
   Scan,
   ShieldCheck,
   Stethoscope,
+  Tag,
   TestTube,
   Users,
   type LucideIcon,
@@ -65,6 +70,85 @@ const PILLARS = [
     icon: ShieldCheck,
   },
 ];
+
+const TRACKING: { title: string; body: string; icon: LucideIcon }[] = [
+  {
+    title: "Accessioned on arrival",
+    body: "Each sample gets a unique ID, logged with species, tissue, and the services you ordered.",
+    icon: ClipboardList,
+  },
+  {
+    title: "Labeled samples and slides",
+    body: "Every sample and slide carries a printed label that matches its LIMS record.",
+    icon: Tag,
+  },
+  {
+    title: "Every step recorded",
+    body: "Processing, sectioning, and staining steps are logged with who did them and when.",
+    icon: ListChecks,
+  },
+];
+
+const RECORD_STEPS: { step: string; done: boolean }[] = [
+  { step: "Received and accessioned", done: true },
+  { step: "Processed and embedded", done: true },
+  { step: "Sectioned", done: true },
+  { step: "Stained", done: false },
+  { step: "Scanned", done: false },
+];
+
+/** Illustrative LIMS sample record (not a screenshot of the real system). */
+function SampleRecordPreview() {
+  return (
+    <figure className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-lg">
+      <div className="flex items-center justify-between border-b border-border/70 bg-muted/50 px-5 py-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Sample record
+          </p>
+          <p className="font-mono text-sm font-semibold">Sample 03 · Mouse liver</p>
+        </div>
+        <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+          In progress
+        </span>
+      </div>
+      <ol className="space-y-2.5 px-5 py-4">
+        {RECORD_STEPS.map(({ step, done }) => (
+          <li key={step} className="flex items-center gap-2.5 text-sm">
+            {done ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            ) : (
+              <Circle
+                className="h-4 w-4 shrink-0 text-muted-foreground/60"
+                aria-hidden
+              />
+            )}
+            <span className={done ? "" : "text-muted-foreground"}>{step}</span>
+            {done ? (
+              <span className="ml-auto text-xs text-muted-foreground">
+                logged
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+      <div className="flex flex-wrap gap-1.5 border-t border-border/70 px-5 py-3">
+        {["Slide 01", "Slide 02", "Slide 03"].map((slide) => (
+          <span
+            key={slide}
+            className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-background px-2 py-0.5 font-mono text-xs"
+          >
+            <Tag className="h-3 w-3 text-primary" aria-hidden />
+            {slide}
+          </span>
+        ))}
+      </div>
+      <figcaption className="border-t border-border/70 px-5 py-2 text-[11px] text-muted-foreground">
+        Illustration
+      </figcaption>
+    </figure>
+  );
+}
 
 function SectionHeading({
   eyebrow,
@@ -194,8 +278,8 @@ export default function ServicesPage() {
 
       <section id="workflow" className="mt-20 scroll-mt-28">
         <SectionHeading eyebrow="Workflow" title="From receipt to results">
-          How specimens move through the lab, with chain of custody documented
-          throughout.
+          How specimens move through the lab, with every step recorded in our
+          LIMS.
         </SectionHeading>
         <ol className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {preclinicalSteps.map((step, index) => (
@@ -213,6 +297,40 @@ export default function ServicesPage() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section id="sample-tracking" className="mt-20 scroll-mt-28">
+        <SectionHeading
+          eyebrow="Sample tracking"
+          title="Every sample tracked in our LIMS"
+        >
+          When you send us a study, each sample and slide is logged in our own
+          laboratory information management system, from receipt to delivery.
+        </SectionHeading>
+        <div className="mt-7 grid items-start gap-6 lg:grid-cols-[1fr_minmax(0,26rem)]">
+          <ul className="space-y-3">
+            {TRACKING.map(({ title, body, icon: Icon }) => (
+              <li
+                key={title}
+                className="flex gap-4 rounded-xl border border-border/80 bg-card p-5"
+              >
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary"
+                  aria-hidden
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="font-semibold">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <SampleRecordPreview />
+        </div>
       </section>
 
       <section id="expertise" className="mt-20 scroll-mt-28">
