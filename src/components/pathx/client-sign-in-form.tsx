@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Loader2, Mail } from "lucide-react";
 
@@ -16,7 +17,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+function safeNextPath(raw: string | null): string {
+  if (!raw || !raw.startsWith("/pathx/")) return "/pathx/trackers";
+  if (raw.startsWith("//")) return "/pathx/trackers";
+  return raw;
+}
+
 export function ClientSignInForm() {
+  const searchParams = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "working" | "sent" | "error">(
     "idle",
@@ -35,7 +44,7 @@ export function ClientSignInForm() {
       options: {
         shouldCreateUser: false,
         emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
-          "/pathx/trackers",
+          nextPath,
         )}`,
       },
     });
@@ -46,7 +55,6 @@ export function ClientSignInForm() {
       return;
     }
 
-    // Always show a generic message so we never reveal which emails exist.
     setStatus("sent");
     setMessage(
       "If your email has access, we sent a sign-in link. Check your inbox (and spam).",
