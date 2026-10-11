@@ -132,7 +132,12 @@ function WsiPreview() {
   );
 }
 
-export default function HumanFfpePage() {
+export default async function HumanFfpePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ system?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-14 sm:px-6">
       <TissuePageHeader
@@ -263,7 +268,7 @@ export default function HumanFfpePage() {
       </section>
 
       <div className="mt-16">
-        <HumanFfpeCatalog />
+        <HumanFfpeCatalog systemParam={sp.system ?? null} />
       </div>
     </div>
   );

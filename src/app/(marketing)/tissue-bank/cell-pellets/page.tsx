@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -20,7 +19,12 @@ export const metadata: Metadata = marketingMetadata({
   path: TISSUE_ROUTES.cellPellets,
 });
 
-export default function CellPelletsPage() {
+export default async function CellPelletsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ tissue?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-14 sm:px-6">
       <TissuePageHeader
@@ -54,10 +58,7 @@ export default function CellPelletsPage() {
       </TissuePageHeader>
 
       <div className="mt-10">
-        {/* The catalog reads ?tissue= from the URL, which needs Suspense. */}
-        <Suspense fallback={null}>
-          <CellPelletCatalog />
-        </Suspense>
+        <CellPelletCatalog tissueParam={sp.tissue ?? null} />
       </div>
     </div>
   );

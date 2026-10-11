@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import { Check, Plus, Search, X } from "lucide-react";
+
+import { scrollToElement } from "@/lib/scroll-to-element";
 
 import {
   AddToRequestButton,
@@ -263,27 +266,57 @@ function SystemTile({
   );
 }
 
-export function HumanFfpeCatalog() {
+export function HumanFfpeCatalog({
+  systemParam = null,
+}: {
+  /** From the page `searchParams` so the section is in the DOM on first paint. */
+  systemParam?: string | null;
+}) {
   const request = useBlockRequest();
+  const router = useRouter();
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | undefined>(
-    DEFAULT_SYSTEM,
-  );
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Header menu links arrive as #<system id>: open that system's panel.
+  const selectedId =
+    systemParam && SYSTEMS.some((s) => s.system.id === systemParam)
+      ? systemParam
+      : DEFAULT_SYSTEM;
+
+  // Legacy header links used #<system id>; migrate once to ?system=.
   useEffect(() => {
-    function fromHash() {
-      const id = window.location.hash.slice(1);
-      if (SYSTEMS.some((s) => s.system.id === id)) {
-        setSelectedId(id);
-        setQuery("");
-      }
+    if (systemParam) return;
+    const hashId = window.location.hash.slice(1);
+    if (
+      !hashId ||
+      hashId === "normal" ||
+      hashId === "indications" ||
+      hashId === "system-results" ||
+      !SYSTEMS.some((s) => s.system.id === hashId)
+    ) {
+      return;
     }
-    fromHash();
-    window.addEventListener("hashchange", fromHash);
-    return () => window.removeEventListener("hashchange", fromHash);
-  }, []);
+    router.replace(
+      `${pathname}?system=${encodeURIComponent(hashId)}#system-results`,
+    );
+  }, [systemParam, pathname, router]);
+
+  // Scroll to the results panel when arriving with ?system= or when the menu changes it.
+  const prevSystemRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const valid =
+      systemParam && SYSTEMS.some((s) => s.system.id === systemParam)
+        ? systemParam
+        : null;
+    const firstRun = prevSystemRef.current === undefined;
+    const changed = !firstRun && valid !== prevSystemRef.current;
+    prevSystemRef.current = valid;
+
+    if (!valid || (!firstRun && !changed)) return;
+
+    setQuery("");
+    return scrollToElement(panelRef.current);
+  }, [systemParam]);
 
   const selected = SYSTEMS.find((s) => s.system.id === selectedId);
 
@@ -306,15 +339,12 @@ export function HumanFfpeCatalog() {
   }, [query]);
 
   function selectSystem(id: string) {
-    setSelectedId(id);
     setQuery("");
-    window.history.replaceState(null, "", `#${id}`);
-    requestAnimationFrame(() =>
-      panelRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      }),
+    router.replace(
+      `${pathname}?system=${encodeURIComponent(id)}#system-results`,
+      { scroll: false },
     );
+    // Scroll is handled by the ?system= effect above.
   }
 
   const searching = query.trim() !== "";
@@ -423,6 +453,7 @@ export function HumanFfpeCatalog() {
         </ul>
 
         <div
+          id="system-results"
           ref={panelRef}
           className="mt-6 scroll-mt-28 overflow-hidden rounded-2xl border border-border/80 bg-muted/30"
           aria-live="polite"

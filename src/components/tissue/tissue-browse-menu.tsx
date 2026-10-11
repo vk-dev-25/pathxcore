@@ -40,7 +40,8 @@ const PRODUCTS: {
       .map((system) => ({
         key: system.id,
         label: system.name,
-        href: `${TISSUE_ROUTES.humanFfpe}#${system.id}`,
+        // Query selects the system; hash scrolls to the results panel.
+        href: `${TISSUE_ROUTES.humanFfpe}?system=${encodeURIComponent(system.id)}#system-results`,
       })),
   },
   {
@@ -66,7 +67,7 @@ const PRODUCTS: {
       .map((tissue) => ({
         key: tissue,
         label: tissue,
-        href: `${TISSUE_ROUTES.cellPellets}?tissue=${encodeURIComponent(tissue)}`,
+        href: `${TISSUE_ROUTES.cellPellets}?tissue=${encodeURIComponent(tissue)}#cell-pellet-catalog`,
       })),
   },
   {

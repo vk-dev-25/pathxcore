@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+
+import { scrollToElement } from "@/lib/scroll-to-element";
 
 import {
   AddToRequestButton,
@@ -36,22 +38,50 @@ const MARKERS = [
   ...new Set(cellLineBlocks.flatMap((l) => l.markers.map((m) => m.name))),
 ].sort((a, b) => a.localeCompare(b));
 
-export function CellPelletCatalog() {
+export function CellPelletCatalog({
+  tissueParam = null,
+}: {
+  /** From the page `searchParams` so the catalog is in the DOM on first paint. */
+  tissueParam?: string | null;
+}) {
   const request = useBlockRequest();
-  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const [tissue, setTissue] = useState("");
   const [marker, setMarker] = useState("");
 
-  // Header menu links arrive as ?tissue=<tissue of origin>.
+  // Header menu and chips share ?tissue= so changing the menu always applies.
+  const tissue =
+    tissueParam && TISSUES.includes(tissueParam) ? tissueParam : "";
+  const catalogRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to filters on arrival (?tissue= from another page) and when the
+  // header menu changes the param while already here.
+  const prevTissueRef = useRef<string | null | undefined>(undefined);
   useEffect(() => {
-    const fromUrl = searchParams.get("tissue");
-    if (fromUrl && TISSUES.includes(fromUrl)) {
-      setTissue(fromUrl);
-      setQuery("");
-      setMarker("");
+    const valid =
+      tissueParam && TISSUES.includes(tissueParam) ? tissueParam : null;
+    const firstRun = prevTissueRef.current === undefined;
+    const changed = !firstRun && valid !== prevTissueRef.current;
+    prevTissueRef.current = valid;
+
+    if (!valid || (!firstRun && !changed)) return;
+
+    setQuery("");
+    setMarker("");
+    return scrollToElement(catalogRef.current);
+  }, [tissueParam]);
+
+  function setTissue(next: string) {
+    if (next) {
+      router.replace(
+        `${pathname}?tissue=${encodeURIComponent(next)}#cell-pellet-catalog`,
+        { scroll: false },
+      );
+    } else {
+      router.replace(pathname, { scroll: false });
     }
-  }, [searchParams]);
+  }
 
   const lines = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -75,7 +105,11 @@ export function CellPelletCatalog() {
 
   return (
     <>
-      <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5">
+      <div
+        id="cell-pellet-catalog"
+        ref={catalogRef}
+        className="scroll-mt-28 rounded-2xl border border-border/80 bg-card p-4 sm:p-5"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative sm:w-72">
             <Search
