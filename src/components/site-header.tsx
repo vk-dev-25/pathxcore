@@ -60,7 +60,7 @@ export function SiteHeader() {
   }, [tissueOpen]);
 
   return (
-    <header className="theme-dark sticky top-0 z-40 bg-gradient-to-r from-[#0b1220] via-[#0d2230] to-[#1c1233] text-foreground shadow-lg shadow-black/10">
+    <header className="theme-dark sticky top-0 z-40 border-b border-white/[0.06] bg-[#0c1424]/92 text-foreground shadow-[0_8px_30px_-18px_rgba(0,0,0,0.55)] backdrop-blur-xl">
       <HeaderTissueBackdrop />
       <div className="relative mx-auto flex min-h-16 items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <Link
