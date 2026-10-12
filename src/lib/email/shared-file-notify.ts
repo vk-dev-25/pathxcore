@@ -18,11 +18,11 @@ function smtpReady(): boolean {
 }
 
 async function sendMail(
-  to: string[],
+  to: string,
   subject: string,
   text: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!to.length) return { ok: true };
+  if (!to) return { ok: true };
 
   if (resendReady()) {
     try {
@@ -66,7 +66,7 @@ async function sendMail(
       });
       await transporter.sendMail({
         from: readEnv("SMTP_FROM") || `PathX <${user}>`,
-        to: to.join(", "),
+        to,
         subject,
         text,
       });
@@ -90,14 +90,42 @@ async function sendMail(
 }
 
 function appOrigin(): string {
-  return (
+  const raw = (
     readEnv("NEXT_PUBLIC_SITE_URL") ||
     readEnv("NEXT_PUBLIC_APP_URL") ||
     "https://pathxdx.com"
   ).replace(/\/$/, "");
+  // Production site should always use https for auth redirects.
+  if (/^http:\/\/(www\.)?pathxdx\.com$/i.test(raw)) {
+    return raw.replace(/^http:/i, "https:");
+  }
+  return raw;
 }
 
-/** Email clients that a file was shared and how to sign in. */
+async function magicLinkForEmail(
+  email: string,
+  nextPath: string,
+): Promise<string | null> {
+  try {
+    const admin = createServiceRoleClient();
+    const redirectTo = `${appOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: { redirectTo },
+    });
+    if (error) {
+      console.error("shared-file-notify generateLink", error.message);
+      return null;
+    }
+    return data?.properties?.action_link ?? null;
+  } catch (e) {
+    console.error("shared-file-notify generateLink threw", e);
+    return null;
+  }
+}
+
+/** Email each client a one-click magic sign-in link to the shared file. */
 export async function notifySharedFileAccess(input: {
   fileId: string;
   filename: string;
@@ -114,31 +142,63 @@ export async function notifySharedFileAccess(input: {
     ];
     if (!emails.length) return { ok: true };
 
-    for (const email of emails) {
-      await inviteClientUser(email);
-    }
-
     const next = `/pathx/shared-files/${input.fileId}`;
-    const signInUrl = `${appOrigin()}/pathx/client-sign-in?next=${encodeURIComponent(next)}`;
+    const signInFallback = `${appOrigin()}/pathx/client-sign-in?next=${encodeURIComponent(next)}`;
     const expiryLine = input.expiresAt
       ? `This file is available until ${new Date(input.expiresAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}.`
       : "This file has a limited access window set by PathX.";
 
-    return await sendMail(
-      emails,
-      `PathX shared file: ${input.filename}`,
-      [
-        "Pathology X Diagnostic Services has shared a file with you.",
-        "",
-        `File: ${input.filename}`,
-        expiryLine,
-        "",
-        "Sign in with this email (magic link, no password) to view and download it:",
-        signInUrl,
-        "",
-        "If you did not expect this message, you can ignore it.",
-      ].join("\n"),
-    );
+    const failures: string[] = [];
+
+    for (const email of emails) {
+      await inviteClientUser(email);
+      const magicLink = await magicLinkForEmail(email, next);
+
+      const body = magicLink
+        ? [
+            "Pathology X Diagnostic Services has shared a file with you.",
+            "",
+            `File: ${input.filename}`,
+            expiryLine,
+            "",
+            "Click this secure magic link to sign in (no password) and open the file:",
+            magicLink,
+            "",
+            "This link expires shortly and can only be used once. If it no longer works, request a new one here:",
+            signInFallback,
+            "",
+            "If you did not expect this message, you can ignore it.",
+          ].join("\n")
+        : [
+            "Pathology X Diagnostic Services has shared a file with you.",
+            "",
+            `File: ${input.filename}`,
+            expiryLine,
+            "",
+            "Open this page and request a magic sign-in link with this email:",
+            signInFallback,
+            "",
+            "If you did not expect this message, you can ignore it.",
+          ].join("\n");
+
+      const sent = await sendMail(
+        email,
+        `PathX shared file: ${input.filename}`,
+        body,
+      );
+      if (!sent.ok) failures.push(`${email}: ${sent.error}`);
+      if (!magicLink) {
+        failures.push(`${email}: could not generate magic link (sent fallback).`);
+      }
+    }
+
+    if (failures.length === emails.length) {
+      return { ok: false, error: failures.join(" ") };
+    }
+    if (failures.length) {
+      return { ok: false, error: failures.join(" ") };
+    }
+    return { ok: true };
   } catch (e) {
     console.error("notifySharedFileAccess failed", e);
     return {
