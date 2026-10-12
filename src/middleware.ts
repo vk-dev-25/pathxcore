@@ -56,7 +56,11 @@ export async function middleware(request: NextRequest) {
         return response;
       }
       const url = request.nextUrl.clone();
-      url.pathname = SIGN_IN;
+      // Shared-file clients use magic-link sign-in, not staff password sign-in.
+      const wantsSharedFiles =
+        pathname === "/pathx/shared-files" ||
+        pathname.startsWith("/pathx/shared-files/");
+      url.pathname = wantsSharedFiles ? CLIENT_SIGN_IN : SIGN_IN;
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
