@@ -1,10 +1,11 @@
 import "server-only";
 
-import { inviteClientUser } from "@/lib/auth/invite-client";
-import { readEnv } from "@/lib/email/read-env";
+import { headers } from "next/headers";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 
+import { inviteClientUser } from "@/lib/auth/invite-client";
+import { readEnv } from "@/lib/email/read-env";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 function resendReady(): boolean {
@@ -89,13 +90,32 @@ async function sendMail(
   };
 }
 
-function appOrigin(): string {
+/**
+ * Prefer the host that handled the share action (localhost in local dev),
+ * not NEXT_PUBLIC_SITE_URL — otherwise local shares email production links.
+ */
+async function appOrigin(): Promise<string> {
+  try {
+    const h = await headers();
+    const host = (h.get("x-forwarded-host") || h.get("host") || "").trim();
+    if (host) {
+      const forwarded = (h.get("x-forwarded-proto") || "").split(",")[0]?.trim();
+      const proto =
+        forwarded ||
+        (host.startsWith("localhost") || host.startsWith("127.0.0.1")
+          ? "http"
+          : "https");
+      return `${proto}://${host}`.replace(/\/$/, "");
+    }
+  } catch {
+    // Outside a request context (scripts / cron).
+  }
+
   const raw = (
     readEnv("NEXT_PUBLIC_SITE_URL") ||
     readEnv("NEXT_PUBLIC_APP_URL") ||
     "https://pathxdx.com"
   ).replace(/\/$/, "");
-  // Production site should always use https for auth redirects.
   if (/^http:\/\/(www\.)?pathxdx\.com$/i.test(raw)) {
     return raw.replace(/^http:/i, "https:");
   }
@@ -105,6 +125,7 @@ function appOrigin(): string {
 async function magicLinkForEmail(
   email: string,
   nextPath: string,
+  origin: string,
 ): Promise<string | null> {
   try {
     const admin = createServiceRoleClient();
@@ -114,7 +135,7 @@ async function magicLinkForEmail(
       type: "magiclink",
       email,
       options: {
-        redirectTo: `${appOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     });
     if (error) {
@@ -131,7 +152,7 @@ async function magicLinkForEmail(
       type: "magiclink",
       next: nextPath,
     });
-    return `${appOrigin()}/auth/confirm?${params.toString()}`;
+    return `${origin}/auth/confirm?${params.toString()}`;
   } catch (e) {
     console.error("shared-file-notify generateLink threw", e);
     return null;
@@ -155,8 +176,9 @@ export async function notifySharedFileAccess(input: {
     ];
     if (!emails.length) return { ok: true };
 
+    const origin = await appOrigin();
     const next = `/pathx/shared-files/${input.fileId}`;
-    const signInFallback = `${appOrigin()}/pathx/client-sign-in?next=${encodeURIComponent(next)}`;
+    const signInFallback = `${origin}/pathx/client-sign-in?next=${encodeURIComponent(next)}`;
     const expiryLine = input.expiresAt
       ? `This file is available until ${new Date(input.expiresAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}.`
       : "This file has a limited access window set by PathX.";
@@ -165,7 +187,7 @@ export async function notifySharedFileAccess(input: {
 
     for (const email of emails) {
       await inviteClientUser(email);
-      const magicLink = await magicLinkForEmail(email, next);
+      const magicLink = await magicLinkForEmail(email, next, origin);
 
       const body = magicLink
         ? [

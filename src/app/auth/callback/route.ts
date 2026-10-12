@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { type EmailOtpType } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 function safeNextPath(raw: string | null): string {
@@ -9,32 +8,32 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
-async function completeAuth(
-  request: NextRequest,
-): Promise<NextResponse> {
+/**
+ * PKCE code exchange (OTP emails). Magic-link hashed tokens from share emails
+ * are completed in the browser on /auth/confirm so session cookies stick.
+ */
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = (searchParams.get("type") as EmailOtpType | null) || "magiclink";
   const next = safeNextPath(searchParams.get("next"));
 
-  const cookieStore = await cookies();
+  const redirectTo = new URL(next, origin);
+  const response = NextResponse.redirect(redirectTo);
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Ignored when called from a context that cannot set cookies.
-          }
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options);
+          });
         },
       },
     },
@@ -42,18 +41,12 @@ async function completeAuth(
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, origin));
-    }
+    if (!error) return response;
     console.error("auth/callback exchangeCodeForSession", error.message);
   } else if (token_hash) {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash,
-      type,
-    });
-    if (!error) {
-      return NextResponse.redirect(new URL(next, origin));
-    }
+    // Fallback if something still hits callback with token_hash.
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type });
+    if (!error) return response;
     console.error("auth/callback verifyOtp", error.message);
   }
 
@@ -61,12 +54,4 @@ async function completeAuth(
   fail.searchParams.set("error", "auth");
   if (next.startsWith("/pathx/")) fail.searchParams.set("next", next);
   return NextResponse.redirect(fail);
-}
-
-export async function GET(request: NextRequest) {
-  return completeAuth(request);
-}
-
-export async function POST(request: NextRequest) {
-  return completeAuth(request);
 }
