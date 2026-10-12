@@ -108,17 +108,30 @@ async function magicLinkForEmail(
 ): Promise<string | null> {
   try {
     const admin = createServiceRoleClient();
-    const redirectTo = `${appOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    // Link to /auth/confirm (not /auth/callback) so inbox link-scanners do not
+    // burn the one-time token. Confirm page then sends the user to callback.
     const { data, error } = await admin.auth.admin.generateLink({
       type: "magiclink",
       email,
-      options: { redirectTo },
+      options: {
+        redirectTo: `${appOrigin()}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      },
     });
     if (error) {
       console.error("shared-file-notify generateLink", error.message);
       return null;
     }
-    return data?.properties?.action_link ?? null;
+    const hashed = data?.properties?.hashed_token;
+    if (!hashed) {
+      console.error("shared-file-notify generateLink missing hashed_token");
+      return null;
+    }
+    const params = new URLSearchParams({
+      token_hash: hashed,
+      type: "magiclink",
+      next: nextPath,
+    });
+    return `${appOrigin()}/auth/confirm?${params.toString()}`;
   } catch (e) {
     console.error("shared-file-notify generateLink threw", e);
     return null;
@@ -183,7 +196,7 @@ export async function notifySharedFileAccess(input: {
 
       const sent = await sendMail(
         email,
-        `PathX shared file: ${input.filename}`,
+        `PathXdx shared file: ${input.filename}`,
         body,
       );
       if (!sent.ok) failures.push(`${email}: ${sent.error}`);

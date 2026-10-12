@@ -26,11 +26,16 @@ function safeNextPath(raw: string | null): string {
 export function ClientSignInForm() {
   const searchParams = useSearchParams();
   const nextPath = safeNextPath(searchParams.get("next"));
+  const authError = searchParams.get("error");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "working" | "sent" | "error">(
     "idle",
   );
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(
+    authError
+      ? "That sign-in link expired or was already used. Request a new one below."
+      : null,
+  );
 
   async function requestLink(e: React.FormEvent) {
     e.preventDefault();
