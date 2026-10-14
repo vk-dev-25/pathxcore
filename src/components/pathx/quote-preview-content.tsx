@@ -76,6 +76,10 @@ export function QuotePreviewContent({
     volume_discount_percent: number;
     volume_discount_amount: number;
     after_volume_amount: number;
+    custom_discount_mode?: string;
+    custom_discount_value?: number;
+    custom_discount_amount?: number;
+    after_custom_amount?: number;
     rush_uplift_amount: number;
     total_amount: number;
   } | null;
@@ -233,6 +237,19 @@ export function QuotePreviewContent({
               </span>
               <span className="print:text-black">
                 −{money(totals.volume_discount_amount)}
+              </span>
+            </div>
+          ) : null}
+          {!nearZero(totals.custom_discount_amount ?? 0) ? (
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground print:text-neutral-700">
+                Custom discount
+                {totals.custom_discount_mode === "percent"
+                  ? ` (${totals.custom_discount_value ?? 0}%)`
+                  : ""}
+              </span>
+              <span className="print:text-black">
+                −{money(totals.custom_discount_amount ?? 0)}
               </span>
             </div>
           ) : null}

@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  isValidCustomDiscountMode,
   isValidSegment,
   roundMoney,
   volumeDiscountPercent,
+  type CustomDiscountMode,
   type Segment,
 } from "@/lib/quote-pricing";
 import { loadPricingSettings } from "@/lib/quotes/load-pricing";
@@ -85,7 +87,7 @@ export async function createInvoiceFromQuoteAction(
     const { data: quote, error: qErr } = await supabase
       .from("quotes")
       .select(
-        "id, client_org_name, client_address, contact_name, project_title, notes, segment, sample_volume, rush_priority, rush_2day, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount",
+        "id, client_org_name, client_address, contact_name, project_title, notes, segment, sample_volume, rush_priority, rush_2day, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, custom_discount_mode, custom_discount_value, custom_discount_amount, after_custom_amount, rush_uplift_amount, total_amount",
       )
       .eq("id", quoteId)
       .maybeSingle();
@@ -113,6 +115,17 @@ export async function createInvoiceFromQuoteAction(
     const pricingSettings = await loadPricingSettings();
     const defaultVolPct = volumeDiscountPercent(sampleVolume, pricingSettings);
     const applyVolumeDiscount = !(defaultVolPct > 0 && volumeDiscountAmount === 0);
+    const customDiscountMode: CustomDiscountMode = isValidCustomDiscountMode(
+      String(quote.custom_discount_mode ?? ""),
+    )
+      ? (quote.custom_discount_mode as CustomDiscountMode)
+      : "none";
+    const customDiscountValue = Number(quote.custom_discount_value) || 0;
+    const customDiscountAmount = Number(quote.custom_discount_amount) || 0;
+    const afterCustomAmount =
+      Number(quote.after_custom_amount) ||
+      Number(quote.after_volume_amount) ||
+      0;
 
     let createdId: string | null = null;
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -135,6 +148,10 @@ export async function createInvoiceFromQuoteAction(
           rush_priority: Boolean(quote.rush_priority),
           rush_2day: Boolean(quote.rush_2day),
           apply_volume_discount: applyVolumeDiscount,
+          custom_discount_mode: customDiscountMode,
+          custom_discount_value: customDiscountValue,
+          custom_discount_amount: customDiscountAmount,
+          after_custom_amount: afterCustomAmount,
           subtotal_amount: Number(quote.subtotal_amount) || 0,
           segment_adjustment_amount: Number(quote.segment_adjustment_amount) || 0,
           after_segment_amount: Number(quote.after_segment_amount) || 0,

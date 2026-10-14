@@ -30,6 +30,7 @@ import {
   roundMoney,
   SEGMENT_OPTIONS,
   volumeDiscountPercent,
+  type CustomDiscountMode,
   type PricingSettingsSnapshot,
   type QuoteLineInput,
   type Segment,
@@ -106,6 +107,9 @@ export function QuoteBuilderClient({
   const [rushPriority, setRushPriority] = useState(false);
   const [rush2day, setRush2day] = useState(false);
   const [applyVolumeDiscount, setApplyVolumeDiscount] = useState(true);
+  const [customDiscountMode, setCustomDiscountMode] =
+    useState<CustomDiscountMode>("none");
+  const [customDiscountValue, setCustomDiscountValue] = useState(0);
   const [clientOrg, setClientOrg] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [contactName, setContactName] = useState("");
@@ -130,6 +134,8 @@ export function QuoteBuilderClient({
     setRush2day(d.rush_2day);
     const defaultVolPct = volumeDiscountPercent(d.sample_volume, pricingSettings);
     setApplyVolumeDiscount(!(defaultVolPct > 0 && d.volume_discount_amount === 0));
+    setCustomDiscountMode(d.custom_discount_mode ?? "none");
+    setCustomDiscountValue(Number(d.custom_discount_value) || 0);
     setClientOrg(d.client_org_name);
     setClientAddress(d.client_address);
     setContactName(d.contact_name);
@@ -178,7 +184,13 @@ export function QuoteBuilderClient({
             rushPriority,
             rush2day,
             pricingSettings,
-            { applyVolumeDiscount },
+            {
+              applyVolumeDiscount,
+              customDiscount: {
+                mode: customDiscountMode,
+                value: customDiscountValue,
+              },
+            },
           )
         : null,
     [
@@ -189,6 +201,8 @@ export function QuoteBuilderClient({
       rushPriority,
       rush2day,
       applyVolumeDiscount,
+      customDiscountMode,
+      customDiscountValue,
       pricingSettings,
     ],
   );
@@ -249,6 +263,8 @@ export function QuoteBuilderClient({
     setRushPriority(false);
     setRush2day(false);
     setApplyVolumeDiscount(true);
+    setCustomDiscountMode("none");
+    setCustomDiscountValue(0);
     setAddQty(1);
     setSaveMsg(null);
     setSaveErr(null);
@@ -274,6 +290,10 @@ export function QuoteBuilderClient({
         rush_priority: rushPriority,
         rush_2day: rush2day,
         apply_volume_discount: applyVolumeDiscount,
+        custom_discount: {
+          mode: customDiscountMode,
+          value: customDiscountValue,
+        },
         notes,
         lines: lineInputs,
       };
@@ -617,6 +637,51 @@ export function QuoteBuilderClient({
                 />
                 <span>Apply volume discount</span>
               </label>
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,11rem)_1fr] sm:items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="custom-disc-mode">Custom discount</Label>
+                  <select
+                    id="custom-disc-mode"
+                    className={cn(
+                      "flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none",
+                      fieldClass,
+                    )}
+                    value={customDiscountMode}
+                    onChange={(e) => {
+                      const mode = e.target.value as CustomDiscountMode;
+                      setCustomDiscountMode(mode);
+                      if (mode === "none") setCustomDiscountValue(0);
+                    }}
+                  >
+                    <option value="none">None</option>
+                    <option value="percent">Percent</option>
+                    <option value="amount">Amount ($)</option>
+                  </select>
+                </div>
+                {customDiscountMode !== "none" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-disc-value">
+                      {customDiscountMode === "percent"
+                        ? "Discount %"
+                        : "Discount amount"}
+                    </Label>
+                    <Input
+                      id="custom-disc-value"
+                      type="number"
+                      min={0}
+                      max={customDiscountMode === "percent" ? 100 : undefined}
+                      step={customDiscountMode === "percent" ? 0.01 : 0.01}
+                      value={customDiscountValue}
+                      onChange={(e) =>
+                        setCustomDiscountValue(
+                          Math.max(0, parseFloat(e.target.value) || 0),
+                        )
+                      }
+                      className={cn(fieldClass)}
+                    />
+                  </div>
+                ) : null}
+              </div>
               <div className="flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center">
                 <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                   <input
@@ -628,7 +693,7 @@ export function QuoteBuilderClient({
                   <span>
                     Rush / priority{" "}
                     <span className="text-muted-foreground">
-                      (+{rpPct}% after volume discount)
+                      (+{rpPct}% after discounts)
                     </span>
                   </span>
                 </label>
@@ -934,6 +999,34 @@ export function QuoteBuilderClient({
                     <span className="text-muted-foreground">After volume</span>
                     <span className="tabular-nums">{money(totals.after_volume_amount)}</span>
                   </div>
+                  {totals.custom_discount_amount > 0 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">
+                        Custom discount
+                        {totals.custom_discount_mode === "percent"
+                          ? ` (${totals.custom_discount_value}%)`
+                          : ""}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span className="tabular-nums text-primary">
+                          −{money(totals.custom_discount_amount)}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => {
+                            setCustomDiscountMode("none");
+                            setCustomDiscountValue(0);
+                          }}
+                          aria-label="Remove custom discount"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex justify-between gap-4">
                     <span className="text-muted-foreground">Rush uplift</span>
                     <span className="tabular-nums">

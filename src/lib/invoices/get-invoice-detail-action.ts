@@ -1,6 +1,11 @@
 "use server";
 
-import { isValidSegment, type Segment } from "@/lib/quote-pricing";
+import {
+  isValidCustomDiscountMode,
+  isValidSegment,
+  type CustomDiscountMode,
+  type Segment,
+} from "@/lib/quote-pricing";
 import { createClient } from "@/lib/supabase/server";
 import { isInvoiceStatus, type InvoiceStatus } from "@/lib/invoices/types";
 
@@ -31,6 +36,10 @@ export type InvoiceDetailPayload = {
   rush_priority: boolean;
   rush_2day: boolean;
   apply_volume_discount: boolean;
+  custom_discount_mode: CustomDiscountMode;
+  custom_discount_value: number;
+  custom_discount_amount: number;
+  after_custom_amount: number;
   subtotal_amount: number;
   segment_adjustment_amount: number;
   after_segment_amount: number;
@@ -58,7 +67,7 @@ export async function getInvoiceDetailAction(
   const { data: invoice, error: iErr } = await supabase
     .from("invoices")
     .select(
-      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, po_reference, notes, status, due_date, segment, sample_volume, rush_priority, rush_2day, apply_volume_discount, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at, updated_at, last_updated_by_email",
+      "id, source_quote_id, client_org_name, client_address, contact_name, project_title, invoice_reference, po_reference, notes, status, due_date, segment, sample_volume, rush_priority, rush_2day, apply_volume_discount, custom_discount_mode, custom_discount_value, custom_discount_amount, after_custom_amount, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at, updated_at, last_updated_by_email",
     )
     .eq("id", invoiceId)
     .maybeSingle();
@@ -110,6 +119,17 @@ export async function getInvoiceDetailAction(
       rush_priority: Boolean(invoice.rush_priority),
       rush_2day: Boolean(invoice.rush_2day),
       apply_volume_discount: invoice.apply_volume_discount !== false,
+      custom_discount_mode: isValidCustomDiscountMode(
+        String(invoice.custom_discount_mode ?? ""),
+      )
+        ? (invoice.custom_discount_mode as CustomDiscountMode)
+        : "none",
+      custom_discount_value: Number(invoice.custom_discount_value) || 0,
+      custom_discount_amount: Number(invoice.custom_discount_amount) || 0,
+      after_custom_amount:
+        Number(invoice.after_custom_amount) ||
+        Number(invoice.after_volume_amount) ||
+        0,
       subtotal_amount: Number(invoice.subtotal_amount) || 0,
       segment_adjustment_amount: Number(invoice.segment_adjustment_amount) || 0,
       after_segment_amount: afterSeg,

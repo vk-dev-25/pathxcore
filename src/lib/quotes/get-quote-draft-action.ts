@@ -1,6 +1,11 @@
 "use server";
 
-import { isValidSegment, type Segment } from "@/lib/quote-pricing";
+import {
+  isValidCustomDiscountMode,
+  isValidSegment,
+  type CustomDiscountMode,
+  type Segment,
+} from "@/lib/quote-pricing";
 import { isQuoteStatus, type QuoteStatus } from "@/lib/quotes/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,6 +32,9 @@ export type QuoteDraftPayload = {
   rush_priority: boolean;
   rush_2day: boolean;
   volume_discount_amount: number;
+  custom_discount_mode: CustomDiscountMode;
+  custom_discount_value: number;
+  custom_discount_amount: number;
   notes: string;
   /** Last successful save (server `quotes.updated_at`). */
   updated_at: string;
@@ -50,7 +58,7 @@ export async function getQuoteDraftAction(
   const { data: row, error: qErr } = await supabase
     .from("quotes")
     .select(
-      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, status, segment, sample_volume, rush_priority, rush_2day, volume_discount_amount, notes, updated_at, last_updated_by_email",
+      "id, user_id, client_org_name, client_address, contact_name, project_title, quote_reference, status, segment, sample_volume, rush_priority, rush_2day, volume_discount_amount, custom_discount_mode, custom_discount_value, custom_discount_amount, notes, updated_at, last_updated_by_email",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -99,6 +107,13 @@ export async function getQuoteDraftAction(
       rush_priority: Boolean(row.rush_priority),
       rush_2day: Boolean(row.rush_2day),
       volume_discount_amount: Number(row.volume_discount_amount) || 0,
+      custom_discount_mode: isValidCustomDiscountMode(
+        String(row.custom_discount_mode ?? ""),
+      )
+        ? (row.custom_discount_mode as CustomDiscountMode)
+        : "none",
+      custom_discount_value: Number(row.custom_discount_value) || 0,
+      custom_discount_amount: Number(row.custom_discount_amount) || 0,
       notes: row.notes ?? "",
       updated_at: row.updated_at,
       last_updated_by_email: row.last_updated_by_email ?? null,

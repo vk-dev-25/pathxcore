@@ -28,6 +28,10 @@ export type QuoteForPreviewData = {
     volume_discount_percent: number;
     volume_discount_amount: number;
     after_volume_amount: number;
+    custom_discount_mode: string;
+    custom_discount_value: number;
+    custom_discount_amount: number;
+    after_custom_amount: number;
     rush_uplift_amount: number;
     total_amount: number;
   };
@@ -53,7 +57,7 @@ export async function getQuoteForPreviewAction(
   const { data: q, error: qErr } = await supabase
     .from("quotes")
     .select(
-      "id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, rush_uplift_amount, total_amount, created_at",
+      "id, client_org_name, client_address, contact_name, project_title, quote_reference, segment, sample_volume, rush_priority, rush_2day, notes, subtotal_amount, segment_adjustment_amount, after_segment_amount, volume_discount_amount, after_volume_amount, custom_discount_mode, custom_discount_value, custom_discount_amount, after_custom_amount, rush_uplift_amount, total_amount, created_at",
     )
     .eq("id", quoteId)
     .maybeSingle();
@@ -105,6 +109,10 @@ export async function getQuoteForPreviewAction(
         after_segment: afterSeg,
         volume_discount: volDisc,
         after_volume: Number(q.after_volume_amount),
+        custom_discount_mode: q.custom_discount_mode ?? "none",
+        custom_discount_value: Number(q.custom_discount_value) || 0,
+        custom_discount_amount: Number(q.custom_discount_amount) || 0,
+        after_custom: Number(q.after_custom_amount) || Number(q.after_volume_amount),
         rush_uplift: Number(q.rush_uplift_amount),
         total: Number(q.total_amount),
       },
@@ -137,6 +145,11 @@ export async function getQuoteForPreviewAction(
         volume_discount_percent,
         volume_discount_amount: volDisc,
         after_volume_amount: Number(q.after_volume_amount),
+        custom_discount_mode: String(q.custom_discount_mode ?? "none"),
+        custom_discount_value: Number(q.custom_discount_value) || 0,
+        custom_discount_amount: Number(q.custom_discount_amount) || 0,
+        after_custom_amount:
+          Number(q.after_custom_amount) || Number(q.after_volume_amount) || 0,
         rush_uplift_amount: Number(q.rush_uplift_amount),
         total_amount: Number(q.total_amount),
       },

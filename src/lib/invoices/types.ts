@@ -23,6 +23,8 @@ export type InvoiceHeaderInput = {
   rush_priority: boolean;
   rush_2day: boolean;
   apply_volume_discount: boolean;
+  custom_discount_mode: "none" | "percent" | "amount";
+  custom_discount_value: number;
 };
 
 export function isInvoiceStatus(value: string): value is InvoiceStatus {

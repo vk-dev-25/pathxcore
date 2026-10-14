@@ -43,6 +43,10 @@ export function QuotePreviewDialog({
     volume_discount_percent: number;
     volume_discount_amount: number;
     after_volume_amount: number;
+    custom_discount_mode?: string;
+    custom_discount_value?: number;
+    custom_discount_amount?: number;
+    after_custom_amount?: number;
     rush_uplift_amount: number;
     total_amount: number;
   } | null;

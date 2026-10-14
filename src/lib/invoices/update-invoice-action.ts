@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import {
   computeQuoteTotals,
   isValidSegment,
+  normalizeCustomDiscount,
   roundMoney,
   type Segment,
 } from "@/lib/quote-pricing";
@@ -52,6 +53,10 @@ export async function updateInvoiceAction(input: {
 
     const segment = input.header.segment as Segment;
     const sampleVolume = Math.max(0, Math.floor(Number(input.header.sample_volume) || 0));
+    const customDiscount = normalizeCustomDiscount({
+      mode: input.header.custom_discount_mode,
+      value: input.header.custom_discount_value,
+    });
     const pricingSettings = await loadPricingSettings();
     const totals = computeQuoteTotals(
       input.lines.map((line) => ({
@@ -67,7 +72,10 @@ export async function updateInvoiceAction(input: {
       Boolean(input.header.rush_priority),
       Boolean(input.header.rush_2day),
       pricingSettings,
-      { applyVolumeDiscount: Boolean(input.header.apply_volume_discount) },
+      {
+        applyVolumeDiscount: Boolean(input.header.apply_volume_discount),
+        customDiscount,
+      },
     );
 
     const { data: updatedHeader, error: hErr } = await supabase
@@ -86,6 +94,10 @@ export async function updateInvoiceAction(input: {
         rush_priority: Boolean(input.header.rush_priority),
         rush_2day: Boolean(input.header.rush_2day),
         apply_volume_discount: Boolean(input.header.apply_volume_discount),
+        custom_discount_mode: totals.custom_discount_mode,
+        custom_discount_value: totals.custom_discount_value,
+        custom_discount_amount: totals.custom_discount_amount,
+        after_custom_amount: totals.after_custom_amount,
         subtotal_amount: totals.subtotal_amount,
         segment_adjustment_amount: totals.segment_adjustment_amount,
         after_segment_amount: totals.after_segment_amount,

@@ -19,6 +19,7 @@ import {
   SEGMENT_OPTIONS,
   computeQuoteTotals,
   defaultPricingSettings,
+  type CustomDiscountMode,
   type PricingSettingsSnapshot,
   type Segment,
 } from "@/lib/quote-pricing";
@@ -73,6 +74,8 @@ export function InvoiceEditorClient({
     rush_priority: boolean;
     rush_2day: boolean;
     apply_volume_discount: boolean;
+    custom_discount_mode: CustomDiscountMode;
+    custom_discount_value: number;
     created_at: string;
     updated_at: string;
     last_updated_by_email: string | null;
@@ -105,6 +108,11 @@ export function InvoiceEditorClient({
   const [rush2day, setRush2day] = useState(invoice.rush_2day);
   const [applyVolumeDiscount, setApplyVolumeDiscount] = useState(
     invoice.apply_volume_discount,
+  );
+  const [customDiscountMode, setCustomDiscountMode] =
+    useState<CustomDiscountMode>(invoice.custom_discount_mode ?? "none");
+  const [customDiscountValue, setCustomDiscountValue] = useState(
+    Number(invoice.custom_discount_value) || 0,
   );
   const [pickId, setPickId] = useState("");
   const [addQty, setAddQty] = useState(1);
@@ -142,7 +150,13 @@ export function InvoiceEditorClient({
             rushPriority,
             rush2day,
             pricingSettings,
-            { applyVolumeDiscount },
+            {
+              applyVolumeDiscount,
+              customDiscount: {
+                mode: customDiscountMode,
+                value: customDiscountValue,
+              },
+            },
           )
         : null,
     [
@@ -152,6 +166,8 @@ export function InvoiceEditorClient({
       rushPriority,
       rush2day,
       applyVolumeDiscount,
+      customDiscountMode,
+      customDiscountValue,
       pricingSettings,
     ],
   );
@@ -207,6 +223,8 @@ export function InvoiceEditorClient({
           rush_priority: rushPriority,
           rush_2day: rush2day,
           apply_volume_discount: applyVolumeDiscount,
+          custom_discount_mode: customDiscountMode,
+          custom_discount_value: customDiscountValue,
         },
         lines: lines.map((line) => ({
           catalog_service_id: line.catalog_service_id,
@@ -242,6 +260,10 @@ export function InvoiceEditorClient({
     rushPriority,
     rush2day,
     applyVolumeDiscount,
+    customDiscount: {
+      mode: customDiscountMode,
+      value: customDiscountValue,
+    },
     pricingSettings,
   });
 
@@ -436,6 +458,51 @@ export function InvoiceEditorClient({
               />
               <span>Apply volume discount</span>
             </label>
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,11rem)_1fr] sm:items-end">
+              <div className="space-y-2">
+                <Label htmlFor="invoice-custom-disc-mode">Custom discount</Label>
+                <select
+                  id="invoice-custom-disc-mode"
+                  className={cn(
+                    "flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none",
+                    fieldClass,
+                  )}
+                  value={customDiscountMode}
+                  onChange={(e) => {
+                    const mode = e.target.value as CustomDiscountMode;
+                    setCustomDiscountMode(mode);
+                    if (mode === "none") setCustomDiscountValue(0);
+                  }}
+                >
+                  <option value="none">None</option>
+                  <option value="percent">Percent</option>
+                  <option value="amount">Amount ($)</option>
+                </select>
+              </div>
+              {customDiscountMode !== "none" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-custom-disc-value">
+                    {customDiscountMode === "percent"
+                      ? "Discount %"
+                      : "Discount amount"}
+                  </Label>
+                  <Input
+                    id="invoice-custom-disc-value"
+                    type="number"
+                    min={0}
+                    max={customDiscountMode === "percent" ? 100 : undefined}
+                    step={0.01}
+                    value={customDiscountValue}
+                    onChange={(e) =>
+                      setCustomDiscountValue(
+                        Math.max(0, parseFloat(e.target.value) || 0),
+                      )
+                    }
+                    className={fieldClass}
+                  />
+                </div>
+              ) : null}
+            </div>
             <div className="flex flex-col gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-3 sm:flex-row sm:items-center">
               <label className="flex cursor-pointer items-center gap-2.5 text-sm text-foreground">
                 <input
@@ -447,7 +514,7 @@ export function InvoiceEditorClient({
                 <span>
                   Rush / priority{" "}
                   <span className="text-muted-foreground">
-                    (+{rpPct}% after volume discount)
+                    (+{rpPct}% after discounts)
                   </span>
                 </span>
               </label>
@@ -621,6 +688,34 @@ export function InvoiceEditorClient({
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         ) : null}
+                      </span>
+                    </div>
+                  ) : null}
+                  {Math.abs(totals.custom_discount_amount) >= 0.005 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-muted-foreground">
+                        Custom discount
+                        {totals.custom_discount_mode === "percent"
+                          ? ` (${totals.custom_discount_value}%)`
+                          : ""}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span className="tabular-nums text-primary">
+                          −{money(totals.custom_discount_amount)}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => {
+                            setCustomDiscountMode("none");
+                            setCustomDiscountValue(0);
+                          }}
+                          aria-label="Remove custom discount"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </span>
                     </div>
                   ) : null}
