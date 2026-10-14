@@ -167,6 +167,31 @@ export interface QuoteLineInput {
   is_price_overridden: boolean;
 }
 
+export type CustomDiscountMode = "none" | "percent" | "amount";
+
+export type CustomDiscountInput = {
+  mode: CustomDiscountMode;
+  /** Percent 0–100, or dollar amount ≥ 0, depending on mode. */
+  value: number;
+};
+
+export function isValidCustomDiscountMode(s: string): s is CustomDiscountMode {
+  return s === "none" || s === "percent" || s === "amount";
+}
+
+export function normalizeCustomDiscount(
+  raw?: CustomDiscountInput | null,
+): CustomDiscountInput {
+  const mode = raw && isValidCustomDiscountMode(raw.mode) ? raw.mode : "none";
+  const valueRaw = Number(raw?.value);
+  const value = Number.isFinite(valueRaw) ? Math.max(0, valueRaw) : 0;
+  if (mode === "none") return { mode: "none", value: 0 };
+  if (mode === "percent") {
+    return { mode: "percent", value: Math.min(100, roundMoney(value)) };
+  }
+  return { mode: "amount", value: roundMoney(value) };
+}
+
 export function computeQuoteTotals(
   lines: QuoteLineInput[],
   segment: Segment,
@@ -174,7 +199,10 @@ export function computeQuoteTotals(
   rushPriority: boolean,
   rush2day: boolean,
   settings?: PricingSettingsSnapshot,
-  options?: { applyVolumeDiscount?: boolean },
+  options?: {
+    applyVolumeDiscount?: boolean;
+    customDiscount?: CustomDiscountInput | null;
+  },
 ) {
   const snap = settings ?? defaultPricingSettings();
   const servicesSubtotal = roundMoney(
@@ -189,12 +217,24 @@ export function computeQuoteTotals(
     ? roundMoney(afterSegment * (volPct / 100))
     : 0;
   const afterVolume = roundMoney(afterSegment - volumeDiscountAmount);
+
+  const custom = normalizeCustomDiscount(options?.customDiscount);
+  let customDiscountAmount = 0;
+  if (custom.mode === "percent" && custom.value > 0) {
+    customDiscountAmount = roundMoney(afterVolume * (custom.value / 100));
+  } else if (custom.mode === "amount" && custom.value > 0) {
+    customDiscountAmount = roundMoney(custom.value);
+  }
+  // Never discount past zero before rush.
+  customDiscountAmount = Math.min(customDiscountAmount, afterVolume);
+  const afterCustom = roundMoney(afterVolume - customDiscountAmount);
+
   const rp = snap.rush_priority_percent / 100;
   const r2 = snap.rush_2day_percent / 100;
   let rushUplift = 0;
-  if (rushPriority) rushUplift += roundMoney(afterVolume * rp);
-  if (rush2day) rushUplift += roundMoney(afterVolume * r2);
-  const totalAmount = roundMoney(afterVolume + rushUplift);
+  if (rushPriority) rushUplift += roundMoney(afterCustom * rp);
+  if (rush2day) rushUplift += roundMoney(afterCustom * r2);
+  const totalAmount = roundMoney(afterCustom + rushUplift);
 
   return {
     subtotal_amount: servicesSubtotal,
@@ -203,6 +243,10 @@ export function computeQuoteTotals(
     volume_discount_percent: volPct,
     volume_discount_amount: volumeDiscountAmount,
     after_volume_amount: afterVolume,
+    custom_discount_mode: custom.mode,
+    custom_discount_value: custom.mode === "none" ? 0 : custom.value,
+    custom_discount_amount: customDiscountAmount,
+    after_custom_amount: afterCustom,
     rush_uplift_amount: rushUplift,
     total_amount: totalAmount,
   };

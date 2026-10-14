@@ -202,6 +202,19 @@ export function InvoicePreviewContent({ data }: { data: InvoicePreviewData }) {
             </span>
           </div>
         ) : null}
+        {Math.abs(data.totals.custom_discount_amount) >= 0.005 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-muted-foreground print:text-neutral-700">
+              Custom discount
+              {data.totals.custom_discount_mode === "percent"
+                ? ` (${data.totals.custom_discount_value}%)`
+                : ""}
+            </span>
+            <span className="print:text-black">
+              −{money(data.totals.custom_discount_amount)}
+            </span>
+          </div>
+        ) : null}
         {Math.abs(data.totals.rush_uplift_amount) >= 0.005 ? (
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground print:text-neutral-700">

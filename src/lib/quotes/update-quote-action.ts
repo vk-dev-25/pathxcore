@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import {
   computeQuoteTotals,
   isValidSegment,
+  normalizeCustomDiscount,
   roundMoney,
+  type CustomDiscountInput,
   type QuoteLineInput,
   type Segment,
 } from "@/lib/quote-pricing";
@@ -31,6 +33,7 @@ export async function updateQuoteAction(input: {
   rush_priority: boolean;
   rush_2day: boolean;
   apply_volume_discount?: boolean;
+  custom_discount?: CustomDiscountInput | null;
   notes: string;
   lines: QuoteLineInput[];
 }): Promise<SaveQuoteState> {
@@ -91,6 +94,7 @@ export async function updateQuoteAction(input: {
   );
 
   const pricingSettings = await loadPricingSettings();
+  const customDiscount = normalizeCustomDiscount(input.custom_discount);
   const totals = computeQuoteTotals(
     input.lines,
     segment,
@@ -98,7 +102,10 @@ export async function updateQuoteAction(input: {
     input.rush_priority,
     input.rush_2day,
     pricingSettings,
-    { applyVolumeDiscount: input.apply_volume_discount ?? true },
+    {
+      applyVolumeDiscount: input.apply_volume_discount ?? true,
+      customDiscount,
+    },
   );
 
   let clientId: string | null = null;
@@ -133,6 +140,10 @@ export async function updateQuoteAction(input: {
       after_segment_amount: totals.after_segment_amount,
       volume_discount_amount: totals.volume_discount_amount,
       after_volume_amount: totals.after_volume_amount,
+      custom_discount_mode: totals.custom_discount_mode,
+      custom_discount_value: totals.custom_discount_value,
+      custom_discount_amount: totals.custom_discount_amount,
+      after_custom_amount: totals.after_custom_amount,
       rush_uplift_amount: totals.rush_uplift_amount,
       total_amount: totals.total_amount,
       updated_at: new Date().toISOString(),

@@ -3,6 +3,7 @@ import type { InvoiceStatus } from "@/lib/invoices/types";
 import {
   computeQuoteTotals,
   isValidSegment,
+  type CustomDiscountInput,
   type PricingSettingsSnapshot,
   type Segment,
 } from "@/lib/quote-pricing";
@@ -14,6 +15,10 @@ export type InvoicePreviewTotals = {
   volume_discount_percent: number;
   volume_discount_amount: number;
   after_volume_amount: number;
+  custom_discount_mode: string;
+  custom_discount_value: number;
+  custom_discount_amount: number;
+  after_custom_amount: number;
   rush_uplift_amount: number;
   total_amount: number;
 };
@@ -47,6 +52,10 @@ export function invoiceDetailToPreview(d: InvoiceDetailPayload): InvoicePreviewD
     volume_discount_percent: d.volume_discount_percent,
     volume_discount_amount: d.volume_discount_amount,
     after_volume_amount: d.after_volume_amount,
+    custom_discount_mode: d.custom_discount_mode,
+    custom_discount_value: d.custom_discount_value,
+    custom_discount_amount: d.custom_discount_amount,
+    after_custom_amount: d.after_custom_amount,
     rush_uplift_amount: d.rush_uplift_amount,
     total_amount: d.total_amount,
   };
@@ -89,6 +98,7 @@ export function invoiceDraftToPreview(args: {
   rushPriority: boolean;
   rush2day: boolean;
   applyVolumeDiscount: boolean;
+  customDiscount?: CustomDiscountInput | null;
   pricingSettings: PricingSettingsSnapshot;
 }): InvoicePreviewData {
   const lines = args.lines.map((l) => {
@@ -117,7 +127,10 @@ export function invoiceDraftToPreview(args: {
     args.rushPriority,
     args.rush2day,
     args.pricingSettings,
-    { applyVolumeDiscount: args.applyVolumeDiscount },
+    {
+      applyVolumeDiscount: args.applyVolumeDiscount,
+      customDiscount: args.customDiscount,
+    },
   );
   return {
     invoice_reference: args.invoiceRef || "—",
